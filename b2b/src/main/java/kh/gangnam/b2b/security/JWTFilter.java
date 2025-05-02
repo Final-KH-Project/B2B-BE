@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kh.gangnam.b2b.dto.login.CustomUserDetails;
+import kh.gangnam.b2b.dto.auth.CustomUserDetails;
 import kh.gangnam.b2b.entity.UserEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

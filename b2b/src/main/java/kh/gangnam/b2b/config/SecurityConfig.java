@@ -2,11 +2,13 @@ package kh.gangnam.b2b.config;
 
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
+import kh.gangnam.b2b.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -20,12 +22,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthenticationConfiguration authenticationConfiguration;
+    private final CustomUserDetailsService customUserDetailsService;
     private final JWTUtil jwtUtil;
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        // 커스텀 서비스 주입
+        provider.setUserDetailsService(customUserDetailsService);
+        // 패스워드 인코더 연결
+        provider.setPasswordEncoder(bCryptPasswordEncoder());
+        return new ProviderManager(provider);
     }
 
     @Bean

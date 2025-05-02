@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.login;
+package kh.gangnam.b2b.dto.auth;
 
 import kh.gangnam.b2b.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
