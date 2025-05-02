@@ -24,8 +24,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final JWTUtil jwtUtil;
 
     /**
      * 회원 가입 로직
@@ -55,31 +53,5 @@ public class AuthService {
         userRepository.save(data);
 
         return ResponseEntity.ok(username + " 회원가입 완료");
-    }
-
-
-    /**
-     * 로그인 로직
-     * @param request
-     * @return
-     * 로그인 실패시
-     */
-    public ResponseEntity<LoginResponse> loginProcess(LoginDTO request) {
-        UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-
-        Authentication authentication = authenticationManager.authenticate(authToken);
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        String token = jwtUtil.createJwt(
-                userDetails.getUsername(),
-                userDetails.getAuthorities().iterator().next().getAuthority(),
-                60 * 60 * 10L
-        );
-
-        return ResponseEntity.ok(LoginResponse.builder()
-                .accessToken(token)
-                .expiresAt(LocalDateTime.now().plusHours(10))
-                .build());
     }
 }

@@ -1,14 +1,13 @@
 package kh.gangnam.b2b.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
-import kh.gangnam.b2b.service.CustomUserDetailsService;
-import lombok.RequiredArgsConstructor;
+import kh.gangnam.b2b.security.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,44 +18,64 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final ObjectMapper objectMapper;
+
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper) {
+
+        this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtUtil = jwtUtil;
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
-    public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        // 커스텀 서비스 주입
-        provider.setUserDetailsService(customUserDetailsService);
-        // 패스워드 인코더 연결
-        provider.setPasswordEncoder(bCryptPasswordEncoder());
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        //csrf disable
         http
-                .cors(cors -> {})
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/").permitAll()
+                .csrf(AbstractHttpConfigurer::disable);
+
+        //From 로그인 방식 disable
+        http
+                .formLogin(AbstractHttpConfigurer::disable);
+
+        //http basic 인증 방식 disable
+        http
+                .httpBasic(AbstractHttpConfigurer::disable);
+
+
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session
+                        .requestMatchers("/api/auth/reissue").permitAll()
+                        .anyRequest().authenticated());
+
+        http
+                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+        http
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper), UsernamePasswordAuthenticationFilter.class);
+
+        //세션 설정
+        http
+                .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
-
 }
-

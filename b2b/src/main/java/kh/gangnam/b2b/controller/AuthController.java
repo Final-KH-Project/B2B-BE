@@ -23,9 +23,4 @@ public class AuthController {
 
         return authService.joinProcess(joinDTO);
     }
-
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginDTO request) {
-        return authService.loginProcess(request);
-    }
 }
