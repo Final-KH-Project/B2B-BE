@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -48,36 +49,32 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         //csrf disable
         http
-                .csrf(AbstractHttpConfigurer::disable);
+                .csrf(AbstractHttpConfigurer::disable)
+                //From 로그인 방식 disable
+                .formLogin(AbstractHttpConfigurer::disable)
+                //http basic 인증 방식 disable
+                .httpBasic(AbstractHttpConfigurer::disable)
+                // cors
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-        //From 로그인 방식 disable
-        http
-                .formLogin(AbstractHttpConfigurer::disable);
-
-        //http basic 인증 방식 disable
-        http
-                .httpBasic(AbstractHttpConfigurer::disable);
-
-
-        http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .requestMatchers("/api/auth/reissue").permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
 
-        http
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
-        http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper, refreshRepository), UsernamePasswordAuthenticationFilter.class);
-
-        //세션 설정
-        http
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration),
+                        jwtUtil,
+                        objectMapper,
+                        refreshRepository),
+                        UsernamePasswordAuthenticationFilter.class)
+                //세션 설정
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
