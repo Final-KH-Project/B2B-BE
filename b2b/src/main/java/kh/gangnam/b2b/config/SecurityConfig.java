@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
 import kh.gangnam.b2b.security.LoginFilter;
@@ -23,12 +24,14 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final RefreshRepository refreshRepository;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
 
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
+        this.refreshRepository = refreshRepository;
     }
 
     @Bean
@@ -69,7 +72,7 @@ public class SecurityConfig {
         http
                 .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper, refreshRepository), UsernamePasswordAuthenticationFilter.class);
 
         //세션 설정
         http

@@ -66,8 +66,9 @@ public class ReissueController {
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
 
-        //make new JWT, new Refresh
-        String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
+        //make new JWT, new Refresh 3,600,000ms = 1시간
+        String newAccess = jwtUtil.createJwt("access", username, role, 3600000L);
+        // 86,400,000 = 하루
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
 
