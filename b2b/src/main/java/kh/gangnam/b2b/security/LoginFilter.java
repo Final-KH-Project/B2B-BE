@@ -115,7 +115,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private void addRefreshEntity(String username, String refresh, LocalDateTime expiredMs) {
 
         // 기존 토큰 삭제
-        refreshRepository.deleteByUsername(username);
+        refreshRepository.findByUsername(username)
+                .ifPresent(refreshRepository::delete);
 
         // 새 토큰 저장
         RefreshEntity refreshEntity = RefreshEntity.builder()

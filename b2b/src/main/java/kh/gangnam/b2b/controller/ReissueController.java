@@ -6,15 +6,19 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.LoginResponse;
+import kh.gangnam.b2b.entity.RefreshEntity;
+import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class ReissueController {
 
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final RefreshRepository refreshRepository;
 
 
     @PostMapping("/api/auth/reissue")
@@ -44,6 +49,9 @@ public class ReissueController {
             //response status code
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
         }
+        // DB에 refresh 토큰 존재 확인
+        RefreshEntity refreshEntity = refreshRepository.findByRefresh(refresh)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "refresh token not found in DB"));
 
         //expired check
         try {
@@ -71,6 +79,9 @@ public class ReissueController {
         // 86,400,000 = 하루
         String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
+
+        // RefreshEntity 저장
+        addRefreshEntity(username, newRefresh, expiresAt);
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
@@ -100,5 +111,21 @@ public class ReissueController {
         cookie.setHttpOnly(true);
 
         return cookie;
+    }
+
+    private void addRefreshEntity(String username, String refresh, LocalDateTime expiredMs) {
+
+        // 기존 토큰 삭제
+        refreshRepository.findByUsername(username)
+                .ifPresent(refreshRepository::delete);
+
+        // 새 토큰 저장
+        RefreshEntity refreshEntity = RefreshEntity.builder()
+                .username(username)
+                .refresh(refresh)
+                .expiresAt(expiredMs)
+                .build();
+
+        refreshRepository.save(refreshEntity);
     }
 }

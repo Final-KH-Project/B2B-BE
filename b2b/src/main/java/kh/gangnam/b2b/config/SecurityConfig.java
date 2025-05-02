@@ -2,7 +2,7 @@ package kh.gangnam.b2b.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kh.gangnam.b2b.repository.RefreshRepository;
-import kh.gangnam.b2b.security.JWTFilter;
+import kh.gangnam.b2b.security.CustomLogoutFilter;
 import kh.gangnam.b2b.security.JWTUtil;
 import kh.gangnam.b2b.security.LoginFilter;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -64,13 +65,14 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .requestMatchers("/api/auth/reissue").permitAll()
                         .anyRequest().authenticated());
 
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class);
         http
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, objectMapper, refreshRepository), UsernamePasswordAuthenticationFilter.class);
 
