@@ -50,8 +50,9 @@ public class ReissueController {
             return new ResponseEntity<>("refresh token null", HttpStatus.BAD_REQUEST);
         }
         // DB에 refresh 토큰 존재 확인
-        RefreshEntity refreshEntity = refreshRepository.findByRefresh(refresh)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "refresh token not found in DB"));
+        if (!refreshRepository.existsByRefresh(refresh)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "refresh token not found in DB");
+        }
 
         //expired check
         try {
