@@ -61,10 +61,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         //토큰 생성
         // 3,600,000ms = 1시간
-        String access = jwtUtil.createJwt("access", username, role, 360_000L);
+        String access = jwtUtil.createJwt("access", username, role, 3600L);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
         // 86,400,000ms = 하루
-        String refresh = jwtUtil.createJwt("refresh", username, role, 86_400_000L);
+        String refresh = jwtUtil.createJwt("refresh", username, role, 8640L);
 
 
         // LoginResponse 객체 생성

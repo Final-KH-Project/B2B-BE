@@ -51,6 +51,9 @@ public class ReissueController {
         }
         // DB에 refresh 토큰 존재 확인
         if (!refreshRepository.existsByRefresh(refresh)) {
+            Cookie cookie = new Cookie("refresh", null);
+            cookie.setMaxAge(0); // 즉시 만료
+            response.addCookie(cookie);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "refresh token not found in DB");
         }
 
@@ -76,9 +79,9 @@ public class ReissueController {
         String role = jwtUtil.getRole(refresh);
 
         //make new JWT, new Refresh 3,600,000ms = 1시간
-        String newAccess = jwtUtil.createJwt("access", username, role, 3600000L);
+        String newAccess = jwtUtil.createJwt("access", username, role, 3600L);
         // 86,400,000 = 하루
-        String newRefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, 8640L);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
 
         // RefreshEntity 저장
