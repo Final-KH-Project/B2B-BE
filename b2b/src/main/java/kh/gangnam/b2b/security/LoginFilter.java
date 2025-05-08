@@ -64,7 +64,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.createJwt("access", username, role, 3600L);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
         // 86,400,000ms = 하루
-        String refresh = jwtUtil.createJwt("refresh", username, role, 8640L);
+        String refresh = jwtUtil.createJwt("refresh", username, role, 20000L);
 
 
         // LoginResponse 객체 생성
