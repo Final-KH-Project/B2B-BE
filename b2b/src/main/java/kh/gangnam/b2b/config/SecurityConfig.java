@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.security.CustomLogoutFilter;
+import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
 import kh.gangnam.b2b.security.LoginFilter;
 import org.springframework.context.annotation.Bean;
@@ -89,10 +90,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
+                        .requestMatchers("/test/url").hasRole("ADMIN")
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .requestMatchers("/api/auth/reissue").permitAll()
                         .anyRequest().authenticated())
 
+                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration),
                         jwtUtil,
