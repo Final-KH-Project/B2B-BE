@@ -10,6 +10,7 @@ import kh.gangnam.b2b.entity.RefreshEntity;
 import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,12 @@ public class ReissueController {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
+
+    @Value("${token.accessExpired}")
+    private Long accessExpired;
+
+    @Value("${token.refreshExpired}")
+    private Long refreshExpired;
 
 
     @PostMapping("/api/auth/reissue")
@@ -79,10 +86,10 @@ public class ReissueController {
         String role = jwtUtil.getRole(refresh);
 
         //make new JWT, new Refresh 3,600,000ms = 1시간
-        String newAccess = jwtUtil.createJwt("access", username, role, 3600L);
+        String newAccess = jwtUtil.createJwt("access", username, role, accessExpired);
         // 86,400,000 = 하루
-        String newRefresh = jwtUtil.createJwt("refresh", username, role, 20000L);
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(3600L);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, refreshExpired);
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
 
         // RefreshEntity 저장
         addRefreshEntity(username, newRefresh, expiresAt);
@@ -109,7 +116,7 @@ public class ReissueController {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24*60*60);
+        cookie.setMaxAge((int) (refreshExpired/1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

@@ -7,6 +7,7 @@ import kh.gangnam.b2b.security.CustomLogoutFilter;
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
 import kh.gangnam.b2b.security.LoginFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +34,12 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
+
+    @Value("${token.accessExpired}")
+    private Long accessExpired;
+
+    @Value("${token.refreshExpired}")
+    private Long refreshExpired;
 
     public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
 
@@ -100,7 +107,9 @@ public class SecurityConfig {
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration),
                         jwtUtil,
                         objectMapper,
-                        refreshRepository),
+                        refreshRepository,
+                        accessExpired,
+                        refreshExpired),
                         UsernamePasswordAuthenticationFilter.class)
                 //세션 설정
                 .sessionManagement((session) -> session

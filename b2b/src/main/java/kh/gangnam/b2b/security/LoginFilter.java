@@ -9,6 +9,7 @@ import kh.gangnam.b2b.dto.auth.LoginDTO;
 import kh.gangnam.b2b.dto.auth.LoginResponse;
 import kh.gangnam.b2b.entity.RefreshEntity;
 import kh.gangnam.b2b.repository.RefreshRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,12 +28,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
+    private final Long accessExpired;
+    private final Long refreshExpired;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
+
+
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
+        this.accessExpired = accessExpired;
+        this.refreshExpired = refreshExpired;
         setFilterProcessesUrl("/api/auth/login");
     }
 
@@ -59,12 +66,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
+
         //토큰 생성
         // 3,600,000ms = 1시간
-        String access = jwtUtil.createJwt("access", username, role, 10000L);
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(10000L);
+        String access = jwtUtil.createJwt("access", username, role, accessExpired);
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
         // 86,400,000ms = 하루
-        String refresh = jwtUtil.createJwt("refresh", username, role, 20000L);
+        String refresh = jwtUtil.createJwt("refresh", username, role, refreshExpired);
 
 
         // LoginResponse 객체 생성
@@ -98,7 +106,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(24*60*60);
+        cookie.setMaxAge((int) (refreshExpired/1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
