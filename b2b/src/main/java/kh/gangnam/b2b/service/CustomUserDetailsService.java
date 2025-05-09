@@ -1,7 +1,7 @@
 package kh.gangnam.b2b.service;
 
 import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.entity.UserEntity;
+import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        UserEntity userData = userRepository.findByUsername(username);
+        User userData = userRepository.findByUsername(username);
 
         if (userData != null) {
 

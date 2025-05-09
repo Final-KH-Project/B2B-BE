@@ -5,8 +5,8 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kh.gangnam.b2b.dto.auth.LoginResponse;
-import kh.gangnam.b2b.entity.RefreshEntity;
+import kh.gangnam.b2b.dto.auth.response.LoginResponse;
+import kh.gangnam.b2b.entity.auth.Refresh;
 import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -131,7 +130,7 @@ public class ReissueController {
                 .ifPresent(refreshRepository::delete);
 
         // 새 토큰 저장
-        RefreshEntity refreshEntity = RefreshEntity.builder()
+        Refresh refreshEntity = Refresh.builder()
                 .username(username)
                 .refresh(refresh)
                 .expiresAt(expiredMs)

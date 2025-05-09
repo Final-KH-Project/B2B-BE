@@ -1,8 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.JoinDTO;
-import kh.gangnam.b2b.dto.auth.LoginDTO;
-import kh.gangnam.b2b.dto.auth.LoginResponse;
+import kh.gangnam.b2b.dto.auth.request.JoinDTO;
 import kh.gangnam.b2b.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

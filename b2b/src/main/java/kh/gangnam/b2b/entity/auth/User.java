@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.entity;
+package kh.gangnam.b2b.entity.auth;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Entity
 @Setter
 @Getter
-public class UserEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +18,12 @@ public class UserEntity {
 
     private String username;
     private String password;
+    private String name;
+    private String profile;
+    private String department;
+    private String position;
+    private String dateOfBirth;
+    private String phoneNumber;
 
     private String role;
 }

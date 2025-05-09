@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.auth;
+package kh.gangnam.b2b.dto.auth.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;

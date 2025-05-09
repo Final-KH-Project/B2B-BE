@@ -1,22 +1,13 @@
 package kh.gangnam.b2b.service;
 
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.dto.auth.JoinDTO;
-import kh.gangnam.b2b.dto.auth.LoginDTO;
-import kh.gangnam.b2b.dto.auth.LoginResponse;
-import kh.gangnam.b2b.entity.UserEntity;
+import kh.gangnam.b2b.dto.auth.request.JoinDTO;
+import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.repository.UserRepository;
-import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -44,13 +35,13 @@ public class AuthService {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(username + "는 이미 존재하는 아이디입니다.");
         }
 
-        UserEntity data = new UserEntity();
+        // 비밀번호 인코딩
+        String encodedPassword = bCryptPasswordEncoder.encode(password);
 
-        data.setUsername(username);
-        data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole("ROLE_ADMIN");
+        // User 엔티티로 변환
+        User user = joinDTO.toEntity(encodedPassword, "ROLE_ADMIN");
 
-        userRepository.save(data);
+        userRepository.save(user);
 
         return ResponseEntity.ok(username + " 회원가입 완료");
     }

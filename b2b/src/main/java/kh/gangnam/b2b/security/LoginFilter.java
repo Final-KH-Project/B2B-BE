@@ -5,11 +5,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kh.gangnam.b2b.dto.auth.LoginDTO;
-import kh.gangnam.b2b.dto.auth.LoginResponse;
-import kh.gangnam.b2b.entity.RefreshEntity;
+import kh.gangnam.b2b.dto.auth.request.LoginDTO;
+import kh.gangnam.b2b.dto.auth.response.LoginResponse;
+import kh.gangnam.b2b.entity.auth.Refresh;
 import kh.gangnam.b2b.repository.RefreshRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -127,7 +126,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .ifPresent(refreshRepository::delete);
 
         // 새 토큰 저장
-        RefreshEntity refreshEntity = RefreshEntity.builder()
+        Refresh refreshEntity = Refresh.builder()
                 .username(username)
                 .refresh(refresh)
                 .expiresAt(expiredMs)
