@@ -47,7 +47,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
-            jwtUtil.isExpired(token);
+            jwtUtil.validateExpiration(token);
         } catch (ExpiredJwtException e) {
 
             //response body

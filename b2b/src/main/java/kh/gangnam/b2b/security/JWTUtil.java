@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -43,6 +44,15 @@ public class JWTUtil {
 
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
+
+    // 이전 Access 토큰 만료 여부 체크
+    public void validateExpiration(String token) {
+        Date expiration = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
+        if (expiration.before(new Date())) {
+            throw new ExpiredJwtException(null, null, "Token expired");
+        }
+    }
+
 
 
     public String createJwt(String category, String username, Long userId, String role, Long expiredMs) {
