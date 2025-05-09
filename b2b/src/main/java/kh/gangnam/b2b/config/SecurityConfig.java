@@ -95,11 +95,14 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests((auth) -> auth
+                        // 토큰 필요없는 경우 (로그인과 회원가입)
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
-                        .requestMatchers("/test/url").hasRole("ADMIN")
+                        // 토큰 ROLE 이 ADMIN인 경우
                         .requestMatchers("/admin").hasRole("ADMIN")
+                        // 토큰이 필요없지만 토큰 판별식이 별도로 존재함
                         .requestMatchers("/api/auth/reissue").permitAll()
+                        // 나머지 엔드포인트는 토큰 필요
                         .anyRequest().authenticated())
 
                 .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
