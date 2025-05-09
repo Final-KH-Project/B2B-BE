@@ -18,11 +18,11 @@ public class UserController {
     private final UserServiceImpl userService;
 
     // 마이페이지: 현재 로그인한 사용자 정보 조회
-    @GetMapping("/mypage")
+    @GetMapping("/profile")
     public ResponseEntity<UserDTO> myPage(@AuthenticationPrincipal CustomUserDetails userDetails) {
         // userDetails는 JWTFilter에서 인증된 사용자 정보
-        String username = userDetails.getUsername();
-        UserDTO userDto = userService.getUserInfoByUsername(username);
+        Long userId = userDetails.getUserId();
+        UserDTO userDto = userService.getUserInfoByUserId(userId);
         return ResponseEntity.ok(userDto);
     }
 }

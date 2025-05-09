@@ -12,8 +12,8 @@ public class UserServiceImpl {
 
     private final UserRepository userRepository;
 
-    public UserDTO getUserInfoByUsername(String username) {
-        User user = userRepository.findByUsername(username);
+    public UserDTO getUserInfoByUserId(Long userId) {
+        User user = userRepository.findByUserId(userId);
         if (user == null) {
             throw new RuntimeException("사용자를 찾을 수 없습니다.");
         }

@@ -5,8 +5,9 @@ import lombok.Data;
 
 @Data
 public class UserDTO {
-    private Long id;
+    private Long UserId;
     private String username;
+    private String name;
     private String profile;
     private String department;
     private String position;
@@ -16,8 +17,9 @@ public class UserDTO {
 
     public static UserDTO fromEntity(User user) {
         UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
+        dto.setUserId(user.getUserId());
         dto.setUsername(user.getUsername());
+        dto.setName(user.getName());
         dto.setProfile(user.getProfile());
         dto.setDepartment(user.getDepartment());
         dto.setPosition(user.getPosition());
