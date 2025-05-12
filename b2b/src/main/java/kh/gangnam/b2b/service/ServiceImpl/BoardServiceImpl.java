@@ -3,14 +3,19 @@ package kh.gangnam.b2b.service.ServiceImpl;
 import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.SaveBoard;
 import kh.gangnam.b2b.dto.board.request.UpdateBoard;
-import kh.gangnam.b2b.repository.board.AnonymousBoardRepository;
-import kh.gangnam.b2b.repository.board.EventBoardRepository;
-import kh.gangnam.b2b.repository.board.FreeBoardRepository;
-import kh.gangnam.b2b.repository.board.NoticeBoardRepository;
+import kh.gangnam.b2b.dto.s3.S3Response;
+import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.board.ImgBoardPath;
+import kh.gangnam.b2b.entity.board.NoticeBoard;
+import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.repository.board.*;
 import kh.gangnam.b2b.service.BoardService;
+import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,31 +24,51 @@ import java.util.List;
 public class BoardServiceImpl implements BoardService {
 
     // Board 서비스 비즈니스 로직 구현
+    private final UserRepository userRepo;
     private final NoticeBoardRepository noticeRepo;
     private final FreeBoardRepository freeRepo;
     private final EventBoardRepository eventRepo;
     private final AnonymousBoardRepository anonymousRepo;
+    private final ImgBoardPathRepository imageRepo;
+    private final S3ServiceUtil s3ServiceUtil;
 
     @Override
     public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard) {
 
-        String postType = saveBoard.getPostType();
-        List<String> imageUrls = saveBoard.getImageUrls();
-        switch (postType) {
-            case "notice":
-                // 자유 게시판에 저장
-                break;
-            case "free":
-                // 공지 게시판에 저장
-                break;
-            case "event":
-                // 이벤트 게시판에 저장
-                break;
-            case "anonymous":
-                // 익명 게시판에 저장
-                break;
-        }
+        String postType = saveBoard.getPostType(); // 게시글 작성 위치
+        List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
+        Long userId = saveBoard.getUserId(); // 작성자 id
 
+        // fk 저장을 위한 user id 찾기
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+//        switch (postType) {
+//            case "notice":
+//                // 자유 게시판에 저장
+//                break;
+//            case "free":
+//                // 공지 게시판에 저장
+//                break;
+//            case "event":
+//                // 이벤트 게시판에 저장
+//                break;
+//            case "anonymous":
+//                // 익명 게시판에 저장
+//                break;
+//        } 일단 공지 게시판에 저장하는 로직만 구현
+
+        NoticeBoard noticeBoard = noticeRepo.save(saveBoard.toEntity(user));
+
+        // 반복문을 통해 url 리스트 처리
+        for (String url : imageUrls) {
+            // 임시저장된 이미지들 upload/postId 폴더로 복사
+            S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, noticeBoard.getId());
+
+            // 이미지 테이블에 저장하는 로직
+            ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
+            System.out.println("이미지 테이블" + imgBoardPath.getS3Path()+ imgBoardPath.getId());
+        }
         return null;
     }
 
@@ -65,6 +90,23 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public ResponseEntity<String> deleteBoard(String type, Long id) {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<?> saveS3Image(MultipartFile postFile) {
+
+        String imageUrl = null;
+        try {
+            S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
+            imageUrl = s3Response.getUrl();
+            System.out.println(s3Response.getBucketKey());
+        } catch (Exception e) {
+            e.printStackTrace(); // 콘솔에 에러 출력
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("실패: " + e.getMessage());
+        }
+
+        return ResponseEntity.ok(imageUrl);
     }
 
 }

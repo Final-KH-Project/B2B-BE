@@ -3,7 +3,6 @@ package kh.gangnam.b2b.util;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Resource;
 import io.awspring.cloud.s3.S3Template;
-import kh.gangnam.b2b.dto.s3.S3Request;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ public class S3ServiceUtil {
     private final S3Template s3Template;
     private final S3Client s3Client;
 
-    // application.properties에서 설정된 S3 버킷 이름
+    // application.yml에서 설정된 S3 버킷 이름
     @Value("${spring.cloud.aws.s3.bucket}")
     private String BUCKET_NAME;
 
@@ -75,32 +74,30 @@ public class S3ServiceUtil {
     /**
      * 임시 파일을 실제 저장 위치로 이동합니다.
      *
-     * @param s3Request 임시 파일의 URL
+     * @param url 임시 파일의 URL
      * @param postId  사용자 PK
      * @return 이동된 파일의 S3FileResponse
      */
 
-    public S3Response moveFromTempToUpload(S3Request s3Request, int postId) {
-        // tempUrl에서 키 추출
-        String tempKey = s3Request.getUrl();
+    public S3Response moveFromTempToUpload(String url, Long postId) {
 
-        // 실제 저장 경로 생성
-        //temp/101/computer_24dp-804603383.svg  ==>  /computer_24dp-804603383.svg
-        //  upload/101/computer_24dp-804603383.svg
-        String uploadKey = UPLOAD_PATH + postId + tempKey.substring(tempKey.lastIndexOf("/"));
+        // tempUrl에서 키 추출
+        String prefix = "https://s3.ap-northeast-2.amazonaws.com/com.kh.cjh.bucket/";
+        String bucketKey = url.replace(prefix, "");
+        String uploadKey = UPLOAD_PATH + postId + url.substring(url.lastIndexOf("/"));
 
         // 파일 이동(tempKey, uploadKey)
-        return moveFile(s3Request.getBucketKey(), uploadKey, s3Request);
+        return moveFile(bucketKey, uploadKey);
     }
 
-    public S3Response moveFile(String sourceKey, String destinationKey, S3Request s3FileRequest) {
+    public S3Response moveFile(String sourceKey, String destinationKey) {
         try {
             CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                     .sourceBucket(BUCKET_NAME)//원본의 버킷이름
                     .sourceKey(sourceKey)//원본의 키->temp/폴더의 키
                     .destinationBucket(BUCKET_NAME)//복사할 버킷이름
                     .destinationKey(destinationKey)//upload/폴더의 키
-                    .acl(ObjectCannedACL.PUBLIC_READ)//로그인하지 않아도 이미지를 볼수 있도록
+                    .acl(ObjectCannedACL.PUBLIC_READ)//로그인하지 않아도 이미지를 볼 수 있도록
                     .build();
 
             CopyObjectResponse result = s3Client.copyObject(copyObjectRequest);

@@ -19,12 +19,12 @@ public class BoardController {
     private final BoardServiceImpl boardServiceImpl;
 
     @PostMapping("/s3")
-    public ResponseEntity<?> saveS3Image(@RequestParam(value = "postFile", required = false) MultipartFile postFile) {
-        return null; // 나중에? 세이브 하는 로직 만들기
+    public ResponseEntity<?> saveS3Image(@RequestParam(value = "file", required = false) MultipartFile postFile) {
+        return boardServiceImpl.saveS3Image(postFile); // 나중에? 세이브 하는 로직 만들기
     }
 
     @PostMapping("/save")
-    public ResponseEntity<BoardDTO> saveBoard(SaveBoard dto) {
+    public ResponseEntity<BoardDTO> saveBoard(@RequestBody SaveBoard dto) {
 
         return boardServiceImpl.saveBoard(dto);
     }
