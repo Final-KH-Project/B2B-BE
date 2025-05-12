@@ -3,7 +3,8 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
-import kh.gangnam.b2b.entity.chat.ChatRoomUser;
+import kh.gangnam.b2b.dto.chat.response.ReadRooms;
+import kh.gangnam.b2b.entity.chat.ChatMessage;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -31,11 +32,11 @@ public interface ChatService {
     /**
      * 채팅방 리스트 조회
      * User 엔티티의 userId
-     * @param userId
-     * ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
+     *
+     * @param userId ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
      * @return
      */
-    ResponseEntity<List<ChatRoomUser>> readRooms(Long userId);
+    ResponseEntity<List<ReadRooms>> readRooms(Long userId);
 
     /**
      * 채팅방 입장, 클릭
@@ -45,4 +46,13 @@ public interface ChatService {
      * @return
      */
     ResponseEntity<ReadRoom> readRoom(Long roomId);
+
+    /**
+     * 채팅 내용 저장
+     *
+     * @param message
+     * @param userId  handleMessage
+     * @return
+     */
+    ResponseEntity<ChatMessage> handleMessage(SendChat message, Long userId);
 }

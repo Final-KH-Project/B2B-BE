@@ -7,4 +7,7 @@ import java.util.List;
 
 public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long> {
     List<ChatRoomUser> findByUserIdOrderByIdDesc(Long userID);
+
+    boolean existsByUserIdAndRoom(Long userId, Long roomId);
+
 }
