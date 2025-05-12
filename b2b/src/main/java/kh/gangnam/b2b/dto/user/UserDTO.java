@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto;
+package kh.gangnam.b2b.dto.user;
 
 import kh.gangnam.b2b.entity.auth.User;
 import lombok.Data;
