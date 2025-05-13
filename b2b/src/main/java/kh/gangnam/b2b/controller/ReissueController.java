@@ -83,11 +83,12 @@ public class ReissueController {
 
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
+        Long userId = jwtUtil.getUserId(refresh);
 
         //make new JWT, new Refresh 3,600,000ms = 1시간
-        String newAccess = jwtUtil.createJwt("access", username, role, accessExpired);
+        String newAccess = jwtUtil.createJwt("access", username, userId, role, accessExpired);
         // 86,400,000 = 하루
-        String newRefresh = jwtUtil.createJwt("refresh", username, role, refreshExpired);
+        String newRefresh = jwtUtil.createJwt("refresh", username, userId, role, refreshExpired);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
 
         // RefreshEntity 저장
@@ -95,13 +96,15 @@ public class ReissueController {
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
-                .accessToken(newAccess)
                 .expiresAt(expiresAt)
                 .build();
 
         //response
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        // set cookie
+        response.addCookie(createCookie("access", newAccess));
         response.addCookie(createCookie("refresh", newRefresh));
         try {
             objectMapper.writeValue(response.getWriter(), loginResponse);
@@ -115,7 +118,7 @@ public class ReissueController {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge((int) (refreshExpired/1000));
+        cookie.setMaxAge(key.equals("access") ? (int) (accessExpired / 1000) : (int) (refreshExpired / 1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

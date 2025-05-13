@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.request.LoginDTO;
 import kh.gangnam.b2b.dto.auth.response.LoginResponse;
 import kh.gangnam.b2b.entity.auth.Refresh;
+import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.repository.RefreshRepository;
+import kh.gangnam.b2b.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,16 +31,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final RefreshRepository refreshRepository;
     private final Long accessExpired;
     private final Long refreshExpired;
+    private final UserRepository userRepository;
 
 
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
         this.accessExpired = accessExpired;
         this.refreshExpired = refreshExpired;
+        this.userRepository = userRepository;
         setFilterProcessesUrl("/api/auth/login");
     }
 
@@ -66,17 +70,21 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
 
+        // userId 조회
+        User user = userRepository.findByUsername(username);
+        Long userId = user.getUserId();
+
         //토큰 생성
         // 3,600,000ms = 1시간
-        String access = jwtUtil.createJwt("access", username, role, accessExpired);
+        String access = jwtUtil.createJwt("access", username, userId, role, accessExpired);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
         // 86,400,000ms = 하루
-        String refresh = jwtUtil.createJwt("refresh", username, role, refreshExpired);
+        String refresh = jwtUtil.createJwt("refresh", username, userId, role, refreshExpired);
 
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
-                .accessToken(access)
+//                .accessToken(access)
                 .expiresAt(expiresAt)
                 .build();
 
@@ -86,6 +94,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // JSON 응답 설정
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        // 쿠키 설정
+        response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpServletResponse.SC_OK);
         try {
@@ -105,7 +115,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge((int) (refreshExpired/1000));
+        cookie.setMaxAge(key.equals("access") ? (int) (accessExpired / 1000) : (int) (refreshExpired / 1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
