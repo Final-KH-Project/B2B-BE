@@ -11,6 +11,7 @@ import kh.gangnam.b2b.security.LoginFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -98,6 +99,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 토큰 필요없는 경우 (로그인과 회원가입)
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
