@@ -24,4 +24,6 @@ public class AlarmServiceImpl implements AlarmService {
     public ResponseEntity<String> deleteAlarm(Long id) {
         return null;
     }
+
+
 }
