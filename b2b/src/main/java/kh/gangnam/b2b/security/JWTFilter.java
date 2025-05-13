@@ -54,6 +54,8 @@ public class JWTFilter extends OncePerRequestFilter {
         if (access == null) {
             System.out.println("access token null");
             filterChain.doFilter(request, response);
+
+            // 토근이 없으면 조건이 해당되면 메소드 종료 (필수)
             return;
         }
 
@@ -88,11 +90,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // username, role 획득
         String username = jwtUtil.getUsername(access);
+        Long userId = jwtUtil.getUserId(access);
         String role = jwtUtil.getRole(access);
 
         User user = new User();
         user.setUsername(username);
         user.setRole(role);
+        user.setUserId(userId);
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(

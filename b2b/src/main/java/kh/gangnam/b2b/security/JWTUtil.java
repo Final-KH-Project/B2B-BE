@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,12 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("username", String.class);
     }
 
+    public Long getUserId(String token) {
+
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
+    }
+
+
     public String getRole(String token) {
 
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
@@ -45,12 +52,22 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
+    // 이전 Access 토큰 만료 여부 체크
+    public void validateExpiration(String token) {
+        Date expiration = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
+        if (expiration.before(new Date())) {
+            throw new ExpiredJwtException(null, null, "Token expired");
+        }
+    }
 
-    public String createJwt(String category, String username, String role, Long expiredMs) {
+
+
+    public String createJwt(String category, String username, Long userId, String role, Long expiredMs) {
 
         return Jwts.builder()
                 .claim("category", category)
                 .claim("username", username)
+                .claim("userId", userId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))

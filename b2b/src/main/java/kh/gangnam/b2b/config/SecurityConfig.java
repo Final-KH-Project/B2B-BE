@@ -3,6 +3,7 @@ package kh.gangnam.b2b.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import kh.gangnam.b2b.repository.RefreshRepository;
+import kh.gangnam.b2b.repository.UserRepository;
 import kh.gangnam.b2b.security.CustomLogoutFilter;
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
@@ -10,6 +11,7 @@ import kh.gangnam.b2b.security.LoginFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,6 +36,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
+    private final UserRepository userRepository;
 
     @Value("${token.accessExpired}")
     private Long accessExpired;
@@ -41,12 +44,13 @@ public class SecurityConfig {
     @Value("${token.refreshExpired}")
     private Long refreshExpired;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, UserRepository userRepository) {
 
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -95,6 +99,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 토큰 필요없는 경우 (로그인과 회원가입)
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
@@ -112,7 +117,8 @@ public class SecurityConfig {
                         objectMapper,
                         refreshRepository,
                         accessExpired,
-                        refreshExpired),
+                        refreshExpired,
+                        userRepository),
                         UsernamePasswordAuthenticationFilter.class)
                 //세션 설정
                 .sessionManagement((session) -> session
