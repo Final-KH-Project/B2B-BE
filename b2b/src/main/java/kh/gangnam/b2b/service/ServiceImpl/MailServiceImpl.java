@@ -1,34 +1,23 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.mail.MailDTO;
-import kh.gangnam.b2b.dto.mail.request.SendMail;
-import kh.gangnam.b2b.dto.mail.response.ReadMails;
-import kh.gangnam.b2b.service.MailService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MailServiceImpl implements MailService {
+@RequiredArgsConstructor
+public class MailServiceImpl {
 
-    @Autowired
-    private SendMailService sendMailService;
+    private final JavaMailSender javaMailSender;
 
-    @Autowired
-    private ReceiveMailService receiveMailService;
-
-    @Override
-    public ResponseEntity<MailDTO> sendMail(SendMail sendMail) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<ReadMails> readMails(Long userId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<MailDTO> readMail(Long mailId) {
-        return null;
+    public void sendSimpleMessage(MailDTO mailDTO) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("qkansgus1209@gmail.com");  // 보내는 사람 이메일
+        message.setTo(mailDTO.getTo());  // 수신자 이메일
+        message.setSubject(mailDTO.getSubject());  // 이메일 제목
+        message.setText(mailDTO.getText());  // 이메일 본문
+        javaMailSender.send(message);  // 메일 전송
     }
 }

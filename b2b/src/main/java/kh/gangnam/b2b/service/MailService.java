@@ -6,7 +6,7 @@ import kh.gangnam.b2b.dto.mail.response.ReadMails;
 import org.springframework.http.ResponseEntity;
 
 public interface MailService {
-
+    void sendSimpleMessage (MailDTO mailDTO);
     // 메일 전송 로직
 
     /**
