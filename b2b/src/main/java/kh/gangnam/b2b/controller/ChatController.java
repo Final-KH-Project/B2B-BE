@@ -7,42 +7,68 @@ import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+/**
+ * 채팅 관련 REST API 컨트롤러
+ * - 채팅방 생성, 내 채팅방 목록 조회, 채팅방 상세(메시지 내역) 조회, 메시지 전송 기능 제공
+ */
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/chat")
+@RequiredArgsConstructor
 public class ChatController {
 
+    // 채팅 서비스 의존성 주입
     private final ChatService chatService;
 
-
-
-    // ✅ 채팅방 생성
-    @PostMapping("/room")
-    public ResponseEntity<?> createRoom(@RequestBody CreateRoom request) {
-        return chatService.createRoom(request);
+    /**
+     * 채팅방 생성 API
+     * - 프론트에서 채팅방 생성 요청 시 사용
+     * - 참여자(userIds), 방 이름(title) 등 CreateRoom DTO로 전달
+     * @param createRoom 채팅방 생성 요청 DTO
+     * @return 생성된 채팅방의 ID
+     */
+    @PostMapping("/rooms")
+    public ResponseEntity<Long> createRoom(@RequestBody CreateRoom createRoom) {
+        return ResponseEntity.ok(chatService.createRoom(createRoom));
     }
 
-    // ✅ 메시지 전송
-    @PostMapping("/message")
-    public ResponseEntity<?> sendMessage(@RequestBody SendChat request) {
-        return chatService.send(request);
-    }
-
-    // ✅ 내 채팅방 목록 조회 (엔티티 → DTO 변환)
+    /**
+     * 내 채팅방 목록 조회 API
+     * - userId로 내가 속한 채팅방 리스트를 반환
+     * - 중간테이블(ChatRoomUser) 기반 조회
+     * @param userId 사용자 ID
+     * @return 채팅방 리스트 DTO
+     */
     @GetMapping("/users/{userId}/rooms")
     public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable Long userId) {
-        return chatService.readRooms(userId);
+        return ResponseEntity.ok(chatService.readRooms(userId));
     }
 
-    // ✅ 채팅방 입장 (채팅방 상세 내역 조회)
+    /**
+     * 채팅방 상세(메시지 내역) 조회 API
+     * - 채팅방 ID로 해당 채팅방과 메시지 내역을 한 번에 조회
+     * - N+1 문제 없이 JOIN FETCH로 가져옴
+     * @param roomId 채팅방 ID
+     * @return 채팅방+메시지 내역 DTO
+     */
     @GetMapping("/rooms/{roomId}")
-    public ResponseEntity<ReadRoom> enterRoom(@PathVariable Long roomId) {
-        return chatService.readRoom(roomId);
+    public ResponseEntity<ReadRoom> getRoomWithMessages(@PathVariable Long roomId) {
+        return ResponseEntity.ok(chatService.readRoom(roomId));
+    }
+
+    /**
+     * 메시지 전송 API (REST 방식)
+     * - 채팅방, 유저, 멤버십 검증 후 메시지 저장
+     * - 실시간(WebSocket)과 별개로 REST 방식 메시지 저장이 필요할 때 사용
+     * @param sendChat 메시지 전송 요청 DTO
+     * @return 성공 시 200 OK 반환
+     */
+    @PostMapping("/messages")
+    public ResponseEntity<Void> sendMessage(@RequestBody SendChat sendChat) {
+        chatService.send(sendChat);
+        return ResponseEntity.ok().build();
     }
 }

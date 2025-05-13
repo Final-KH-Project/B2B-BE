@@ -18,7 +18,7 @@ public interface ChatService {
      * 반환값으로 전송 성공 여부 status
      * @return
      */
-    ResponseEntity<?> send(SendChat sendChat);
+    void send(SendChat sendChat);
 
     /**
      * 채팅방 생성
@@ -27,7 +27,7 @@ public interface ChatService {
      * 반환값으로 전송 성공 여부 status
      * @return
      */
-    ResponseEntity<?> createRoom(CreateRoom createRoom);
+    Long createRoom(CreateRoom createRoom);
 
     /**
      * 채팅방 리스트 조회
@@ -36,7 +36,7 @@ public interface ChatService {
      * @param userId ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
      * @return
      */
-    ResponseEntity<List<ReadRooms>> readRooms(Long userId);
+    List<ReadRooms> readRooms(Long userId);
 
     /**
      * 채팅방 입장, 클릭
@@ -45,14 +45,6 @@ public interface ChatService {
      * ReadRoom -> 채팅 내역을 가지고 있는 DTO
      * @return
      */
-    ResponseEntity<ReadRoom> readRoom(Long roomId);
+    ReadRoom readRoom(Long roomId);
 
-    /**
-     * 채팅 내용 저장
-     *
-     * @param message
-     * @param userId  handleMessage
-     * @return
-     */
-    ResponseEntity<ChatMessage> handleMessage(SendChat message, Long userId);
 }
