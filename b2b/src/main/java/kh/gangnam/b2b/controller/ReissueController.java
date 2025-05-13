@@ -95,13 +95,15 @@ public class ReissueController {
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
-                .accessToken(newAccess)
                 .expiresAt(expiresAt)
                 .build();
 
         //response
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        // set cookie
+        response.addCookie(createCookie("access", newAccess));
         response.addCookie(createCookie("refresh", newRefresh));
         try {
             objectMapper.writeValue(response.getWriter(), loginResponse);
@@ -115,7 +117,7 @@ public class ReissueController {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge((int) (refreshExpired/1000));
+        cookie.setMaxAge(key.equals("access") ? (int) (accessExpired / 1000) : (int) (refreshExpired / 1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

@@ -76,7 +76,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
-                .accessToken(access)
+//                .accessToken(access)
                 .expiresAt(expiresAt)
                 .build();
 
@@ -86,6 +86,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // JSON 응답 설정
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        // 쿠키 설정
+        response.addCookie(createCookie("access", access));
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpServletResponse.SC_OK);
         try {
@@ -105,7 +107,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge((int) (refreshExpired/1000));
+        cookie.setMaxAge(key.equals("access") ? (int) (accessExpired / 1000) : (int) (refreshExpired / 1000));
         //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
