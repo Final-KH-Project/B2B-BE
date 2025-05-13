@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.config;
 
+import kh.gangnam.b2b.security.StompJwtChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -12,6 +13,13 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final StompJwtChannelInterceptor stompJwtChannelInterceptor;
+
+    public WebSocketConfig(StompJwtChannelInterceptor stompJwtChannelInterceptor) {
+        this.stompJwtChannelInterceptor = stompJwtChannelInterceptor;
+    }
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // 프론트엔드에서 연결할 WebSocket 엔드포인트
