@@ -33,9 +33,8 @@ public class S3TestServiceImpl implements S3TestService {
     private final S3ServiceUtil s3ServiceUtil;
 
     @Override
-    public ResponseEntity<?> saveBoard(SaveBoard saveBoard) {
+    public ResponseEntity<?> saveBoard(SaveBoard saveBoard, Long userId) {
 
-        Long userId = saveBoard.getUserId(); // 작성자 id
         List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
         String content = saveBoard.getContent();
 

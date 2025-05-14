@@ -20,7 +20,7 @@ public class BoardController {
 
     @PostMapping("/s3")
     public ResponseEntity<?> saveS3Image(@RequestParam(value = "file", required = false) MultipartFile postFile) {
-        return boardServiceImpl.saveS3Image(postFile); // 나중에? 세이브 하는 로직 만들기
+        return boardServiceImpl.saveS3Image(postFile);
     }
 
     @PostMapping("/save")

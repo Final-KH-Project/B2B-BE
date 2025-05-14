@@ -15,7 +15,7 @@ public interface S3TestService {
      * 작성하기 버튼을 클릭하면 해당 작성글 상세 페이지로 넘어가니 BoardDTO 반환
      * @return
      */
-    ResponseEntity<?> saveBoard(SaveBoard saveBoard);
+    ResponseEntity<?> saveBoard(SaveBoard saveBoard, Long userId);
 
     /**
      * s3 이미 업로드 (차후에 다른 서비스 로직으로 옮겨야 할거 같음)

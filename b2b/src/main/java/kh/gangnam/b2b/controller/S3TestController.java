@@ -1,11 +1,13 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.dto.auth.CustomUserDetails;
 import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.SaveBoard;
 import kh.gangnam.b2b.dto.board.request.UpdateBoard;
 import kh.gangnam.b2b.service.ServiceImpl.S3TestServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,9 +23,9 @@ public class S3TestController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveBoard(@RequestBody SaveBoard dto) {
+    public ResponseEntity<?> saveBoard(@RequestBody SaveBoard dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        return s3TestServiceImpl.saveBoard(dto);
+        return s3TestServiceImpl.saveBoard(dto, userDetails.getUserId);
     }
 
     @GetMapping("/{id}")

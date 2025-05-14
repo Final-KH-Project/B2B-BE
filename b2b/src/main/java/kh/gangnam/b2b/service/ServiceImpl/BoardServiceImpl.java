@@ -40,21 +40,6 @@ public class BoardServiceImpl implements BoardService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-//        switch (postType) {
-//            case "notice":
-//                // 자유 게시판에 저장
-//                break;
-//            case "free":
-//                // 공지 게시판에 저장
-//                break;
-//            case "event":
-//                // 이벤트 게시판에 저장
-//                break;
-//            case "anonymous":
-//                // 익명 게시판에 저장
-//                break;
-//        } 일단 공지 게시판에 저장하는 로직만 구현
-
         NoticeBoard noticeBoard = noticeRepo.save(saveBoard.toEntity(user));
 
         // 반복문을 통해 url 리스트 처리
