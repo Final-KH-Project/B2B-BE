@@ -18,7 +18,7 @@ public interface BoardService {
      * 작성하기 버튼을 클릭하면 해당 작성글 상세 페이지로 넘어가니 BoardDTO 반환
      * @return
      */
-    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
+    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long userId);
 
     /**
      * 게시글 목록 List 조회

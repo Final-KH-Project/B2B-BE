@@ -30,11 +30,10 @@ public class BoardServiceImpl implements BoardService {
     private final S3ServiceUtil s3ServiceUtil;
 
     @Override
-    public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard) {
+    public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long userId) {
 
         String postType = saveBoard.getPostType(); // 게시글 작성 위치
         List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
-        Long userId = saveBoard.getUserId(); // 작성자 id
 
         // fk 저장을 위한 user id 찾기
         User user = userRepo.findById(userId)

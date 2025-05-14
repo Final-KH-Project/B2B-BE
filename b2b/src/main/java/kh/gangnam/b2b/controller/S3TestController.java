@@ -25,7 +25,7 @@ public class S3TestController {
     @PostMapping("/save")
     public ResponseEntity<?> saveBoard(@RequestBody SaveBoard dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        return s3TestServiceImpl.saveBoard(dto, userDetails.getUserId);
+        return s3TestServiceImpl.saveBoard(dto, userDetails.getUserId());
     }
 
     @GetMapping("/{id}")
