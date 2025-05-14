@@ -1,7 +1,5 @@
 package kh.gangnam.b2b.webSocket;
 
-
-
 import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +12,8 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Arrays;
 import java.util.Map;
 
 @Slf4j
@@ -37,6 +37,10 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         }
 
         HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
+
+        log.info("WebSocket 요청 URI: " + servletRequest.getRequestURI());
+        log.info("Query String: " + servletRequest.getQueryString());
+        log.info("Cookies: " + Arrays.toString(servletRequest.getCookies()));
 
         // 2. 쿠키에서 access_token 꺼내기
         String token = null;
@@ -80,4 +84,5 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     ) {
         // 핸드셰이크 후 로직 필요 시 작성
     }
+
 } //HandShaker Interceptor: 세션 정보를 가져 옴, 로그인 된 사용자만 웹소켓을 이용가능 하게 함

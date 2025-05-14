@@ -20,10 +20,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/notifications") //webSocket 엔드포인트 설정 (클라이언트 연결 주소)
+        registry.addEndpoint("/ws") //webSocket 엔드포인트 설정 (클라이언트 연결 주소)
                 .addInterceptors(jwtHandshakeInterceptor) //jwt 인증 인터셉터 연결
                 .setAllowedOriginPatterns("*") //cors 허용
-                .withSockJS(); //SockJS(프론트 라이브러리) fallback 지원. 웹소켓 미지원 브라우저 대비용
+                .withSockJS();
+                //.setSessionCookieNeeded(true); //SockJS(프론트 라이브러리) fallback 지원. 웹소켓 미지원 브라우저 대비용
     }
 
     //메세지 브로커 설정
