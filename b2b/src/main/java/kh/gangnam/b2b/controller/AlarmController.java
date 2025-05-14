@@ -1,22 +1,29 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.alarm.response.ReadAlarm;
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.service.ServiceImpl.AlarmServiceImpl;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import kh.gangnam.b2b.webSocket.AlarmMessage;
+import kh.gangnam.b2b.webSocket.NotificationMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Controller;
 
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/api/alarm")
+
+@Slf4j
+@Controller
+//@RequiredArgsConstructor
 public class AlarmController {
     // alarm 엔트포인트 Controller
 
-    private final AlarmServiceImpl alarmServiceImpl;
+   // private final AlarmServiceImpl alarmServiceImpl;
 
+    @MessageMapping("/hello")
+    @SendTo ("/topic/message")
+    public AlarmMessage sendAlarmViaWebSocket(NotificationMessage message){
+        log.info("웹소켓 알림 수신: {}", message);
+
+        return AlarmMessage.builder().message("메세지 받으세요").build();
+
+    }
 
 }
