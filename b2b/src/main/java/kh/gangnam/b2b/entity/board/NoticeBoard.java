@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.entity.board;
 
+
 import jakarta.persistence.*;
 import kh.gangnam.b2b.entity.auth.User;
 import lombok.*;
@@ -39,3 +40,4 @@ public class NoticeBoard {
         this.content = content;
     }
 }
+

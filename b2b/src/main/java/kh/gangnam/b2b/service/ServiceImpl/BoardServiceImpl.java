@@ -1,8 +1,8 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
+import jakarta.persistence.EntityNotFoundException;
 import kh.gangnam.b2b.dto.board.BoardDTO;
-import kh.gangnam.b2b.dto.board.request.SaveBoard;
-import kh.gangnam.b2b.dto.board.request.UpdateBoard;
+import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.entity.board.ImgBoardPath;
@@ -16,18 +16,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import kh.gangnam.b2b.entity.board.*;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
 
-    // Board 서비스 비즈니스 로직 구현
+    private final BoardRepository repository;
     private final UserRepository userRepo;
     private final NoticeBoardRepository noticeRepo;
     private final ImgBoardPathRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
+
+    // Board 서비스 비즈니스 로직 구현
+
+    @Override
+    public BoardSaveResponse saveBoard(SaveRequest saveRequest) {
+
+        Board result=repository.save(saveRequest.toEntity());
+        System.out.println("[][][]:"+result);
+        System.out.println("userId:"+result.getAuthor().getUserId());
+        System.out.println("username:"+result.getAuthor().getUsername());
+        return BoardSaveResponse.fromEntity(result);
+        //return BoardResponse.fromEntity(repository.save(saveRequest.toEntity()));
+      
+    // Board 서비스 비즈니스 로직 구현
+
 
     @Override
     public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long userId) {
@@ -53,24 +73,47 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public ResponseEntity<List<BoardDTO>> readBoards(String type) {
-        return null;
+    public List<BoardResponse> getList(int type, int page, int size) {
+        BoardType boardType = BoardType.useTypeNo(type);
+        /*
+        List<BoardResponse> result=repository.findAllByType(boardType).stream()
+                .map(BoardResponse::fromEntity)
+                .toList();
+
+         */
+
+        Sort sort=Sort.by(Sort.Direction.DESC, "boardId");
+        Pageable pageable= PageRequest.of(page-1,size, sort);
+
+        return repository.findAllByType(boardType,pageable).stream()
+                .map(BoardResponse::fromEntity)
+                .toList();
     }
 
-    @Override
-    public ResponseEntity<BoardDTO> readBoard(String type, Long id) {
-        return null;
-    }
+
 
     @Override
-    public ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard) {
-        return null;
+    public BoardResponse get(int type, Long boardId) {
+        return repository.findById(boardId)
+                .map(BoardResponse::fromEntity)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
+    }
+
+    @Transactional
+    @Override
+    public BoardResponse update(int type, Long boardId, UpdateRequest request) {
+        BoardType boardType = BoardType.useTypeNo(type);
+
+        Board board = repository.findById(boardId).orElseThrow()
+                .update(request);
+
+        //return BoardResponse.fromEntity(board);
+        return BoardResponse.fromEntity(board);
+
     }
 
     @Override
     public ResponseEntity<String> deleteBoard(String type, Long id) {
-
-
         return null;
     }
 
@@ -89,5 +132,4 @@ public class BoardServiceImpl implements BoardService {
 
         return ResponseEntity.ok(imageUrl);
     }
-
 }
