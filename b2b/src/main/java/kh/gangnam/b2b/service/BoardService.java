@@ -2,8 +2,7 @@ package kh.gangnam.b2b.service;
 
 
 import kh.gangnam.b2b.dto.board.BoardDTO;
-import kh.gangnam.b2b.dto.board.request.SaveBoard;
-import kh.gangnam.b2b.dto.board.request.UpdateBoard;
+import kh.gangnam.b2b.dto.board.request.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -17,7 +16,9 @@ public interface BoardService {
      * 작성하기 버튼을 클릭하면 해당 작성글 상세 페이지로 넘어가니 BoardDTO 반환
      * @return
      */
-    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
+    //ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
+
+    BoardSaveResponse saveBoard(SaveRequest saveRequest);
 
     /**
      * 게시글 목록 List 조회
@@ -26,7 +27,8 @@ public interface BoardService {
      * BoardDTO -> 페이징 예정
      * @return
      */
-    ResponseEntity<List<BoardDTO>> readBoards(String type);
+    //ResponseEntity<List<BoardDTO>> readBoards(String type);
+    List<BoardResponse> getList(int type, int page, int size);
 
     /**
      * 게시글 상세 조회
@@ -37,7 +39,10 @@ public interface BoardService {
      * BoardDTO
      * @return
      */
-    ResponseEntity<BoardDTO> readBoard(String type, Long id);
+    //ResponseEntity<BoardDTO> readBoard(String type, Long id);
+    BoardResponse get(int type, Long boardId);
+
+    //ResponseEntity<BoardResponse> get(String type, Long id);
 
     /**
      * 게시글 수정
@@ -46,8 +51,8 @@ public interface BoardService {
      * 수정하기 버튼을 클릭하면 수정된 게시글 상세 페이지로 넘어가니 수정 게시글 데이터를 보내줘야 함
      * @return
      */
-    ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard);
-
+    //ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard);
+    BoardResponse update(int type, Long boardId, UpdateRequest request);
     /**
      * 게시글 삭제
      * 어떤 게시글인지 분류하는 값
@@ -58,4 +63,7 @@ public interface BoardService {
      * @return
      */
     ResponseEntity<String> deleteBoard(String type, Long id);
+
+
+
 }
