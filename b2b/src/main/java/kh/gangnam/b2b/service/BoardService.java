@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.SaveBoard;
 import kh.gangnam.b2b.dto.board.request.UpdateBoard;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -58,4 +59,13 @@ public interface BoardService {
      * @return
      */
     ResponseEntity<String> deleteBoard(String type, Long id);
+
+    /**
+     * s3 이미 업로드 (차후에 다른 서비스 로직으로 옮겨야 할거 같음)
+     * 사용자가 게시글 작성할때 업로드한 이미지
+     * @param postFile
+     * 업로드 성공 여부 반환
+     * @return
+     */
+    ResponseEntity<?> saveS3Image(MultipartFile postFile);
 }

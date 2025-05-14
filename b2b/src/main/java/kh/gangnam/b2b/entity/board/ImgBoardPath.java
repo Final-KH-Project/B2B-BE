@@ -1,9 +1,27 @@
 package kh.gangnam.b2b.entity.board;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name="image")
 public class ImgBoardPath {
-    private Long imgId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String s3Path;
 
-    // 삭제, 수정 시 관련 이미지 가져오기 위한 필드 게시글과 1:N 관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id",nullable = false)
+    private NoticeBoard board;
 
 }
