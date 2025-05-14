@@ -1,7 +1,21 @@
 package kh.gangnam.b2b.dto.board.request;
 
+import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.board.NoticeBoard;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
+@Getter
+@NoArgsConstructor
 public class UpdateBoard {
 
-    // 게시글 업데이트 요청 DTO
-    // 게시글 엔티티 필드가 존재해야 함
+    private String title;
+    private String content;
+    private String postType;
+    private Long postId;
+    private List<String> imageUrls;
+
 }

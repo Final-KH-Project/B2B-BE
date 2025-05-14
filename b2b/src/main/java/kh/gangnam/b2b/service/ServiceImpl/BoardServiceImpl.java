@@ -26,9 +26,6 @@ public class BoardServiceImpl implements BoardService {
     // Board 서비스 비즈니스 로직 구현
     private final UserRepository userRepo;
     private final NoticeBoardRepository noticeRepo;
-    private final FreeBoardRepository freeRepo;
-    private final EventBoardRepository eventRepo;
-    private final AnonymousBoardRepository anonymousRepo;
     private final ImgBoardPathRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
 
@@ -67,7 +64,6 @@ public class BoardServiceImpl implements BoardService {
 
             // 이미지 테이블에 저장하는 로직
             ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
-            System.out.println("이미지 테이블" + imgBoardPath.getS3Path()+ imgBoardPath.getId());
         }
         return null;
     }
@@ -89,6 +85,8 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public ResponseEntity<String> deleteBoard(String type, Long id) {
+
+
         return null;
     }
 
@@ -99,7 +97,6 @@ public class BoardServiceImpl implements BoardService {
         try {
             S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
             imageUrl = s3Response.getUrl();
-            System.out.println(s3Response.getBucketKey());
         } catch (Exception e) {
             e.printStackTrace(); // 콘솔에 에러 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

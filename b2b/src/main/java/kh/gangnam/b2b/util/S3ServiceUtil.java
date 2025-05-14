@@ -9,10 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 
@@ -35,10 +32,14 @@ public class S3ServiceUtil {
     @Value("${spring.cloud.aws.s3.upload}")
     private String UPLOAD_PATH;
 
+    public String extractFileNameFromUrl(String url) {
+        return url.substring(url.lastIndexOf("/") + 1);
+    }
+
     //파일이름 nanoTime()을 이용하여 변경
     private static String newFileNameByNanotime(String orgName) {
-        int idx=orgName.lastIndexOf(".");
-        return orgName.substring(0, idx)+"-"+(System.nanoTime()/1000000)
+        int idx = orgName.lastIndexOf(".");
+        return orgName.substring(0, idx) + "-" + (System.nanoTime() / 1000000)
                 + orgName.substring(idx); //.확장자 :  .jpg
     }
 
@@ -61,6 +62,7 @@ public class S3ServiceUtil {
 
             // S3에 파일 업로드
             S3Resource s3Resource = s3Template.upload(BUCKET_NAME, tempKey, file.getInputStream(), metadata);
+
             //return s3Resource.getURL().toString().substring(6);
             return S3Response.builder()
                     .url(s3Resource.getURL().toString())
@@ -78,7 +80,6 @@ public class S3ServiceUtil {
      * @param postId  사용자 PK
      * @return 이동된 파일의 S3FileResponse
      */
-
     public S3Response moveFromTempToUpload(String url, Long postId) {
 
         // tempUrl에서 키 추출
@@ -90,7 +91,29 @@ public class S3ServiceUtil {
         return moveFile(bucketKey, uploadKey);
     }
 
+    /**
+     * 게시글 이미지를 임시저장 폴더로 이동합니다.
+     *
+     * @param url 임시 파일의 URL
+     * @return 이동된 파일의 S3FileResponse
+     */
+    public S3Response moveFromUploadToTemp(String url) {
+
+        String prefix = "https://s3.ap-northeast-2.amazonaws.com/com.kh.cjh.bucket/";
+        String bucketKey = url.replace(prefix, "");
+        String uploadKey = TEMP_PATH + url.substring(url.lastIndexOf("/")+ 1);
+
+        // 파일 이동(uploadKey, tempKey)
+        return moveFile(bucketKey, uploadKey);
+    }
+
+    // s3 이미지를 다른 폴더로 이동
     public S3Response moveFile(String sourceKey, String destinationKey) {
+
+        if (sourceKey.equals(destinationKey)) {
+            System.out.println("sourceKey와 destinationKey가 같습니다. 복사 불가.");
+        }
+
         try {
             CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                     .sourceBucket(BUCKET_NAME)//원본의 버킷이름
@@ -102,17 +125,12 @@ public class S3ServiceUtil {
 
             CopyObjectResponse result = s3Client.copyObject(copyObjectRequest);
 
-            if (result != null) {
-                //복사가 이루어지면 temp의 이미지는 제거
-                s3Template.deleteObject(BUCKET_NAME, sourceKey);
+            return S3Response.builder()
+                    .url(s3Client.utilities()
+                            .getUrl(builder -> builder.bucket(BUCKET_NAME).key(destinationKey).build()).toString())
+                    .bucketKey(destinationKey)
+                    .build();
 
-                return S3Response.builder()
-                        .url(s3Client.utilities()
-                                .getUrl(builder -> builder.bucket(BUCKET_NAME).key(destinationKey).build()).toString())
-                        .bucketKey(destinationKey)
-                        .build();
-            }
-            throw new RuntimeException("파일 이동 실패");
         } catch (S3Exception e) {
             throw new RuntimeException("S3 파일 이동 실패", e);
         } catch (Exception e) {
@@ -120,4 +138,26 @@ public class S3ServiceUtil {
         }
     }
 
+    /**
+     * 게시물의 이미지를 모두 삭제합니다.
+     *
+     * @param postId 게시글 id
+     * @throws RuntimeException 파일 삭제 실패 시 발생
+     */
+    public void deleteBoardImage(Long postId) {
+        try {
+            // 게시글의 이미지 목록
+            String imageUrlPath = UPLOAD_PATH + postId + "/";
+
+            s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder()
+                            .bucket(BUCKET_NAME).prefix(imageUrlPath)
+                            .build()).stream()
+                    .flatMap(response->response.contents().stream())
+                    .forEach(s3Object->{
+                        s3Client.deleteObject(builder->builder.bucket(BUCKET_NAME).key(s3Object.key()).build());
+                    });
+        } catch (Exception e) {
+            throw new RuntimeException("임시 파일 삭제 실패", e);
+        }
+    }
 }

@@ -12,8 +12,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
 public class SaveBoard {
+
     private String title;
     private String content;
     private String postType;
