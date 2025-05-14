@@ -12,6 +12,7 @@ import kh.gangnam.b2b.repository.board.*;
 import kh.gangnam.b2b.service.BoardService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,6 @@ import kh.gangnam.b2b.entity.board.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Service
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
@@ -39,13 +39,13 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardSaveResponse saveBoard(SaveRequest saveRequest) {
 
-        Board result=repository.save(saveRequest.toEntity());
-        System.out.println("[][][]:"+result);
-        System.out.println("userId:"+result.getAuthor().getUserId());
-        System.out.println("username:"+result.getAuthor().getUsername());
+        Board result = repository.save(saveRequest.toEntity());
+        System.out.println("[][][]:" + result);
+        System.out.println("userId:" + result.getAuthor().getUserId());
+        System.out.println("username:" + result.getAuthor().getUsername());
         return BoardSaveResponse.fromEntity(result);
         //return BoardResponse.fromEntity(repository.save(saveRequest.toEntity()));
-      
+    }
     // Board 서비스 비즈니스 로직 구현
 
 
