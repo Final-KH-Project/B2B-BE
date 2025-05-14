@@ -44,7 +44,7 @@ public interface BoardService {
     //ResponseEntity<BoardDTO> readBoard(String type, Long id);
     BoardResponse get(int type, Long boardId);
 
-    //ResponseEntity<BoardResponse> get(String type, Long id);
+//    ResponseEntity<BoardResponse> get(String type, Long id);
 
     /**
      * 게시글 수정
