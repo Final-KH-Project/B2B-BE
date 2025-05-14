@@ -1,39 +1,43 @@
 package kh.gangnam.b2b.entity.board;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import kh.gangnam.b2b.entity.BaseTimeEntity;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Entity
+import jakarta.persistence.*;
+import kh.gangnam.b2b.entity.auth.User;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
-public class NoticeBoard extends BaseTimeEntity {
+@AllArgsConstructor
+@Entity
+@Table(name="notice")
+public class NoticeBoard {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long noticeId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false)
     private String title;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT",nullable = false)
     private String content;
-    private String department; //user의 부서
-    private String author;     //user의 이름
 
-    public NoticeBoard(String title, String content, String department, String author) {
-        this.title = title;
-        this.content = title;
-        this.department = department;
-        this.author = author;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id",nullable = false)
+    private User user;
 
-    public NoticeBoard(String title, String content) {
+    @OneToMany(mappedBy="board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImgBoardPath> image = new ArrayList<>();
+
+    public void updateTitleAndContent(String title, String content) {
         this.title = title;
-        this.content = title;
+        this.content = content;
     }
 }
 
