@@ -3,6 +3,7 @@ package kh.gangnam.b2b.security;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.CustomUserDetails;
@@ -14,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class JWTFilter extends OncePerRequestFilter {
 
@@ -29,25 +31,38 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         //request에서 Authorization 헤더를 찾음
-        String authorization= request.getHeader("Authorization");
+//        String authorization= request.getHeader("Authorization");
 
-
-        //Authorization 헤더 검증
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-
-            System.out.println("토큰 헤더 검증");
+        // 위에 헤더 가져오는 것 대신 쿠키를 가져올 것으로 대체
+        // 쿠키에서 access 를 찾음
+        String access = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("access")) {
+                    access = cookie.getValue();
+                    System.out.println("Received Cookies: " + Arrays.toString(request.getCookies()));
+                    if (access == null) {
+                        System.out.println("Access token is null!");
+                    } else {
+                        System.out.println("Access token found: " + access);
+                    }
+                }
+            }
+        }
+        // 토큰 검증 로직 수정
+        if (access == null) {
+            System.out.println("access token null");
             filterChain.doFilter(request, response);
 
             // 토근이 없으면 조건이 해당되면 메소드 종료 (필수)
             return;
         }
 
-        // Bearer 분리
-        String token = authorization.split(" ")[1];
 
         // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
-            jwtUtil.isExpired(token);
+            jwtUtil.isExpired(access);
         } catch (ExpiredJwtException e) {
 
             //response body
@@ -59,7 +74,7 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
         // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        String category = jwtUtil.getCategory(token);
+        String category = jwtUtil.getCategory(access);
 
         if (!category.equals("access")) {
 
@@ -74,12 +89,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
 
         // username, role 획득
-        String username = jwtUtil.getUsername(token);
-        String role = jwtUtil.getRole(token);
+        String username = jwtUtil.getUsername(access);
+        Long userId = jwtUtil.getUserId(access);
+        String role = jwtUtil.getRole(access);
 
         User user = new User();
         user.setUsername(username);
         user.setRole(role);
+        user.setUserId(userId);
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(
