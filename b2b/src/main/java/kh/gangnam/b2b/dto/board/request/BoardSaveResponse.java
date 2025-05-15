@@ -21,7 +21,7 @@ public class BoardSaveResponse {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .type(board.getType())
-                .authorId(board.getAuthor().getUserId())
+                .authorId(board.getAuthor().getEmployeeId())
                 .build();
     }
 

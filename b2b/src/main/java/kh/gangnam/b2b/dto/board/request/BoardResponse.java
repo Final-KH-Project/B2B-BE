@@ -13,7 +13,7 @@ public class BoardResponse {
     private String content;
     private BoardType type;
 
-    private UserResponse  author;
+    private EmployeeResponse author;
 
     public static BoardResponse fromEntity(Board board){
         return  BoardResponse.builder()
@@ -21,7 +21,7 @@ public class BoardResponse {
                 .title(board.getTitle())
                 .content(board.getContent())
                 .type(board.getType())
-                .author(UserResponse.fromEntity(board.getAuthor()))
+                .author(EmployeeResponse.fromEntity(board.getAuthor()))
                 .build();
     }
 

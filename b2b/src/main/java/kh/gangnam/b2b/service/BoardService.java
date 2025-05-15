@@ -13,14 +13,14 @@ public interface BoardService {
     /**
      * 게시글 생성
      * 게시글 생성 요청 DTO
-     * @param saveBoard
+     * @param saveRequest
      * 작성하기 버튼을 클릭하면 해당 작성글 상세 페이지로 넘어가니 BoardDTO 반환
      * @return
      */
     //ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
 
     BoardSaveResponse saveBoard(SaveRequest saveRequest);
-    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long userId);
+    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long employeeId);
 
     /**
      * 게시글 목록 List 조회
@@ -30,31 +30,29 @@ public interface BoardService {
      * @return
      */
     //ResponseEntity<List<BoardDTO>> readBoards(String type);
-    List<BoardResponse> getList(int type, int page, int size);
+    List<BoardResponse> getListBoard(int type, int page, int size);
 
     /**
      * 게시글 상세 조회
      * 어떤 게시글인지 분류하는 값
-     * @param type
-     * 해당 분류 게시글 테이블의 id 값
-     * @param id
+     * @param boardId
      * BoardDTO
      * @return
      */
     //ResponseEntity<BoardDTO> readBoard(String type, Long id);
-    BoardResponse get(int type, Long boardId);
+    BoardResponse getBoard(int type, Long boardId);
 
     //ResponseEntity<BoardResponse> get(String type, Long id);
 
     /**
      * 게시글 수정
      * 게시글 업데이트 요청 DTO 내부 필드에 type, id, BoardDTO 가 존재해야 함
-     * @param updateBoard
+     * @param request
      * 수정하기 버튼을 클릭하면 수정된 게시글 상세 페이지로 넘어가니 수정 게시글 데이터를 보내줘야 함
      * @return
      */
     //ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard);
-    BoardResponse update(int type, Long boardId, UpdateRequest request);
+    BoardResponse updateBoard(int type, Long boardId, UpdateRequest request);
     /**
      * 게시글 삭제
      * 어떤 게시글인지 분류하는 값

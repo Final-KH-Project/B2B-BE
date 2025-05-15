@@ -1,6 +1,5 @@
 package kh.gangnam.b2b.dto.s3;
 
-import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.entity.board.ImgBoardPath;
 import kh.gangnam.b2b.entity.board.NoticeBoard;
 import lombok.Builder;

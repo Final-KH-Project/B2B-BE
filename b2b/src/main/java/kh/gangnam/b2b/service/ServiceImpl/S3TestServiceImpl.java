@@ -1,14 +1,13 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
-import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.SaveBoard;
 import kh.gangnam.b2b.dto.board.request.UpdateBoard;
 import kh.gangnam.b2b.dto.board.response.ReadBoard;
 import kh.gangnam.b2b.dto.s3.S3Response;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.ImgBoardPath;
 import kh.gangnam.b2b.entity.board.NoticeBoard;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.board.ImgBoardPathRepository;
 import kh.gangnam.b2b.repository.board.NoticeBoardRepository;
 import kh.gangnam.b2b.service.S3TestService;
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,24 +25,24 @@ import java.util.List;
 public class S3TestServiceImpl implements S3TestService {
 
     // Board 서비스 비즈니스 로직 구현
-    private final UserRepository userRepo;
+    private final EmployeeRepository employeeRepository;
     private final NoticeBoardRepository noticeRepo;
     private final ImgBoardPathRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
 
     @Override
-    public ResponseEntity<?> saveBoard(SaveBoard saveBoard, Long userId) {
+    public ResponseEntity<?> saveBoard(SaveBoard saveBoard, Long employeeId) {
 
         List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
         String content = saveBoard.getContent();
 
         try {
             // fk 저장을 위한 user id 찾기
-            User user = userRepo.findById(userId)
+            Employee employee = employeeRepository.findById(employeeId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             // 보더 테이블에 게시글 정보 저장
-            NoticeBoard noticeBoard = noticeRepo.save(saveBoard.toEntity(user));
+            NoticeBoard noticeBoard = noticeRepo.save(saveBoard.toEntity(employee));
 
             // 반복문을 통해 url 리스트 처리
             for (String url : imageUrls) {

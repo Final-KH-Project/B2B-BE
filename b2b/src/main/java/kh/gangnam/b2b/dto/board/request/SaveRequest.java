@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.dto.board.request;
 
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.entity.board.BoardType;
 
@@ -11,15 +11,15 @@ public record SaveRequest(String title,
                           Long authorId) {
 
     public Board toEntity(){
-        User user=null;
+        Employee employee=null;
         if(authorId!=null){
-            user=new User();
-            user.setUserId(authorId);
+            employee=new Employee();
+            employee.setEmployeeId(authorId);
         }
 
         return Board.builder()
                 .title(title).content(content).type(type)
-                .author(user)
+                .author(employee)
                 .build();
     }
 }

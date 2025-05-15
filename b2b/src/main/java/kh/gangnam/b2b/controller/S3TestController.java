@@ -1,7 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.dto.board.BoardDTO;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.board.request.SaveBoard;
 import kh.gangnam.b2b.dto.board.request.UpdateBoard;
 import kh.gangnam.b2b.service.ServiceImpl.S3TestServiceImpl;
@@ -23,9 +22,9 @@ public class S3TestController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveBoard(@RequestBody SaveBoard dto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> saveBoard(@RequestBody SaveBoard dto, @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
 
-        return s3TestServiceImpl.saveBoard(dto, userDetails.getUserId());
+        return s3TestServiceImpl.saveBoard(dto, userDetails.getEmployeeId());
     }
 
     @GetMapping("/{id}")
