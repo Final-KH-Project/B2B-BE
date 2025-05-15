@@ -9,11 +9,11 @@ import java.util.Optional;
 public interface RefreshRepository extends JpaRepository<Refresh, Long> {
 
     Boolean existsByRefresh(String refresh);
-    Optional<Refresh> findByUsername(String username);
+    Optional<Refresh> findByLoginId(String loginId);
     Optional<Refresh> findByRefresh(String refresh);
 
     @Transactional
-    void deleteByUsername(String username);
+    void deleteByLoginId(String loginId);
 
     @Transactional
     void deleteByRefresh(String refresh);

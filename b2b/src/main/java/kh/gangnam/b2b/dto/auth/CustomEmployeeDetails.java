@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.dto.auth;
 
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomUserDetails  implements UserDetails {
+public class CustomEmployeeDetails implements UserDetails {
 
-    private final User user;
+    private final Employee employee;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -23,7 +23,7 @@ public class CustomUserDetails  implements UserDetails {
             @Override
             public String getAuthority() {
 
-                return user.getRole();
+                return employee.getRole();
             }
         });
 
@@ -33,17 +33,17 @@ public class CustomUserDetails  implements UserDetails {
     @Override
     public String getPassword() {
 
-        return user.getPassword();
+        return employee.getPassword();
     }
 
     @Override
     public String getUsername() {
 
-        return user.getUsername();
+        return employee.getLoginId();
     }
 
-    public Long getUserId() {
-        return user.getUserId();
+    public Long getEmployeeId() {
+        return employee.getEmployeeId();
     }
 
     @Override

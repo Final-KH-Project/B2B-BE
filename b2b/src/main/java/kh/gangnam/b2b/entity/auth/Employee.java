@@ -10,13 +10,15 @@ import lombok.Setter;
 @Entity
 @Setter
 @Getter
-public class User {
+public class Employee {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long employeeId;
 
-    private String username;
+
+    private String loginId;
     private String password;
     private String name;
     private String profile;
