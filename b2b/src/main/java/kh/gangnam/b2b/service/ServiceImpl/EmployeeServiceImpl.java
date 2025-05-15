@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
-import kh.gangnam.b2b.dto.user.EmployeeDTO;
+import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;

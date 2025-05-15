@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.user;
+package kh.gangnam.b2b.dto.employee;
 
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Builder;
