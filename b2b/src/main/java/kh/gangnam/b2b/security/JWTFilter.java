@@ -6,8 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.entity.auth.Employee;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,10 +30,6 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        //request에서 Authorization 헤더를 찾음
-//        String authorization= request.getHeader("Authorization");
-
-        // 위에 헤더 가져오는 것 대신 쿠키를 가져올 것으로 대체
         // 쿠키에서 access 를 찾음
         String access = null;
         Cookie[] cookies = request.getCookies();
@@ -89,20 +85,20 @@ public class JWTFilter extends OncePerRequestFilter {
 
 
         // username, role 획득
-        String username = jwtUtil.getUsername(access);
-        Long userId = jwtUtil.getUserId(access);
+        String loginId = jwtUtil.getLoginId(access);
+        Long employeeId = jwtUtil.getEmployeeId(access);
         String role = jwtUtil.getRole(access);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setRole(role);
-        user.setUserId(userId);
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        Employee employee = new Employee();
+        employee.setLoginId(loginId);
+        employee.setRole(role);
+        employee.setEmployeeId(employeeId);
+        CustomEmployeeDetails customEmployeeDetails = new CustomEmployeeDetails(employee);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                customEmployeeDetails,
                 null,
-                customUserDetails.getAuthorities());
+                customEmployeeDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
