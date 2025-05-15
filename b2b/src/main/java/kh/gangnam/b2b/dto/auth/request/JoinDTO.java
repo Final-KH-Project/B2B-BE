@@ -19,17 +19,16 @@ public class JoinDTO {
 
 
     public Employee toEntity(String encodedPassword, String role) {
-        Employee employee = new Employee();
-        employee.setLoginId(this.loginId);
-        // 비밀번호는 인코딩된 값 사용
-        employee.setPassword(encodedPassword);
-        employee.setName(this.name);
-        employee.setProfile(this.profile);
-        employee.setDepartment(this.department);
-        employee.setPosition(this.position);
-        employee.setDateOfBirth(this.dateOfBirth);
-        employee.setPhoneNumber(this.phoneNumber);
-        employee.setRole(role);
-        return employee;
+        return Employee.builder()
+                .loginId(this.loginId)
+                .password(encodedPassword)
+                .name(this.name)
+                .profile(this.profile)
+                .department(this.department)
+                .position(this.position)
+                .dateOfBirth(this.dateOfBirth)
+                .phoneNumber(this.phoneNumber)
+                .role(role)
+                .build();
     }
 }

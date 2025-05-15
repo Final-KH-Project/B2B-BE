@@ -1,9 +1,11 @@
 package kh.gangnam.b2b.dto.user;
 
 import kh.gangnam.b2b.entity.auth.Employee;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class EmployeeDTO {
     private Long employeeId;
     // 로그인 id
@@ -17,16 +19,16 @@ public class EmployeeDTO {
     private String role;
 
     public static EmployeeDTO fromEntity(Employee employee) {
-        EmployeeDTO dto = new EmployeeDTO();
-        dto.setEmployeeId(employee.getEmployeeId());
-        dto.setLoginId(employee.getLoginId());
-        dto.setName(employee.getName());
-        dto.setProfile(employee.getProfile());
-        dto.setDepartment(employee.getDepartment());
-        dto.setPosition(employee.getPosition());
-        dto.setDateOfBirth(employee.getDateOfBirth());
-        dto.setPhoneNumber(employee.getPhoneNumber());
-        dto.setRole(employee.getRole());
-        return dto;
+        return EmployeeDTO.builder()
+                .employeeId(employee.getEmployeeId())
+                .loginId(employee.getLoginId())
+                .name(employee.getName())
+                .profile(employee.getProfile())
+                .department(employee.getDepartment())
+                .position(employee.getPosition())
+                .dateOfBirth(employee.getDateOfBirth())
+                .phoneNumber(employee.getPhoneNumber())
+                .role(employee.getRole())
+                .build();
     }
 }
