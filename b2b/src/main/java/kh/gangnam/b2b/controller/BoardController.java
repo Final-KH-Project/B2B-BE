@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.service.ServiceImpl.BoardServiceImpl;
+import kh.gangnam.b2b.service.serviceImpl.BoardServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.service.ServiceImpl;
+package kh.gangnam.b2b.service.serviceImpl;
 
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;

@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.service.ServiceImpl;
+package kh.gangnam.b2b.service.serviceImpl;
 
 import kh.gangnam.b2b.dto.auth.request.JoinDTO;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthService {
 
     private final EmployeeRepository employeeRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;

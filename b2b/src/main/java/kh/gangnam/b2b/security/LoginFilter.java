@@ -11,6 +11,7 @@ import kh.gangnam.b2b.entity.auth.Refresh;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.RefreshRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -49,15 +51,17 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
-            // JSON body 파싱
             LoginDTO loginDTO = objectMapper.readValue(request.getInputStream(), LoginDTO.class);
+            log.info("[LOGIN] Attempt login. loginId: {}, IP: {}", loginDTO.getLoginId(), request.getRemoteAddr());
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword());
             return authenticationManager.authenticate(authToken);
         } catch (Exception e) {
+            log.error("[LOGIN] Login attempt error. Error: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
+
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
@@ -84,7 +88,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
-//                .accessToken(access)
                 .expiresAt(expiresAt)
                 .build();
 
@@ -103,6 +106,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        log.info("[LOGIN] Success. loginId: {}, employeeId: {}, role: {}, IP: {}", loginId, employeeId, role, request.getRemoteAddr());
     }
 
     @Override
@@ -110,6 +114,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.getWriter().write("{\"error\": \"Invalid username or password\"}");
+        log.warn("[LOGIN] Failed login. IP: {}, Reason: {}", request.getRemoteAddr(), failed.getMessage());
     }
 
     private Cookie createCookie(String key, String value) {

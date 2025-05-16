@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.service.ServiceImpl;
+package kh.gangnam.b2b.service.serviceImpl;
 
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.entity.auth.Employee;
