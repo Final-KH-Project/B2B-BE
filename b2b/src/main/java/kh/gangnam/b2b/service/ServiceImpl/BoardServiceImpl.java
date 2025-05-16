@@ -41,7 +41,10 @@ public class BoardServiceImpl implements BoardService {
         // TODO 저장하기 전에 S3 이미지 처리 로직
 
         // TODO S3 이미지 테이블 연관관계 매핑도 필요
-        Board result = boardRepository.save(saveRequest.toEntity(employeeId));
+
+        Employee employee = employeeRepository.findByEmployeeId(employeeId);
+        Board result = boardRepository.save(saveRequest.toEntity(employee));
+
         System.out.println("[][][]:" + result);
         System.out.println("employeeId:" + result.getAuthor().getEmployeeId());
         System.out.println("loginId:" + result.getAuthor().getLoginId());

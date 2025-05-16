@@ -9,16 +9,11 @@ public record SaveRequest(String title,
                           String content,
                           BoardType type) {
 
-    public Board toEntity(Long authorId){
-        Employee employee=null;
-        if(authorId!=null){
-            employee=new Employee();
-            employee.setEmployeeId(authorId);
-        }
+    public Board toEntity(Employee entity){
 
         return Board.builder()
                 .title(title).content(content).type(type)
-                .author(employee)
+                .author(entity)
                 .build();
     }
 }
