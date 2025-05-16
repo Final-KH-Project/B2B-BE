@@ -7,10 +7,9 @@ import kh.gangnam.b2b.entity.board.BoardType;
 
 public record SaveRequest(String title,
                           String content,
-                          BoardType type,
-                          Long authorId) {
+                          BoardType type) {
 
-    public Board toEntity(){
+    public Board toEntity(Long authorId){
         Employee employee=null;
         if(authorId!=null){
             employee=new Employee();

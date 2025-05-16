@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.service;
 
 
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.*;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public interface BoardService {
      */
     //ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
 
-    BoardSaveResponse saveBoard(SaveRequest saveRequest);
+    BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId);
     ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long employeeId);
 
     /**
@@ -52,7 +53,7 @@ public interface BoardService {
      * @return
      */
     //ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard);
-    BoardResponse updateBoard(int type, Long boardId, UpdateRequest request);
+    BoardResponse updateBoard(Long boardId, UpdateRequest request);
     /**
      * 게시글 삭제
      * 어떤 게시글인지 분류하는 값

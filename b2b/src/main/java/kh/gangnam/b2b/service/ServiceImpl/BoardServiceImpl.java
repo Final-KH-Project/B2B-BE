@@ -36,12 +36,12 @@ public class BoardServiceImpl implements BoardService {
 
     // Board 서비스 비즈니스 로직 구현
     @Override
-    public BoardSaveResponse saveBoard(SaveRequest saveRequest) {
+    public BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId) {
 
         // TODO 저장하기 전에 S3 이미지 처리 로직
 
         // TODO S3 이미지 테이블 연관관계 매핑도 필요
-        Board result = boardRepository.save(saveRequest.toEntity());
+        Board result = boardRepository.save(saveRequest.toEntity(employeeId));
         System.out.println("[][][]:" + result);
         System.out.println("employeeId:" + result.getAuthor().getEmployeeId());
         System.out.println("loginId:" + result.getAuthor().getLoginId());
@@ -70,8 +70,7 @@ public class BoardServiceImpl implements BoardService {
 
     @Transactional
     @Override
-    public BoardResponse updateBoard(int type, Long boardId, UpdateRequest request) {
-        BoardType boardType = BoardType.useTypeNo(type);
+    public BoardResponse updateBoard(Long boardId, UpdateRequest request) {
 
         // TODO 업데이트 S3 이미지 로직 처리 있어야 함
 
