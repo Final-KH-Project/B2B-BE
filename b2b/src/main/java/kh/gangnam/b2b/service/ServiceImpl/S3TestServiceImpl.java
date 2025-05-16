@@ -5,7 +5,7 @@ import kh.gangnam.b2b.dto.board.request.UpdateBoard;
 import kh.gangnam.b2b.dto.board.response.ReadBoard;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.board.ImgBoardPath;
+import kh.gangnam.b2b.entity.board.BoardImage;
 import kh.gangnam.b2b.entity.board.NoticeBoard;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.board.ImgBoardPathRepository;
@@ -53,7 +53,7 @@ public class S3TestServiceImpl implements S3TestService {
                 S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, noticeBoard.getId());
 
                 // 이미지 테이블에 저장하는 로직
-                ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
+                BoardImage boardImage = imageRepo.save(s3Response.toEntity(noticeBoard));
 
                 if (content.contains(fileName)) {
                     content = content.replace(url, s3Response.getUrl());
@@ -96,7 +96,7 @@ public class S3TestServiceImpl implements S3TestService {
                 S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, noticeBoard.getId());
 
                 // 이미지 테이블에 저장하는 로직
-                ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
+                BoardImage boardImage = imageRepo.save(s3Response.toEntity(noticeBoard));
 
                 if (content.contains(fileName)) {
                     content = content.replace(url, s3Response.getUrl());
@@ -123,11 +123,11 @@ public class S3TestServiceImpl implements S3TestService {
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
         ReadBoard dto = ReadBoard.fromEntity(noticeBoard);
-        List<ImgBoardPath> imgUrl = noticeBoard.getImage();
+        List<BoardImage> imgUrl = noticeBoard.getImage();
 
         String content = dto.getContent();
 
-        for (ImgBoardPath url : imgUrl) {
+        for (BoardImage url : imgUrl) {
             String originalUrl = url.getS3Path();
             String fileName = s3ServiceUtil.extractFileNameFromUrl(originalUrl);
 

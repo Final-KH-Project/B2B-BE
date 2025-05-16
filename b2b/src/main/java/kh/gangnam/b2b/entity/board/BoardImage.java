@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="image")
-public class ImgBoardPath {
+@Table(name="board_image")
+public class BoardImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long imgId;
 
     @Column(nullable = false)
     private String s3Path;

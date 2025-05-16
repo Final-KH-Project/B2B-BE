@@ -33,7 +33,7 @@ public class NoticeBoard {
     private Employee employee;
 
     @OneToMany(mappedBy="board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImgBoardPath> image = new ArrayList<>();
+    private List<BoardImage> image = new ArrayList<>();
 
     public void updateTitleAndContent(String title, String content) {
         this.title = title;

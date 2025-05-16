@@ -56,13 +56,11 @@ public interface BoardService {
     /**
      * 게시글 삭제
      * 어떤 게시글인지 분류하는 값
-     * @param type
-     * 해당 분류 게시글 테이블의 id 값
-     * @param id
+     * @param BoardId
      * 삭제 status 성공 여부 및 문자열 반환
      * @return
      */
-    ResponseEntity<String> deleteBoard(String type, Long id);
+    ResponseEntity<String> deleteBoard(Long BoardId);
 
 
     /**

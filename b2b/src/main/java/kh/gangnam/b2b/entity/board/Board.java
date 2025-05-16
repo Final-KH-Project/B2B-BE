@@ -26,7 +26,8 @@ public class Board extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private BoardType type;
 
-    @ManyToOne//2가지 fetch=default EAGER
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
     private Employee author;
 
     //수정후 수정된 Board를 리턴

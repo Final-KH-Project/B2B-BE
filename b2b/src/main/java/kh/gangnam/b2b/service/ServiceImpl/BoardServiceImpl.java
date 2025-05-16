@@ -5,7 +5,7 @@ import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.board.ImgBoardPath;
+import kh.gangnam.b2b.entity.board.BoardImage;
 import kh.gangnam.b2b.entity.board.NoticeBoard;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.board.*;
@@ -83,7 +83,7 @@ public class BoardServiceImpl implements BoardService {
 
     }
     @Override
-    public ResponseEntity<String> deleteBoard(String type, Long id) {
+    public ResponseEntity<String> deleteBoard(Long BoardId) {
 
         // TODO S3 이미지 삭제 및 데이터베이스 컬럼 삭제
 
@@ -123,7 +123,7 @@ public class BoardServiceImpl implements BoardService {
             S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, noticeBoard.getId());
 
             // 이미지 테이블에 저장하는 로직
-            ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
+            BoardImage boardImage = imageRepo.save(s3Response.toEntity(noticeBoard));
         }
         return null;
     }
