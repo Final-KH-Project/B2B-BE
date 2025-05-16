@@ -6,6 +6,9 @@ import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ToString
 @Getter
 @NoArgsConstructor
@@ -30,11 +33,20 @@ public class Board extends BaseTimeEntity {
     @JoinColumn(name = "author_id")
     private Employee author;
 
-    //수정후 수정된 Board를 리턴
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<BoardImage> images = new ArrayList<>();
+
+    // 수정 후 수정된 Board를 리턴
     public Board update(UpdateRequest dto){
         this.title=dto.title();
         this.content=dto.content();
         return this;
+    }
+
+    // url 정보 수정
+    public void changeUrl(String content){
+        this.content= content;
     }
 
 }

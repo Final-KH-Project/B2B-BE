@@ -78,15 +78,15 @@ public class S3ServiceUtil {
      * 임시 파일을 실제 저장 위치로 이동합니다.
      *
      * @param url 임시 파일의 URL
-     * @param postId  사용자 PK
+     * @param boardId  사용자 PK
      * @return 이동된 파일의 S3FileResponse
      */
-    public S3Response moveFromTempToUpload(String url, Long postId) {
+    public S3Response moveFromTempToUpload(String url, Long boardId) {
 
         // tempUrl에서 키 추출
         String prefix = "https://s3.ap-northeast-2.amazonaws.com/com.kh.cjh.bucket/";
         String bucketKey = url.replace(prefix, "");
-        String uploadKey = UPLOAD_PATH + postId + url.substring(url.lastIndexOf("/"));
+        String uploadKey = UPLOAD_PATH + boardId + url.substring(url.lastIndexOf("/"));
 
         // 파일 이동(tempKey, uploadKey)
         return moveFile(bucketKey, uploadKey);
@@ -142,13 +142,13 @@ public class S3ServiceUtil {
     /**
      * 게시물의 이미지를 모두 삭제합니다.
      *
-     * @param postId 게시글 id
+     * @param boardId 게시글 id
      * @throws RuntimeException 파일 삭제 실패 시 발생
      */
-    public void deleteBoardImage(Long postId) {
+    public void deleteBoardImage(Long boardId) {
         try {
             // 게시글의 이미지 목록
-            String imageUrlPath = UPLOAD_PATH + postId + "/";
+            String imageUrlPath = UPLOAD_PATH + boardId + "/";
 
             s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder()
                             .bucket(BUCKET_NAME).prefix(imageUrlPath)

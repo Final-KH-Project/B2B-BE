@@ -22,7 +22,7 @@ public class BoardImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id",nullable = false)
-    private NoticeBoard board;
+    private Board board;
 
 }
 

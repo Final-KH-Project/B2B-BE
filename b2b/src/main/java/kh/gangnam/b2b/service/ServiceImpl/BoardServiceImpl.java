@@ -1,12 +1,10 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
-import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.*;
+import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.dto.s3.S3Response;
-import kh.gangnam.b2b.entity.board.NoticeBoard;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.board.BoardImage;
 import kh.gangnam.b2b.repository.board.*;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.BoardService;
@@ -30,26 +28,48 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
     private final EmployeeRepository employeeRepository;
-    private final NoticeBoardRepository noticeRepo;
-    private final ImgBoardPathRepository imageRepo;
+    private final BoardImageRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
 
     // Board 서비스 비즈니스 로직 구현
     @Override
+    @Transactional
     public BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId) {
 
-        // TODO 저장하기 전에 S3 이미지 처리 로직
-
-        // TODO S3 이미지 테이블 연관관계 매핑도 필요
-
+        // DB에 게시물 저장
         Employee employee = employeeRepository.findByEmployeeId(employeeId);
-        Board result = boardRepository.save(saveRequest.toEntity(employee));
+        Board board = boardRepository.save(saveRequest.toEntity(employee));
+        String content = saveRequest.content();
 
-        System.out.println("[][][]:" + result);
-        System.out.println("employeeId:" + result.getAuthor().getEmployeeId());
-        System.out.println("loginId:" + result.getAuthor().getLoginId());
-        return BoardSaveResponse.fromEntity(result);
-        //return BoardResponse.fromEntity(repository.save(saveRequest.toEntity()));
+        // S3 이미지 주소 변경
+        for (String url : saveRequest.imageUrls()) {
+
+            // 파일명 추출
+            String fileName = s3ServiceUtil.extractFileNameFromUrl(url);
+
+            // 임시저장된 이미지들 temp/ -> upload/boardId 폳더로 복사
+            S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, board.getBoardId());
+
+            // 이미지 테이블에 url 저장
+            imageRepo.save(s3Response.toEntity(board));
+
+            // content의 url 주소를 temp/ -> upload/BoardId 폴더로 변경
+            if (content.contains(fileName)) {
+                content = content.replace(url, s3Response.getUrl());
+            }
+        }
+
+        // 수정된 url 정보 저장
+        board.changeUrl(content);
+
+//        System.out.println("[][][]:" + board);
+//        System.out.println("employeeId:" + board.getAuthor().getEmployeeId());
+//        System.out.println("loginId:" + board.getAuthor().getLoginId());
+//        return BoardResponse.fromEntity(repository.save(saveRequest.toEntity()));
+
+        // 글 저장 후 저장된 게시글 정보를 보낼 필요는 없어보임
+        return BoardSaveResponse.fromEntity(board);
+
     }
 
     @Override
@@ -75,58 +95,77 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardResponse updateBoard(Long boardId, UpdateRequest request) {
 
-        // TODO 업데이트 S3 이미지 로직 처리 있어야 함
+        // 게시글 정보 조회 후 저장
+        Board board = boardRepository.findById(boardId).orElseThrow().update(request);
+        String content = request.content();
 
-        Board board = boardRepository.findById(boardId).orElseThrow()
-                .update(request);
+        s3ServiceUtil.deleteBoardImage(boardId);
+
+        for (String url : request.imageUrls()) {
+
+            // 파일명 추출
+            String fileName = s3ServiceUtil.extractFileNameFromUrl(url);
+
+            // 임시저장된 이미지들 temp/ -> upload/boardId 폳더로 복사
+            S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, board.getBoardId());
+
+            // 이미지 테이블에 url 저장
+            imageRepo.save(s3Response.toEntity(board));
+
+            // content의 url 주소를 temp/ -> upload/BoardId 폴더로 변경
+            if (content.contains(fileName)) {
+                content = content.replace(url, s3Response.getUrl());
+            }
+        }
+
+        // 수정된 url 정보 저장
+        board.changeUrl(content);
 
         //return BoardResponse.fromEntity(board);
         return BoardResponse.fromEntity(board);
 
     }
     @Override
-    public ResponseEntity<String> deleteBoard(Long boardId) {
+    @Transactional
+    public String deleteBoard(Long boardId) {
 
-        // TODO S3 이미지 삭제 및 데이터베이스 컬럼 삭제
+        // 게시물과 s3에 업로드된 이미지 삭제
+        boardRepository.deleteById(boardId);
+        s3ServiceUtil.deleteBoardImage(boardId);
 
-        return null;
+        // 케스케이드로 한번에 날리려고 board 테이블에 onetomany 추가
+        return "삭제 성공함!";
+    }
+
+    @Override
+    public EditResponse editBoard(Long boardId) {
+
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+        String content = board.getContent();
+
+        for (BoardImage url : board.getImages()) {
+
+            // 파일명 추출
+            String originalUrl = url.getS3Path();
+            String fileName = s3ServiceUtil.extractFileNameFromUrl(originalUrl);
+
+            // upload/boardId -> temp/ 폴더로 복사
+            S3Response tempUrl = s3ServiceUtil.moveFromUploadToTemp(originalUrl);
+
+            // content 내부 URL 교체
+            if (content.contains(fileName)) {
+                content = content.replace(originalUrl, tempUrl.getUrl());
+            }
+        }
+        return EditResponse.fromEntity(board,content);
     }
 
     @Override
     public ResponseEntity<?> saveS3Image(MultipartFile postFile) {
 
-        String imageUrl = null;
-        try {
-            S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
-            imageUrl = s3Response.getUrl();
-        } catch (Exception e) {
-            e.printStackTrace(); // 콘솔에 에러 출력
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("실패: " + e.getMessage());
-        }
+        S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
+        String imageUrl = s3Response.getUrl();
 
         return ResponseEntity.ok(imageUrl);
-    }
-    @Override
-    public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long employeeId) {
-
-        String postType = saveBoard.getBoardType(); // 게시글 작성 위치
-        List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
-
-        // fk 저장을 위한 user id 찾기
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        NoticeBoard noticeBoard = noticeRepo.save(saveBoard.toEntity(employee));
-
-        // 반복문을 통해 url 리스트 처리
-        for (String url : imageUrls) {
-            // 임시저장된 이미지들 upload/postId 폴더로 복사
-            S3Response s3Response = s3ServiceUtil.moveFromTempToUpload(url, noticeBoard.getId());
-
-            // 이미지 테이블에 저장하는 로직
-            BoardImage boardImage = imageRepo.save(s3Response.toEntity(noticeBoard));
-        }
-        return null;
     }
 }

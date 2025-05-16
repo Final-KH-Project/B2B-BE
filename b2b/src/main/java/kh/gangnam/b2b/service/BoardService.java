@@ -4,6 +4,7 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.*;
+import kh.gangnam.b2b.dto.board.response.EditResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +22,6 @@ public interface BoardService {
     //ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard);
 
     BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId);
-    ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long employeeId);
 
     /**
      * 게시글 목록 List 조회
@@ -61,8 +61,15 @@ public interface BoardService {
      * 삭제 status 성공 여부 및 문자열 반환
      * @return
      */
-    ResponseEntity<String> deleteBoard(Long BoardId);
+    String deleteBoard(Long BoardId);
 
+    /**
+     * 게시글 수정할때 정보 요청
+     *
+     * @param boardId 게시글 id
+     * @return 불러오기 성공 여부 반환
+     */
+    EditResponse editBoard(Long boardId);
 
     /**
      * s3 이미 업로드 (차후에 다른 서비스 로직으로 옮겨야 할거 같음)
@@ -72,4 +79,6 @@ public interface BoardService {
      * @return
      */
     ResponseEntity<?> saveS3Image(MultipartFile postFile);
+
+
 }
