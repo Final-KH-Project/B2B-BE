@@ -75,9 +75,9 @@ public class S3TestServiceImpl implements S3TestService {
     @Override
     public ResponseEntity<?> updateBoard(UpdateBoard dto) {
 
-        Long postId = dto.getPostId();
-        List<String> imageUrls = dto.getImageUrls();
-        String content = dto.getContent();
+        Long postId = dto.getPostId(); // 게시물 id
+        List<String> imageUrls = dto.getImageUrls(); // url 링크
+        String content = dto.getContent(); // 게시글 내용
 
         try {
             // postId로 해당 게시글 Entity 찾기
@@ -92,6 +92,7 @@ public class S3TestServiceImpl implements S3TestService {
 
             for (String url : imageUrls) {
 
+                // url에서 파일명 분리
                 String fileName = s3ServiceUtil.extractFileNameFromUrl(url);
 
                 // 임시저장된 이미지들 upload/postId 폴더로 복사
@@ -100,11 +101,13 @@ public class S3TestServiceImpl implements S3TestService {
                 // 이미지 테이블에 저장하는 로직
                 ImgBoardPath imgBoardPath = imageRepo.save(s3Response.toEntity(noticeBoard));
 
+                // content 내부 URL 교체
                 if (content.contains(fileName)) {
                     content = content.replace(url, s3Response.getUrl());
                 }
             }
 
+            // 수정된 url 정보를 다시 저장
             noticeBoard.setContent(content);
             noticeRepo.save(noticeBoard);
 
@@ -114,21 +117,23 @@ public class S3TestServiceImpl implements S3TestService {
                     .body("실패: " + e.getMessage());
         }
 
-
         return ResponseEntity.ok("게시글 수정 성공");
     }
 
     @Override
-    public ResponseEntity<?> readBoard(Long postId) {
+    public ResponseEntity<?> readBoard(Long boardId) {
 
-        NoticeBoard noticeBoard = noticeRepo.findById(postId)
+        // 게시글 id로 해당 게시글 entity 찾기
+        NoticeBoard noticeBoard = noticeRepo.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다."));
 
+        // 게시글 정보를 dto에 전달
         ReadBoard dto = ReadBoard.fromEntity(noticeBoard);
         List<ImgBoardPath> imgUrl = noticeBoard.getImage();
 
-        String content = dto.getContent();
+        String content = dto.getContent(); // 게시글 내용
 
+        // 이미지 url 주소를 upload/postId -> temp/ 폴더로 전환
         for (ImgBoardPath url : imgUrl) {
             String originalUrl = url.getS3Path();
             String fileName = s3ServiceUtil.extractFileNameFromUrl(originalUrl);
@@ -141,6 +146,8 @@ public class S3TestServiceImpl implements S3TestService {
                 content = content.replace(originalUrl, tempUrl.getUrl());
             }
         }
+
+        // 수정된 url 정보 저장
         dto.setContent(content);
         return ResponseEntity.ok(dto);
     }
@@ -149,6 +156,7 @@ public class S3TestServiceImpl implements S3TestService {
     public ResponseEntity<?> deleteBoard(Long postId) {
 
         try {
+            // 해당 게시글과 s3 폴더 삭제
             noticeRepo.deleteById(postId);
             s3ServiceUtil.deleteBoardImage(postId);
         }catch (Exception e){
@@ -164,9 +172,11 @@ public class S3TestServiceImpl implements S3TestService {
     public ResponseEntity<?> saveS3Image(MultipartFile postFile) {
 
         String imageUrl = null;
+
         try {
+            // 이미지 파일을 s3에 저장
             S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
-            imageUrl = s3Response.getUrl();
+            imageUrl = s3Response.getUrl(); // url 주소
         } catch (Exception e) {
             e.printStackTrace(); // 콘솔에 에러 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -18,7 +18,7 @@ public class S3TestController {
     private final S3TestServiceImpl s3TestServiceImpl;
 
     @PostMapping("/s3")
-    public ResponseEntity<?> saveS3Image(@RequestParam(value = "file", required = false) MultipartFile postFile) {
+    public ResponseEntity<?> saveS3Image(@RequestParam("file") MultipartFile postFile) {
         return s3TestServiceImpl.saveS3Image(postFile);
     }
 
@@ -28,10 +28,10 @@ public class S3TestController {
         return s3TestServiceImpl.saveBoard(dto, userDetails.getUserId());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> readBoard(@PathVariable(value = "id") Long postId) {
+    @GetMapping("/read/{id}")
+    public ResponseEntity<?> readBoard(@PathVariable(value = "id") Long boardId) {
 
-        return s3TestServiceImpl.readBoard(postId);
+        return s3TestServiceImpl.readBoard(boardId);
     }
 
     @PatchMapping("/update")

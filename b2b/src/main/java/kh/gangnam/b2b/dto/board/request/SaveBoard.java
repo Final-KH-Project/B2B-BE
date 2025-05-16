@@ -16,7 +16,7 @@ public class SaveBoard {
 
     private String title;
     private String content;
-    private String postType;
+    private String boardType;
     private List<String> imageUrls;
 
     public NoticeBoard toEntity(User user) {

@@ -32,7 +32,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public ResponseEntity<BoardDTO> saveBoard(SaveBoard saveBoard, Long userId) {
 
-        String postType = saveBoard.getPostType(); // 게시글 작성 위치
+        String boardType = saveBoard.getBoardType(); // 게시글 작성 위치
         List<String> imageUrls = saveBoard.getImageUrls(); // 이미지 url
 
         // fk 저장을 위한 user id 찾기

@@ -14,7 +14,7 @@ public class UpdateBoard {
 
     private String title;
     private String content;
-    private String postType;
+    private String boardType;
     private Long postId;
     private List<String> imageUrls;
 

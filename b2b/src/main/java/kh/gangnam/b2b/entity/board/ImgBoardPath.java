@@ -25,3 +25,4 @@ public class ImgBoardPath {
     private NoticeBoard board;
 
 }
+
