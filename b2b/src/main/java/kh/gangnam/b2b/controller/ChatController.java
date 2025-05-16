@@ -1,12 +1,16 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.dto.auth.CustomUserDetails;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
+import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.repository.UserRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +26,19 @@ public class ChatController {
 
     // 채팅 서비스 의존성 주입
     private final ChatService chatService;
+    private final UserRepository userRepository;
 
+    // 유저 목록 조회 API 추가
+    @GetMapping("/user")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // currentUser 조회
+    @GetMapping("/me")
+    public User getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return userRepository.findByUsername(userDetails.getUsername());
+    }
     /**
      * 채팅방 생성 API
      * - 프론트에서 채팅방 생성 요청 시 사용

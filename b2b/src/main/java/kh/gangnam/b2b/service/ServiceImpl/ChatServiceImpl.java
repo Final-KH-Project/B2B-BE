@@ -37,6 +37,7 @@ public class ChatServiceImpl implements ChatService {
 
     /**
      * 채팅방 생성
+     *
      * @param createRoom 채팅방 생성 요청 DTO
      * @return 생성된 채팅방 ID
      */
@@ -64,6 +65,7 @@ public class ChatServiceImpl implements ChatService {
 
     /**
      * 내 채팅방 목록 조회
+     *
      * @param userId 사용자 ID
      * @return 채팅방 리스트 DTO
      */
@@ -78,6 +80,7 @@ public class ChatServiceImpl implements ChatService {
 
     /**
      * 채팅방 + 메시지 내역 조회
+     *
      * @param roomId 채팅방 ID
      * @return 채팅방 상세 DTO (메시지 포함)
      */
@@ -91,7 +94,7 @@ public class ChatServiceImpl implements ChatService {
                 .map(msg -> new ChatMessages(
                         msg.getId(),
                         msg.getChatRoom().getId(),
-                        msg.getSender().getId(),
+                        msg.getSender().getUserId(),
                         msg.getContent(),
                         msg.getSentAt()
                 )).collect(Collectors.toList());
@@ -107,19 +110,45 @@ public class ChatServiceImpl implements ChatService {
 
     /**
      * 메시지 저장 (REST API용)
+     *
      * @param sendChat 메시지 전송 요청 DTO
      */
     @Override
     public void send(SendChat sendChat) {
-        // 1. 채팅방, 유저, 멤버십 검증
-        ChatRoom room = chatRoomRepository.findById(sendChat.getRoomId())
-                .orElseThrow(() -> new RuntimeException("채팅방 없음"));
+        ChatRoom room;
+
+        // 1. 채팅방이 없으면 새로 생성, 있으면 기존 채팅방 사용
+        if (sendChat.getRoomId() == null) {
+            // 방 제목, 참여자 등은 SendChat에 추가 정보가 필요할 수 있음
+            room = new ChatRoom();
+            room.setTitle(sendChat.getTitle() != null ? sendChat.getTitle() : "새 채팅방");
+            room = chatRoomRepository.save(room);
+        } else {
+            room = chatRoomRepository.findById(sendChat.getRoomId())
+                    .orElseThrow(() -> new RuntimeException("채팅방 없음"));
+        }
+
+        // 2. 중간 테이블(참여자) 저장 (없으면 추가)
+        // SendChat에 참여자 리스트가 있다고 가정 (없으면 sender만 추가)
+        List<Long> participantIds = sendChat.getParticipantUserIds() != null
+                ? sendChat.getParticipantUserIds()
+                : List.of(sendChat.getSenderId());
+
+        for (Long userId : participantIds) {
+            boolean exists = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
+            if (!exists) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                ChatRoomUser cru = new ChatRoomUser();
+                cru.setUser(user);
+                cru.setChatRoom(room);
+                chatRoomUserRepository.save(cru);
+            }
+        }
+
+        // 3. 채팅 메시지 저장
         User sender = userRepository.findById(sendChat.getSenderId())
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-        boolean isMember = chatRoomUserRepository.existsByUserIdAndChatRoomId(sender.getId(), room.getId());
-        if (!isMember) throw new RuntimeException("채팅방 참여자가 아닙니다.");
-
-        // 2. 메시지 저장
         ChatMessage message = new ChatMessage();
         message.setChatRoom(room);
         message.setSender(sender);

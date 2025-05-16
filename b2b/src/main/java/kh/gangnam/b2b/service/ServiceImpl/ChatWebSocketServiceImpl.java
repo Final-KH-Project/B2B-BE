@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 /**
  * WebSocket 실시간 메시지 저장 및 응답 DTO 변환 서비스 구현체
  */
@@ -34,7 +36,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 .orElseThrow(() -> new RuntimeException("채팅방 없음"));
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-        boolean isMember = chatRoomUserRepository.existsByUserIdAndChatRoomId(userId, room.getId());
+        boolean isMember = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
         if (!isMember) throw new RuntimeException("채팅방 참여자가 아닙니다.");
 
         // 2. 메시지 저장
@@ -42,14 +44,14 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         entity.setChatRoom(room);
         entity.setSender(sender);
         entity.setContent(message.getMessage());
-        entity.setSentAt(java.time.LocalDateTime.now());
+        entity.setSentAt(LocalDateTime.now());
         ChatMessage saved = chatMessageRepository.save(entity);
 
         // 3. 엔티티 → DTO 변환 후 반환
         return new ChatMessages(
                 saved.getId(),
                 saved.getChatRoom().getId(),
-                saved.getSender().getId(),
+                saved.getSender().getUserId(),
                 saved.getContent(),
                 saved.getSentAt()
         );
