@@ -22,7 +22,7 @@ public class TimeLog {
     }
 
     // 컨트롤러와 서비스 모두를 대상으로 하는 포인트컷
-    @Around("execution(* kh.gangnam.b2b.controller.*.*(..)) || execution(* kh.gangnam.b2b.service.serviceImpl.*.*(..))")
+    @Around("execution(* kh.gangnam.b2b.controller.*.*(..)) || execution(* kh.gangnam.b2b.service.ServiceImpl.*.*(..))")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();

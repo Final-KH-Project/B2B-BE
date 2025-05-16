@@ -3,7 +3,7 @@ package kh.gangnam.b2b.controller;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.employee.request.*;
-import kh.gangnam.b2b.service.serviceImpl.EmployeeServiceImpl;
+import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
