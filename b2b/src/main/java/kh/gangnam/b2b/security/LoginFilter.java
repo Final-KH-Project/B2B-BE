@@ -11,7 +11,6 @@ import kh.gangnam.b2b.dto.auth.response.LoginResponse;
 import kh.gangnam.b2b.entity.auth.Refresh;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.RefreshRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -91,7 +90,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .build();
 
         //Refresh 토큰 저장
-        addRefreshEntity(loginId, refresh, expiresAt);
+        addRefreshEntity(employeeId, refresh, expiresAt);
 
         // JSON 응답 설정
         response.setContentType("application/json");
@@ -129,19 +128,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     /**
      * RefreshEntity 를 생성하고 저장하는 로직
-     * @param username
+     * @param employeeId
      * @param refresh
      * @param expiredMs
      */
-    private void addRefreshEntity(String username, String refresh, LocalDateTime expiredMs) {
+    private void addRefreshEntity(Long employeeId, String refresh, LocalDateTime expiredMs) {
 
-        // 기존 토큰 삭제
-        refreshRepository.findByLoginId(username)
-                .ifPresent(refreshRepository::delete);
-
+        refreshRepository.deleteByEmployeeId(employeeId);
         // 새 토큰 저장
         Refresh refreshEntity = Refresh.builder()
-                .loginId(username)
+                .employeeId(employeeId)
                 .refresh(refresh)
                 .expiresAt(expiredMs)
                 .build();
