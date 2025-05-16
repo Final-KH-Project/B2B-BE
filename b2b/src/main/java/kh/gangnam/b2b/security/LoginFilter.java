@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.auth.request.LoginDTO;
 import kh.gangnam.b2b.dto.auth.response.LoginResponse;
 import kh.gangnam.b2b.entity.auth.Refresh;
@@ -33,18 +34,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final RefreshRepository refreshRepository;
     private final Long accessExpired;
     private final Long refreshExpired;
-    private final EmployeeRepository employeeRepository;
 
 
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired, EmployeeRepository employeeRepository) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
         this.accessExpired = accessExpired;
         this.refreshExpired = refreshExpired;
-        this.employeeRepository = employeeRepository;
         setFilterProcessesUrl("/api/auth/login");
     }
 
@@ -65,8 +64,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
-        //
-        String loginId = authentication.getName();
+
+        CustomEmployeeDetails userDetails = (CustomEmployeeDetails) authentication.getPrincipal();
+        Employee employee = userDetails.getEmployee();
+        String loginId = employee.getLoginId();
+        Long employeeId = employee.getEmployeeId();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -74,9 +76,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
 
-        // userId 조회
-        Employee employee = employeeRepository.findByLoginId(loginId);
-        Long employeeId = employee.getEmployeeId();
 
         //토큰 생성
         // 3,600,000ms = 1시간

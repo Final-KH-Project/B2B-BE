@@ -117,8 +117,7 @@ public class SecurityConfig {
                         objectMapper,
                         refreshRepository,
                         accessExpired,
-                        refreshExpired,
-                                employeeRepository),
+                        refreshExpired),
                         UsernamePasswordAuthenticationFilter.class)
                 //세션 설정
                 .sessionManagement((session) -> session
