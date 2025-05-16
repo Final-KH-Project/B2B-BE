@@ -36,7 +36,7 @@ public class BoardController {
             @PathVariable("type") int type,
             @PathVariable("boardId") Long boardId
            ) {
-        return ResponseEntity.ok(boardService.getBoard(type,boardId));
+        return ResponseEntity.ok(boardService.getBoard(boardId));
     }
 
     @PutMapping("/{type}/{boardId}")

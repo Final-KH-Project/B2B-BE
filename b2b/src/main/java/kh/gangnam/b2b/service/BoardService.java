@@ -40,7 +40,7 @@ public interface BoardService {
      * @return
      */
     //ResponseEntity<BoardDTO> readBoard(String type, Long id);
-    BoardResponse getBoard(int type, Long boardId);
+    BoardResponse getBoard(Long boardId);
 
     //ResponseEntity<BoardResponse> get(String type, Long id);
 

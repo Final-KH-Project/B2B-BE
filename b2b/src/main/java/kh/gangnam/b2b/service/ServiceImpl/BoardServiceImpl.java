@@ -62,7 +62,7 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse getBoard(int type, Long boardId) {
+    public BoardResponse getBoard(Long boardId) {
         return boardRepository.findById(boardId)
                 .map(BoardResponse::fromEntity)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
@@ -83,7 +83,7 @@ public class BoardServiceImpl implements BoardService {
 
     }
     @Override
-    public ResponseEntity<String> deleteBoard(Long BoardId) {
+    public ResponseEntity<String> deleteBoard(Long boardId) {
 
         // TODO S3 이미지 삭제 및 데이터베이스 컬럼 삭제
 
