@@ -1,9 +1,9 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.user.UserDTO;
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.dto.user.request.*;
-import kh.gangnam.b2b.service.ServiceImpl.UserServiceImpl;
+import kh.gangnam.b2b.dto.employee.EmployeeDTO;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.dto.employee.request.*;
+import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,56 +12,56 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
-public class UserController {
+public class EmployeeController {
 
-    private final UserServiceImpl userService;
+    private final EmployeeServiceImpl employeeRepo;
 
     // 마이페이지: 현재 로그인한 사용자 정보 조회
     @GetMapping("/profile")
-    public ResponseEntity<UserDTO> myPage(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<EmployeeDTO> myPage(@AuthenticationPrincipal CustomEmployeeDetails userDetails) {
         // userDetails는 JWTFilter에서 인증된 사용자 정보
-        Long userId = userDetails.getUserId();
-        UserDTO userDto = userService.getUserInfoByUserId(userId);
-        return ResponseEntity.ok(userDto);
+        Long employeeId = userDetails.getEmployeeId();
+        EmployeeDTO employeeDto = employeeRepo.getEmployeeInfoByEmployeeId(employeeId);
+        return ResponseEntity.ok(employeeDto);
     }
     // 패스워드 변경
     @PostMapping("/password")
     public ResponseEntity<Void> updatePassword(
             @RequestBody PasswordChangeRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updatePassword(userDetails.getUserId(), request.getNewPassword());
+            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+        employeeRepo.updatePassword(userDetails.getEmployeeId(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
     // 부서 변경
     @PatchMapping("/department")
     public ResponseEntity<Void> updateDepartment(
             @RequestBody DepartmentUpdateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updateDepartment(userDetails.getUserId(), request.getDepartment());
+            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+        employeeRepo.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
         return ResponseEntity.ok().build();
     }
     // 직급 변경
     @PatchMapping("/position")
     public ResponseEntity<Void> updatePosition(
             @RequestBody PositionUpdateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updatePosition(userDetails.getUserId(), request.getPosition());
+            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+        employeeRepo.updatePosition(userDetails.getEmployeeId(), request.getPosition());
         return ResponseEntity.ok().build();
     }
     // 전화번호 변경
     @PatchMapping("/phone")
     public ResponseEntity<Void> updatePhoneNumber(
             @RequestBody PhoneUpdateRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updatePhoneNumber(userDetails.getUserId(), request.getPhoneNumber());
+            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+        employeeRepo.updatePhoneNumber(userDetails.getEmployeeId(), request.getPhoneNumber());
         return ResponseEntity.ok().build();
     }
     // 프로필 이미지 변경
     @PatchMapping("/profile-image")
     public ResponseEntity<Void> updateProfileImage(
             @RequestBody ProfileImageRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        userService.updateProfileImage(userDetails.getUserId(), request.getProfileImageUrl());
+            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+        employeeRepo.updateProfileImage(userDetails.getEmployeeId(), request.getProfileImageUrl());
         return ResponseEntity.ok().build();
     }
 }

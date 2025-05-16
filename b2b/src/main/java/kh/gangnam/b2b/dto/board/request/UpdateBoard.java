@@ -1,10 +1,7 @@
 package kh.gangnam.b2b.dto.board.request;
 
-import kh.gangnam.b2b.entity.auth.User;
-import kh.gangnam.b2b.entity.board.NoticeBoard;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 

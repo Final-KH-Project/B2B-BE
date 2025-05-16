@@ -1,11 +1,10 @@
 package kh.gangnam.b2b.dto.board.request;
 
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.NoticeBoard;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.List;
 
@@ -19,11 +18,11 @@ public class SaveBoard {
     private String boardType;
     private List<String> imageUrls;
 
-    public NoticeBoard toEntity(User user) {
+    public NoticeBoard toEntity(Employee employee) {
         return NoticeBoard.builder()
                 .title(this.title)
                 .content(this.content)
-                .user(user)
+                .employee(employee)
                 .build();
     }
 }

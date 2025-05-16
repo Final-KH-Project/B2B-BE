@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class S3ServiceUtil {
         try {
             // 임시 파일 경로 생성 (사용자PK/파일명) // temp/101/
             //String tempKey = TEMP_PATH + userPk + "/" + createUniqueFileName(file.getOriginalFilename());
-            String tempKey = TEMP_PATH + newFileNameByNanotime(file.getOriginalFilename());
+            String tempKey = TEMP_PATH + newFileNameByNanotime(Objects.requireNonNull(file.getOriginalFilename()));
 
             // 메타데이터 설정 (Content-Type, 퍼블릭 액세스 등)
             ObjectMetadata metadata = ObjectMetadata.builder().contentType(file.getContentType())

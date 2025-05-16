@@ -1,7 +1,8 @@
 package kh.gangnam.b2b.entity.board;
 
+
 import jakarta.persistence.*;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -28,14 +29,15 @@ public class NoticeBoard {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false)
-    private User user;
+    @JoinColumn(name = "employee_id", nullable = false)
+    private Employee employee;
 
     @OneToMany(mappedBy="board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImgBoardPath> image = new ArrayList<>();
+    private List<BoardImage> image = new ArrayList<>();
 
     public void updateTitleAndContent(String title, String content) {
         this.title = title;
         this.content = content;
     }
 }
+

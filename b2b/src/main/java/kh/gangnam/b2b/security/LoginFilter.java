@@ -8,9 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.request.LoginDTO;
 import kh.gangnam.b2b.dto.auth.response.LoginResponse;
 import kh.gangnam.b2b.entity.auth.Refresh;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.RefreshRepository;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,18 +31,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final RefreshRepository refreshRepository;
     private final Long accessExpired;
     private final Long refreshExpired;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
 
 
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired, UserRepository userRepository) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, Long accessExpired, Long refreshExpired, EmployeeRepository employeeRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
         this.accessExpired = accessExpired;
         this.refreshExpired = refreshExpired;
-        this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
         setFilterProcessesUrl("/api/auth/login");
     }
 
@@ -52,7 +52,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             // JSON body 파싱
             LoginDTO loginDTO = objectMapper.readValue(request.getInputStream(), LoginDTO.class);
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
+                    new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword());
             return authenticationManager.authenticate(authToken);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -62,7 +62,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
         //
-        String username = authentication.getName();
+        String loginId = authentication.getName();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -71,15 +71,15 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
 
         // userId 조회
-        User user = userRepository.findByUsername(username);
-        Long userId = user.getUserId();
+        Employee employee = employeeRepository.findByLoginId(loginId);
+        Long employeeId = employee.getEmployeeId();
 
         //토큰 생성
         // 3,600,000ms = 1시간
-        String access = jwtUtil.createJwt("access", username, userId, role, accessExpired);
+        String access = jwtUtil.createJwt("access", loginId, employeeId, role, accessExpired);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
         // 86,400,000ms = 하루
-        String refresh = jwtUtil.createJwt("refresh", username, userId, role, refreshExpired);
+        String refresh = jwtUtil.createJwt("refresh", loginId, employeeId, role, refreshExpired);
 
 
         // LoginResponse 객체 생성
@@ -89,7 +89,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
                 .build();
 
         //Refresh 토큰 저장
-        addRefreshEntity(username, refresh, expiresAt);
+        addRefreshEntity(loginId, refresh, expiresAt);
 
         // JSON 응답 설정
         response.setContentType("application/json");
@@ -132,12 +132,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private void addRefreshEntity(String username, String refresh, LocalDateTime expiredMs) {
 
         // 기존 토큰 삭제
-        refreshRepository.findByUsername(username)
+        refreshRepository.findByLoginId(username)
                 .ifPresent(refreshRepository::delete);
 
         // 새 토큰 저장
         Refresh refreshEntity = Refresh.builder()
-                .username(username)
+                .loginId(username)
                 .refresh(refresh)
                 .expiresAt(expiredMs)
                 .build();
