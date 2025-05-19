@@ -13,6 +13,8 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.RefreshRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -54,9 +56,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(loginDTO.getLoginId(), loginDTO.getPassword());
             return authenticationManager.authenticate(authToken);
-        } catch (Exception e) {
-            log.error("[LOGIN] Login attempt error. Error: {}", e.getMessage());
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new AuthenticationServiceException("Authentication request parsing failed", e);
         }
     }
 
@@ -112,7 +113,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.getWriter().write("{\"error\": \"Invalid username or password\"}");
-        log.warn("[LOGIN] Failed login. IP: {}, Reason: {}", request.getRemoteAddr(), failed.getMessage());
+        // 실패 원인이 BadCredentials인 경우만 경고 로깅
+        if (failed instanceof BadCredentialsException) {
+            log.warn("[LOGIN] Failed login. IP: {}, Reason: {}", request.getRemoteAddr(), failed.getMessage());
+        }
     }
 
     private Cookie createCookie(String key, String value) {
