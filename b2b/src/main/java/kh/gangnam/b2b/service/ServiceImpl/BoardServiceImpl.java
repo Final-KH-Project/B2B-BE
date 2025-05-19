@@ -11,15 +11,12 @@ import kh.gangnam.b2b.service.BoardService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import kh.gangnam.b2b.entity.board.*;
-
 import java.util.List;
 
 @Service
@@ -60,7 +57,7 @@ public class BoardServiceImpl implements BoardService {
         }
 
         // 수정된 url 정보 저장
-        board.changeUrl(content);
+        board.setContent(content);
 
 //        System.out.println("[][][]:" + board);
 //        System.out.println("employeeId:" + board.getAuthor().getEmployeeId());
@@ -119,7 +116,7 @@ public class BoardServiceImpl implements BoardService {
         }
 
         // 수정된 url 정보 저장
-        board.changeUrl(content);
+        board.setContent(content);
 
         //return BoardResponse.fromEntity(board);
         return BoardResponse.fromEntity(board);
@@ -161,11 +158,11 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public ResponseEntity<?> saveS3Image(MultipartFile postFile) {
+    public String saveS3Image(MultipartFile postFile) {
 
         S3Response s3Response = s3ServiceUtil.uploadToTemp(postFile);
         String imageUrl = s3Response.getUrl();
 
-        return ResponseEntity.ok(imageUrl);
+        return imageUrl;
     }
 }

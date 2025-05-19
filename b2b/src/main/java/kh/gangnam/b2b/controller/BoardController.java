@@ -11,6 +11,7 @@ import java.util.List;
 import kh.gangnam.b2b.service.ServiceImpl.BoardServiceImpl;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -55,5 +56,10 @@ public class BoardController {
     @GetMapping("/edit/{boardId}")
     public ResponseEntity<EditResponse> edit(@PathVariable("boardId") Long boardId) {
         return ResponseEntity.ok(boardService.editBoard(boardId));
+    }
+
+    @PostMapping("/s3")
+    public ResponseEntity<String> s3Upload(@RequestParam("file") MultipartFile postFile) {
+        return ResponseEntity.ok(boardService.saveS3Image(postFile));
     }
 }

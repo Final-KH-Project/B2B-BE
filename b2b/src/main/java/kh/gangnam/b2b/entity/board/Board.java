@@ -24,6 +24,7 @@ public class Board extends BaseTimeEntity {
     @Column(nullable = false)
     private String title;
     @Column(nullable = false, columnDefinition = "text")
+    @Setter
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -42,11 +43,6 @@ public class Board extends BaseTimeEntity {
         this.title=dto.title();
         this.content=dto.content();
         return this;
-    }
-
-    // url 정보 수정
-    public void changeUrl(String content){
-        this.content= content;
     }
 
 }

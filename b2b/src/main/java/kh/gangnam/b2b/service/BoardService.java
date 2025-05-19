@@ -78,7 +78,7 @@ public interface BoardService {
      * 업로드 성공 여부 반환
      * @return
      */
-    ResponseEntity<?> saveS3Image(MultipartFile postFile);
+    String saveS3Image(MultipartFile postFile);
 
 
 }
