@@ -33,8 +33,9 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId) {
 
-        // DB에 게시물 저장
+        // 작성 employee 가져오기
         Employee employee = employeeRepository.findByEmployeeId(employeeId);
+        // DB에 게시물 저장
         Board board = boardRepository.save(saveRequest.toEntity(employee));
         String content = saveRequest.content();
 
@@ -58,11 +59,6 @@ public class BoardServiceImpl implements BoardService {
 
         // 수정된 url 정보 저장
         board.setContent(content);
-
-//        System.out.println("[][][]:" + board);
-//        System.out.println("employeeId:" + board.getAuthor().getEmployeeId());
-//        System.out.println("loginId:" + board.getAuthor().getLoginId());
-//        return BoardResponse.fromEntity(repository.save(saveRequest.toEntity()));
 
         // 글 저장 후 저장된 게시글 정보를 보낼 필요는 없어보임
         return BoardSaveResponse.fromEntity(board);
@@ -130,31 +126,16 @@ public class BoardServiceImpl implements BoardService {
         boardRepository.deleteById(boardId);
         s3ServiceUtil.deleteBoardImage(boardId);
 
-        // 케스케이드로 한번에 날리려고 board 테이블에 onetomany 추가
+        // cascade 한번에 날리려고 board 테이블에 onetomany 연관관계 추가
         return "삭제 성공함!";
     }
 
     @Override
     public EditResponse editBoard(Long boardId) {
 
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
-        String content = board.getContent();
-
-        for (BoardImage url : board.getImages()) {
-
-            // 파일명 추출
-            String originalUrl = url.getS3Path();
-            String fileName = s3ServiceUtil.extractFileNameFromUrl(originalUrl);
-
-            // upload/boardId -> temp/ 폴더로 복사
-            S3Response tempUrl = s3ServiceUtil.moveFromUploadToTemp(originalUrl);
-
-            // content 내부 URL 교체
-            if (content.contains(fileName)) {
-                content = content.replace(originalUrl, tempUrl.getUrl());
-            }
-        }
-        return EditResponse.fromEntity(board,content);
+        Board board = boardRepository.findById(boardId).orElseThrow(()
+                -> new RuntimeException("해당 게시글을 찾을 수 없습니다."));
+        return s3ServiceUtil.editBoardUrl(board);
     }
 
     @Override

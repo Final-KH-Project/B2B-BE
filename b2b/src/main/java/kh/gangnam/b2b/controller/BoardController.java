@@ -22,7 +22,6 @@ public class BoardController {
 
     @PostMapping("/save")
     public ResponseEntity<BoardSaveResponse> create(@RequestBody SaveRequest saveRequest, @AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
-        System.out.println("세이브 리퀘스트" + saveRequest);
         return ResponseEntity.ok(boardService.saveBoard(saveRequest, employeeDetails.getEmployeeId()));
     }
 

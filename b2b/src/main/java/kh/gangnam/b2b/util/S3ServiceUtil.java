@@ -3,7 +3,10 @@ package kh.gangnam.b2b.util;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Resource;
 import io.awspring.cloud.s3.S3Template;
+import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.dto.s3.S3Response;
+import kh.gangnam.b2b.entity.board.Board;
+import kh.gangnam.b2b.entity.board.BoardImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +35,28 @@ public class S3ServiceUtil {
     // 실제 파일 저장 경로
     @Value("${spring.cloud.aws.s3.upload}")
     private String UPLOAD_PATH;
+
+
+    // 게시글 수정 시 게시글 정보 가져오는 메서드 url 경로를 temp 로 변경
+    public EditResponse editBoardUrl(Board board) {
+
+        String content = board.getContent();
+
+        for (BoardImage url : board.getImages()) {
+            // 파일명 추출
+            String originalUrl = url.getS3Path();
+            String fileName = extractFileNameFromUrl(originalUrl);
+
+            // upload/boardId -> temp/ 폴더로 복사
+            S3Response tempUrl = moveFromUploadToTemp(originalUrl);
+
+            // content 내부 URL 교체
+            if (content.contains(fileName)) {
+                content = content.replace(originalUrl, tempUrl.getUrl());
+            }
+        }
+        return EditResponse.fromEntity(board, content);
+    }
 
     public String extractFileNameFromUrl(String url) {
         return url.substring(url.lastIndexOf("/") + 1);
