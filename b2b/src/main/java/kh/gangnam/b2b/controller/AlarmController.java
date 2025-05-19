@@ -17,8 +17,8 @@ public class AlarmController {
 
    // private final AlarmServiceImpl alarmServiceImpl;
 
-    @MessageMapping("/hello")
-    @SendTo ("/topic/message")
+    @MessageMapping("/hello") //발행
+    @SendTo ("/topic/message") //메세지 생성
     public AlarmMessage sendAlarmViaWebSocket(NotificationMessage message){
         log.info("웹소켓 알림 수신: {}", message);
 

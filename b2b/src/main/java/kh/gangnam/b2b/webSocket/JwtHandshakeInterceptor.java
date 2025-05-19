@@ -23,6 +23,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JWTUtil jwtUtil;
 
+
     @Override
     public boolean beforeHandshake(
             ServerHttpRequest request,
@@ -30,7 +31,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes
     ) {
-
+        log.info("HandshakeInterceptor 실행 중");
         // 1. HttpServletRequest 로 형변환
         if (!(request instanceof ServletServerHttpRequest)) {
             return false;
@@ -46,7 +47,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         String token = null;
         if (servletRequest.getCookies() != null) {
             for (Cookie cookie : servletRequest.getCookies()) {
-                if ("access_token".equals(cookie.getName())) {
+                if ("access".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
