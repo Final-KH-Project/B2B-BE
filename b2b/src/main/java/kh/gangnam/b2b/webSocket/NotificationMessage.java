@@ -6,5 +6,7 @@ import lombok.Getter;
 @Data
 public class NotificationMessage {
 
-    private  String test;
+    private String name;
+    private String title;
+    private String content;
 }

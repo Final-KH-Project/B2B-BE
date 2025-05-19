@@ -31,7 +31,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes
     ) {
-        log.info("HandshakeInterceptor 실행 중");
         // 1. HttpServletRequest 로 형변환
         if (!(request instanceof ServletServerHttpRequest)) {
             return false;
@@ -39,9 +38,8 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
         HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
 
-        log.info("WebSocket 요청 URI: " + servletRequest.getRequestURI());
+        log.info("[HandshakeInterceptor] WebSocket 요청 {}",servletRequest.getRequestURI());
         log.info("Query String: " + servletRequest.getQueryString());
-        log.info("Cookies: " + Arrays.toString(servletRequest.getCookies()));
 
         // 2. 쿠키에서 access_token 꺼내기
         String token = null;
@@ -66,7 +64,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 return false;
             }
 
-            String username = jwtUtil.getUsername(token);
+            String username = jwtUtil.getLoginId(token);
             attributes.put("username", username); // 세션 속성에 저장 (WebSocket에서 사용 가능)
             return true;
 

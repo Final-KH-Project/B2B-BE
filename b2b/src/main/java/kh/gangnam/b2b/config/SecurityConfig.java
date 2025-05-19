@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collections;
 import java.util.List;
@@ -66,27 +67,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         http
-                .cors((corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
-
-                    @Override
-                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
-                        CorsConfiguration configuration = new CorsConfiguration();
-
-                        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
-                        configuration.setAllowedMethods(Collections.singletonList("*"));
-                        configuration.setAllowCredentials(true);
-                        configuration.setAllowedHeaders(Collections.singletonList("*"));
-                        configuration.setExposedHeaders(List.of("Set-Cookie"));
-                        configuration.setMaxAge(3600L);
-
-//                        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-
-                        return configuration;
-                    }
-                })));
-
-
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(corsConfigurationSource()));
         //csrf disable
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -102,6 +83,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
                         // 토큰 ROLE 이 ADMIN인 경우
                         .requestMatchers("/admin").hasRole("ADMIN")
+                        // WebSocket 엔드포인트 추가
+                        .requestMatchers("/ws", "/ws/**").permitAll() //추가
                         // 토큰이 필요없지만 토큰 판별식이 별도로 존재함
                         .requestMatchers("/api/auth/reissue").permitAll()
                         // 나머지 엔드포인트는 토큰 필요
@@ -121,5 +104,22 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Content-Disposition"));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/ws/**", configuration); // 웹소켓 경로도 포함
+
+        return source;
     }
 }

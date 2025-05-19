@@ -12,6 +12,10 @@ public class AlarmServiceImpl implements AlarmService {
 
     @Override
     public ResponseEntity<?> saveAlarm(SaveAlarm saveAlarm) {
+
+        // TODO 알람 전송 시 알람 데이터베이스 저장
+
+        // TODO 알람을 수신한 사람은 알람에 접근할 수 있어야 함
         return null;
     }
 

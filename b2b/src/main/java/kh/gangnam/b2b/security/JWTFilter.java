@@ -39,7 +39,6 @@ public class JWTFilter extends OncePerRequestFilter {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("access")) {
                     access = cookie.getValue();
-                    System.out.println("Received Cookies: " + Arrays.toString(request.getCookies()));
                 }
             }
         }
