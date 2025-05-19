@@ -4,6 +4,7 @@ import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomEmployeeDetailsService implements UserDetailsService {
 
     private final EmployeeRepository employeeRepository;
@@ -25,8 +27,6 @@ public class CustomEmployeeDetailsService implements UserDetailsService {
 
             return new CustomEmployeeDetails(employeeData);
         }
-
-
-        return null;
+        throw new UsernameNotFoundException("User not found");
     }
 }

@@ -29,6 +29,9 @@ public class CustomEmployeeDetails implements UserDetails {
 
         return collection;
     }
+    public Employee getEmployee(){
+        return employee;
+    }
 
     @Override
     public String getPassword() {

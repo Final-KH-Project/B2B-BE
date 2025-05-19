@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user")
 public class EmployeeController {
 
-    private final EmployeeServiceImpl employeeRepo;
+    private final EmployeeServiceImpl employeeService;
 
     // 마이페이지: 현재 로그인한 사용자 정보 조회
     @GetMapping("/profile")
     public ResponseEntity<EmployeeDTO> myPage(@AuthenticationPrincipal CustomEmployeeDetails userDetails) {
         // userDetails는 JWTFilter에서 인증된 사용자 정보
         Long employeeId = userDetails.getEmployeeId();
-        EmployeeDTO employeeDto = employeeRepo.getEmployeeInfoByEmployeeId(employeeId);
+        EmployeeDTO employeeDto = employeeService.getEmployeeInfoByEmployeeId(employeeId);
         return ResponseEntity.ok(employeeDto);
     }
     // 패스워드 변경
@@ -29,7 +29,7 @@ public class EmployeeController {
     public ResponseEntity<Void> updatePassword(
             @RequestBody PasswordChangeRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeRepo.updatePassword(userDetails.getEmployeeId(), request.getNewPassword());
+        employeeService.updatePassword(userDetails.getEmployeeId(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
     // 부서 변경
@@ -37,7 +37,7 @@ public class EmployeeController {
     public ResponseEntity<Void> updateDepartment(
             @RequestBody DepartmentUpdateRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeRepo.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
+        employeeService.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
         return ResponseEntity.ok().build();
     }
     // 직급 변경
@@ -45,7 +45,7 @@ public class EmployeeController {
     public ResponseEntity<Void> updatePosition(
             @RequestBody PositionUpdateRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeRepo.updatePosition(userDetails.getEmployeeId(), request.getPosition());
+        employeeService.updatePosition(userDetails.getEmployeeId(), request.getPosition());
         return ResponseEntity.ok().build();
     }
     // 전화번호 변경
@@ -53,7 +53,7 @@ public class EmployeeController {
     public ResponseEntity<Void> updatePhoneNumber(
             @RequestBody PhoneUpdateRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeRepo.updatePhoneNumber(userDetails.getEmployeeId(), request.getPhoneNumber());
+        employeeService.updatePhoneNumber(userDetails.getEmployeeId(), request.getPhoneNumber());
         return ResponseEntity.ok().build();
     }
     // 프로필 이미지 변경
@@ -61,7 +61,7 @@ public class EmployeeController {
     public ResponseEntity<Void> updateProfileImage(
             @RequestBody ProfileImageRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeRepo.updateProfileImage(userDetails.getEmployeeId(), request.getProfileImageUrl());
+        employeeService.updateProfileImage(userDetails.getEmployeeId(), request.getProfileImageUrl());
         return ResponseEntity.ok().build();
     }
 }
