@@ -6,8 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.entity.auth.Employee;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
+@Slf4j
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
@@ -30,10 +32,6 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        //request에서 Authorization 헤더를 찾음
-//        String authorization= request.getHeader("Authorization");
-
-        // 위에 헤더 가져오는 것 대신 쿠키를 가져올 것으로 대체
         // 쿠키에서 access 를 찾음
         String access = null;
         Cookie[] cookies = request.getCookies();
@@ -42,67 +40,54 @@ public class JWTFilter extends OncePerRequestFilter {
                 if (cookie.getName().equals("access")) {
                     access = cookie.getValue();
                     System.out.println("Received Cookies: " + Arrays.toString(request.getCookies()));
-                    if (access == null) {
-                        System.out.println("Access token is null!");
-                    } else {
-                        System.out.println("Access token found: " + access);
-                    }
                 }
             }
         }
         // 토큰 검증 로직 수정
         if (access == null) {
-            System.out.println("access token null");
+            log.warn("[TOKEN] No access token found. URI: {}", request.getRequestURI());
             filterChain.doFilter(request, response);
-
-            // 토근이 없으면 조건이 해당되면 메소드 종료 (필수)
             return;
         }
 
 
         // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
-            jwtUtil.isExpired(access);
+            jwtUtil.validateExpiration(access);
         } catch (ExpiredJwtException e) {
+            String loginId = null;
+            try {
+                loginId = jwtUtil.getLoginId(access);
+            } catch (Exception ignore) {}
+            log.warn("[TOKEN] Access token expired. loginId: {}, URI: {}", loginId, request.getRequestURI());
 
-            //response body
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
-
-            //response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
-        }
-        // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        String category = jwtUtil.getCategory(access);
-
-        if (!category.equals("access")) {
-
-            //response body
+        } catch (Exception e) {
+            log.error("[TOKEN] Invalid access token. Error: {}, URI: {}", e.getMessage(), request.getRequestURI());
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
-
-            //response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-
         // username, role 획득
-        String username = jwtUtil.getUsername(access);
-        Long userId = jwtUtil.getUserId(access);
+        String loginId = jwtUtil.getLoginId(access);
+        Long employeeId = jwtUtil.getEmployeeId(access);
         String role = jwtUtil.getRole(access);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setRole(role);
-        user.setUserId(userId);
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        Employee employee = new Employee();
+        employee.setLoginId(loginId);
+        employee.setRole(role);
+        employee.setEmployeeId(employeeId);
+        CustomEmployeeDetails customEmployeeDetails = new CustomEmployeeDetails(employee);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                customEmployeeDetails,
                 null,
-                customUserDetails.getAuthorities());
+                customEmployeeDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
 

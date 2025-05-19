@@ -1,8 +1,8 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.auth.request.JoinDTO;
-import kh.gangnam.b2b.entity.auth.User;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthService {
 
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     /**
@@ -25,24 +25,24 @@ public class AuthServiceImpl {
      */
     public ResponseEntity<String> joinProcess(JoinDTO joinDTO) {
 
-        String username = joinDTO.getUsername();
+        String loginId = joinDTO.getLoginId();
         String password = joinDTO.getPassword();
 
-        Boolean isExist = userRepository.existsByUsername(username);
+        Boolean isExist = employeeRepository.existsByLoginId(loginId);
 
         if (isExist) {
 
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(username + "는 이미 존재하는 아이디입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginId + "는 이미 존재하는 아이디입니다.");
         }
 
         // 비밀번호 인코딩
         String encodedPassword = bCryptPasswordEncoder.encode(password);
 
         // User 엔티티로 변환
-        User user = joinDTO.toEntity(encodedPassword, "ROLE_ADMIN");
+        Employee employee = joinDTO.toEntity(encodedPassword, "ROLE_ADMIN");
 
-        userRepository.save(user);
+        employeeRepository.save(employee);
 
-        return ResponseEntity.ok(username + " 회원가입 완료");
+        return ResponseEntity.ok(loginId + " 회원가입 완료");
     }
 }

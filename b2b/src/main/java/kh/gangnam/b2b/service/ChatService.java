@@ -30,12 +30,12 @@ public interface ChatService {
 
     /**
      * 채팅방 리스트 조회
-     * User 엔티티의 userId
-     * @param userId
+     * User 엔티티의 employeeId
+     * @param employeeId
      * ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
      * @return
      */
-    ResponseEntity<List<ChatRoomUser>> readRooms(Long userId);
+    ResponseEntity<List<ChatRoomUser>> readRooms(Long employeeId);
 
     /**
      * 채팅방 입장, 클릭

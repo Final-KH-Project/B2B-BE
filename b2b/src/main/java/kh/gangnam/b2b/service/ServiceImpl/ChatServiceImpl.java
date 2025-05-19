@@ -26,7 +26,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ResponseEntity<List<ChatRoomUser>> readRooms(Long userId) {
+    public ResponseEntity<List<ChatRoomUser>> readRooms(Long employeeId) {
         return null;
     }
 
