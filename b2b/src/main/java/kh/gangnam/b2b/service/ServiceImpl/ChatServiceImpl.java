@@ -43,13 +43,29 @@ public class ChatServiceImpl implements ChatService {
      */
     @Override
     public Long createRoom(CreateRoom createRoom) {
-        // 1. 채팅방 생성
+        List<Long> userIds = createRoom.getUserIds();
+        // 1. userIds 정렬 (1,2와 2,1을 동일하게 처리)
+        List<Long> sortedUserIds = userIds.stream().sorted().collect(Collectors.toList());
+
+        // 2. 이미 같은 멤버 조합의 채팅방이 있는지 조회
+        List<ChatRoom> candidateRooms = chatRoomUserRepository.findChatRoomsByUserId(sortedUserIds.get(0));
+        for (ChatRoom room : candidateRooms) {
+            List<Long> participantIds = room.getChatRoomUsers().stream()
+                    .map(cru -> cru.getUser().getUserId())
+                    .sorted()
+                    .collect(Collectors.toList());
+            if (participantIds.equals(sortedUserIds)) {
+                // 이미 존재하는 방이면 그 roomId 반환
+                return room.getId();
+            }
+        }
+
+        // 3. 없으면 새로 생성
         ChatRoom room = new ChatRoom();
         room.setTitle(createRoom.getTitle());
         ChatRoom savedRoom = chatRoomRepository.save(room);
 
-        // 2. 참여자(유저) 중간 테이블에 저장
-        List<ChatRoomUser> members = createRoom.getUserIds().stream()
+        List<ChatRoomUser> members = userIds.stream()
                 .map(userId -> {
                     User user = userRepository.findById(userId)
                             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -62,6 +78,7 @@ public class ChatServiceImpl implements ChatService {
 
         return savedRoom.getId();
     }
+
 
     /**
      * 내 채팅방 목록 조회

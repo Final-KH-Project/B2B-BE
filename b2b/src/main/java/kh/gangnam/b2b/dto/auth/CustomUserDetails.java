@@ -5,11 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomUserDetails  implements UserDetails {
+public class CustomUserDetails  implements UserDetails, Principal {
 
     private final User user;
 
@@ -68,5 +69,11 @@ public class CustomUserDetails  implements UserDetails {
     public boolean isEnabled() {
 
         return true;
+    }
+
+    @Override
+    public String getName() {
+        // Principal의 getName() 구현 (보통 username 반환)
+        return user.getUsername();
     }
 }

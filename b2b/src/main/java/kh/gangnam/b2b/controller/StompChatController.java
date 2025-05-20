@@ -9,7 +9,9 @@ import kh.gangnam.b2b.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,12 +31,14 @@ public class StompChatController {
     private final ChatWebSocketService chatWebSocketService;
     private final UserRepository userRepository;
 
-    @MessageMapping("/chat/message")
-    public void message(SendChat message, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // 1. 메시지 저장 및 DTO 변환
+    @MessageMapping("/chat/messages")
+    public void message(@Payload SendChat message, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Long userId = userDetails.getUserId();
+        System.out.println("[WS] 메시지 수신: " + message);
         ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userId);
-        // 2. 해당 채팅방 구독자에게 메시지 브로드캐스트
+        System.out.println("[WS] 브로드캐스트: /sub/chat/room/" + message.getRoomId() + " " + chatMessage);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), chatMessage);
     }
+
 }

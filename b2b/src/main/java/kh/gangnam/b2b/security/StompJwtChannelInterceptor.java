@@ -1,6 +1,8 @@
 package kh.gangnam.b2b.security;
 
 import io.jsonwebtoken.Claims;
+import kh.gangnam.b2b.dto.auth.CustomUserDetails;
+import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
@@ -9,6 +11,8 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
+
+import java.security.Principal;
 
 /**
  * WebSocket 연결 시 쿠키에서 access 토큰을 추출해 검증하는 인터셉터
@@ -32,7 +36,28 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
                 if (access != null) {
                     // 2. JWT 검증 (유효하지 않으면 예외 발생)
                     Claims claims = jwtUtil.validateAndParseClaims(access);
-                    // 필요하다면 accessor.setUser(...)로 Principal 설정
+
+                    // 3. Principal(CustomUserDetails) 생성
+                    String username = claims.get("username", String.class);
+                    // userId는 Integer 또는 Long일 수 있으니 타입 변환 주의
+                    Object userIdObj = claims.get("userId");
+                    Long userId = userIdObj instanceof Integer
+                            ? ((Integer) userIdObj).longValue()
+                            : (Long) userIdObj;
+                    String role = claims.get("role", String.class);
+
+                    // User 엔티티 생성 (필요한 필드만)
+                    User user = new User();
+                    user.setUserId(userId);
+                    user.setUsername(username);
+                    user.setRole(role);
+
+                    // CustomUserDetails 생성 (Principal 구현체)
+                    CustomUserDetails userDetails = new CustomUserDetails(user);
+
+                    // 4. Principal 세팅 (★ 이 부분이 핵심!)
+                    accessor.setUser(userDetails); // CustomUserDetails가 Principal 구현체여야 함
+
                 } else {
                     throw new IllegalArgumentException("Access Token not found in cookie");
                 }
