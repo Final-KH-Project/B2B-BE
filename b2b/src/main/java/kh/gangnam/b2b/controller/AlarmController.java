@@ -26,13 +26,13 @@ public class AlarmController {
         return AlarmMessage.builder().message("메세지 받으세요").build();
 
     }
-    @MessageMapping("/hello") //발행
-    @SendTo ("/queue/message") //단일 메세지 생성
-    public AlarmMessage sendAlarmsViaWebSocket(NotificationMessage message){
-        log.info("웹소켓 알림 수신: {}", message);
-
-        return AlarmMessage.builder().message("메세지 받으세요").build();
-
-    }
+//    @MessageMapping("/hello") //발행
+//    @SendTo ("/queue/message") //단일 메세지 생성
+//    public AlarmMessage sendAlarmsViaWebSocket(NotificationMessage message){
+//        log.info("웹소켓 알림 수신: {}", message);
+//
+//        return AlarmMessage.builder().message("메세지 받으세요").build();
+//
+//    }
 
 }
