@@ -59,7 +59,7 @@ public class ChatController {
      * @return 채팅방 리스트 DTO
      */
     @GetMapping("/users/{userId}/rooms")
-    public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable Long userId) {
+    public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(chatService.readRooms(userId));
     }
 
@@ -71,7 +71,7 @@ public class ChatController {
      * @return 채팅방+메시지 내역 DTO
      */
     @GetMapping("/rooms/{roomId}")
-    public ResponseEntity<ReadRoom> getRoomWithMessages(@PathVariable Long roomId) {
+    public ResponseEntity<ReadRoom> getRoomWithMessages(@PathVariable("roomId") Long roomId) {
         return ResponseEntity.ok(chatService.readRoom(roomId));
     }
 

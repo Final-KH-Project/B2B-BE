@@ -17,4 +17,6 @@ public class ReadRooms {
     private Long roomId;             // 채팅방 ID
     private String title;            // 채팅방 이름
     private LocalDateTime createdAt; // 채팅방 생성 시각
+    private String lastMessage;      // ★ 최신 메시지 내용
+    private LocalDateTime updatedAt; // ★ 최신 메시지 시간
 }

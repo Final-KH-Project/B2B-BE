@@ -26,7 +26,7 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 public class StompChatController {
-
+//브로커 추가해야함
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatWebSocketService chatWebSocketService;
     private final UserRepository userRepository;
@@ -39,6 +39,7 @@ public class StompChatController {
         ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userId);
         System.out.println("[WS] 브로드캐스트: /sub/chat/room/" + message.getRoomId() + " " + chatMessage);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), chatMessage);
+
     }
 
 }

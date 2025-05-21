@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -88,10 +89,29 @@ public class ChatServiceImpl implements ChatService {
      */
     @Override
     public List<ReadRooms> readRooms(Long userId) {
-        // 중간 테이블에서 내가 속한 채팅방 리스트 조회
+        // 1. 내가 속한 채팅방 리스트 조회
         List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
+
+        // 2. 각 채팅방마다 최신 메시지/시간 포함해서 DTO로 변환
         return rooms.stream()
-                .map(room -> new ReadRooms(room.getId(), room.getTitle(), room.getCreatedAt()))
+                .map(room -> {
+                    // 최신 메시지 찾기 (메시지가 없을 수도 있으니 null 체크)
+                    ChatMessage lastMsg = room.getMessages().stream()
+                            .max(Comparator.comparing(ChatMessage::getSentAt))
+                            .orElse(null);
+
+                    String lastMessage = lastMsg != null ? lastMsg.getContent() : "";
+                    LocalDateTime updatedAt = lastMsg != null ? lastMsg.getSentAt() : room.getCreatedAt();
+
+                    return new ReadRooms(
+                            room.getId(),
+                            room.getTitle(),
+                            room.getCreatedAt(),
+                            lastMessage,
+                            updatedAt
+                    );
+                })
+                .sorted(Comparator.comparing(ReadRooms::getUpdatedAt).reversed()) // 최신순 정렬
                 .collect(Collectors.toList());
     }
 
