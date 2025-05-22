@@ -42,13 +42,10 @@ public class ReissueController {
         String refresh = null;
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {
-
             if (cookie.getName().equals("refresh")) {
-
                 refresh = cookie.getValue();
             }
         }
-
         // refresh 가 쿠키에 없는 경우
         if (refresh == null) {
 
@@ -81,18 +78,18 @@ public class ReissueController {
             return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
         }
 
-        String username = jwtUtil.getUsername(refresh);
+        String loginId = jwtUtil.getLoginId(refresh);
         String role = jwtUtil.getRole(refresh);
-        Long userId = jwtUtil.getUserId(refresh);
+        Long employeeId = jwtUtil.getEmployeeId(refresh);
 
         //make new JWT, new Refresh 3,600,000ms = 1시간
-        String newAccess = jwtUtil.createJwt("access", username, userId, role, accessExpired);
+        String newAccess = jwtUtil.createJwt("access", loginId, employeeId, role, accessExpired);
         // 86,400,000 = 하루
-        String newRefresh = jwtUtil.createJwt("refresh", username, userId, role, refreshExpired);
+        String newRefresh = jwtUtil.createJwt("refresh", loginId, employeeId, role, refreshExpired);
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(accessExpired/1000);
 
         // RefreshEntity 저장
-        addRefreshEntity(username, newRefresh, expiresAt);
+        addRefreshEntity(employeeId, newRefresh, expiresAt);
 
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
@@ -126,15 +123,12 @@ public class ReissueController {
         return cookie;
     }
 
-    private void addRefreshEntity(String username, String refresh, LocalDateTime expiredMs) {
+    private void addRefreshEntity(Long employeeId, String refresh, LocalDateTime expiredMs) {
 
-        // 기존 토큰 삭제
-        refreshRepository.findByUsername(username)
-                .ifPresent(refreshRepository::delete);
-
+        refreshRepository.deleteByEmployeeId(employeeId);
         // 새 토큰 저장
         Refresh refreshEntity = Refresh.builder()
-                .username(username)
+                .employeeId(employeeId)
                 .refresh(refresh)
                 .expiresAt(expiredMs)
                 .build();
