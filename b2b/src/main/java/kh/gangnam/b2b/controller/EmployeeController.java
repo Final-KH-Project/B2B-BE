@@ -1,10 +1,12 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.dto.auth.request.RoleRequest;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.employee.request.*;
 import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ public class EmployeeController {
         EmployeeDTO employeeDto = employeeService.getEmployeeInfoByEmployeeId(employeeId);
         return ResponseEntity.ok(employeeDto);
     }
+
     // 패스워드 변경
     @PostMapping("/password")
     public ResponseEntity<Void> updatePassword(
@@ -32,6 +35,7 @@ public class EmployeeController {
         employeeService.updatePassword(userDetails.getEmployeeId(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
     // 부서 변경
     @PatchMapping("/department")
     public ResponseEntity<Void> updateDepartment(
@@ -40,6 +44,7 @@ public class EmployeeController {
         employeeService.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
         return ResponseEntity.ok().build();
     }
+
     // 직급 변경
     @PatchMapping("/position")
     public ResponseEntity<Void> updatePosition(
@@ -48,6 +53,7 @@ public class EmployeeController {
         employeeService.updatePosition(userDetails.getEmployeeId(), request.getPosition());
         return ResponseEntity.ok().build();
     }
+
     // 전화번호 변경
     @PatchMapping("/phone")
     public ResponseEntity<Void> updatePhoneNumber(
@@ -56,6 +62,7 @@ public class EmployeeController {
         employeeService.updatePhoneNumber(userDetails.getEmployeeId(), request.getPhoneNumber());
         return ResponseEntity.ok().build();
     }
+
     // 프로필 이미지 변경
     @PatchMapping("/profile-image")
     public ResponseEntity<Void> updateProfileImage(
@@ -63,5 +70,10 @@ public class EmployeeController {
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
         employeeService.updateProfileImage(userDetails.getEmployeeId(), request.getProfileImageUrl());
         return ResponseEntity.ok().build();
+    }
+    // Role 변경
+    @PostMapping("/update/role")
+    public ResponseEntity<String> updateRole(@RequestBody RoleRequest request) {
+        return employeeService.updateRole(request);
     }
 }

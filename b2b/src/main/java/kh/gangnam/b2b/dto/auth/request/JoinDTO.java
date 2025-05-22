@@ -12,7 +12,6 @@ public class JoinDTO {
     private String password;
     private String name;
     private String profile;
-    private String department;
     private String position;
     private String dateOfBirth;
     private String phoneNumber;
@@ -24,7 +23,6 @@ public class JoinDTO {
                 .password(encodedPassword)
                 .name(this.name)
                 .profile(this.profile)
-                .department(this.department)
                 .position(this.position)
                 .dateOfBirth(this.dateOfBirth)
                 .phoneNumber(this.phoneNumber)
