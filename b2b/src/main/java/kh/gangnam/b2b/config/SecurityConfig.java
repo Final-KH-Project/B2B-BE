@@ -101,7 +101,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").permitAll()
                         .requestMatchers("/api/auth/login", "/", "/api/auth/join").permitAll()
                         // 토큰 ROLE 이 ADMIN인 경우
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers("/admin", "/api/user/update/role").hasRole("ADMIN")
                         // 토큰이 필요없지만 토큰 판별식이 별도로 존재함
                         .requestMatchers("/api/auth/reissue").permitAll()
                         // 나머지 엔드포인트는 토큰 필요

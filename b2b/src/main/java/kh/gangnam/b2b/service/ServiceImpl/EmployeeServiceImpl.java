@@ -93,6 +93,7 @@ public class EmployeeServiceImpl {
 
         Employee employee = employeeRepository.findByEmployeeId(employeeId);
         employee.setPosition(request.getPosition());
+        employee.setRole(request.getRole());
         employeeRepository.save(employee);
 
         log.info("role: {}", jwtUtil.getRole(refreshEntity.getRefresh()));

@@ -6,6 +6,7 @@ import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.employee.request.*;
 import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/user")
 public class EmployeeController {
 
@@ -24,6 +26,7 @@ public class EmployeeController {
         // userDetails는 JWTFilter에서 인증된 사용자 정보
         Long employeeId = userDetails.getEmployeeId();
         EmployeeDTO employeeDto = employeeService.getEmployeeInfoByEmployeeId(employeeId);
+
         return ResponseEntity.ok(employeeDto);
     }
 

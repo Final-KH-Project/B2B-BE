@@ -7,6 +7,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.dto.auth.Role;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +32,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String uri = request.getRequestURI();
+
+        // 인증이 필요 없는 경로는 바로 다음 필터로 넘김
+        if (uri.startsWith("/api/auth/login") || uri.startsWith("/api/auth/join")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 쿠키에서 access 를 찾음
         String access = null;
@@ -78,6 +87,13 @@ public class JWTFilter extends OncePerRequestFilter {
         Long employeeId = jwtUtil.getEmployeeId(access);
         String role = jwtUtil.getRole(access);
 
+        // Role 유효성 검증
+        if (role == null || !isValidRole(role)) {
+            log.warn("[ROLE] Invalid role: {}. LoginID: {}, URI: {}", role, loginId, request.getRequestURI());
+            sendErrorResponse(response, "invalid role", HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
         Employee employee = new Employee();
         employee.setLoginId(loginId);
         employee.setRole(role);
@@ -92,5 +108,17 @@ public class JWTFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+    private boolean isValidRole(String role) {
+        return Role.from(role) != null;
+    }
+
+    // 에러 응답 메서드
+    private void sendErrorResponse(HttpServletResponse response, String message, int statusCode) throws IOException {
+        response.setStatus(statusCode);
+        response.setContentType("text/plain;charset=UTF-8");
+        PrintWriter writer = response.getWriter();
+        writer.print(message);
+        writer.flush();
     }
 }
