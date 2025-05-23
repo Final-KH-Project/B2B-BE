@@ -3,7 +3,6 @@ package kh.gangnam.b2b.security;
 import io.jsonwebtoken.Claims;
 import kh.gangnam.b2b.dto.auth.CustomUserDetails;
 import kh.gangnam.b2b.entity.auth.User;
-import kh.gangnam.b2b.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -11,8 +10,6 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
-
-import java.security.Principal;
 
 /**
  * WebSocket 연결 시 쿠키에서 access 토큰을 추출해 검증하는 인터셉터

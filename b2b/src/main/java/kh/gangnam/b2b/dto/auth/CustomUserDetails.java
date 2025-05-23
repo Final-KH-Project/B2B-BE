@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomUserDetails  implements UserDetails, Principal {
+public class CustomUserDetails implements UserDetails, Principal {
 
     private final User user;
 
@@ -30,6 +30,9 @@ public class CustomUserDetails  implements UserDetails, Principal {
 
         return collection;
     }
+    public User getUserId(){
+        return getUserId();
+    }
 
     @Override
     public String getPassword() {
@@ -40,11 +43,11 @@ public class CustomUserDetails  implements UserDetails, Principal {
     @Override
     public String getUsername() {
 
-        return user.getUsername();
+        return user.getLoginId();
     }
 
-    public Long getUserId() {
-        return user.getUserId();
+    public Long getEmployeeId() {
+        return user.getEmployeeId();
     }
 
     @Override
@@ -71,9 +74,8 @@ public class CustomUserDetails  implements UserDetails, Principal {
         return true;
     }
 
-    @Override
     public String getName() {
         // Principal의 getName() 구현 (보통 username 반환)
-        return user.getUsername();
+        return user.getName();
     }
 }

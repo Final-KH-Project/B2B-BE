@@ -7,16 +7,12 @@ import kh.gangnam.b2b.entity.auth.User;
 import kh.gangnam.b2b.repository.UserRepository;
 import kh.gangnam.b2b.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,9 +31,9 @@ public class StompChatController {
     @MessageMapping("/chat/messages")
     public void message(@Payload SendChat message, Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Long userId = userDetails.getUserId();
+        User userId = userDetails.getUserId();
         System.out.println("[WS] 메시지 수신: " + message);
-        ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userId);
+        ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userDetails.getEmployeeId());
         System.out.println("[WS] 브로드캐스트: /sub/chat/room/" + message.getRoomId() + " " + chatMessage);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), chatMessage);
 

@@ -7,7 +7,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.entity.auth.User;
+import org.apache.catalina.User;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -97,12 +97,12 @@ public class JWTFilter extends OncePerRequestFilter {
         user.setUsername(username);
         user.setRole(role);
         user.setUserId(userId);
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        CustomUserDetails customEmployeeDetails = new CustomUserDetails(user);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                customEmployeeDetails,
                 null,
-                customUserDetails.getAuthorities());
+                customEmployeeDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
