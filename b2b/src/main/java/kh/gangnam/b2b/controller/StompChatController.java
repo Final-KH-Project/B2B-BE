@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * WebSocket 채팅 메시지 송수신 컨트롤러
@@ -39,6 +40,12 @@ public class StompChatController {
         ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userId);
         System.out.println("[WS] 브로드캐스트: /sub/chat/room/" + message.getRoomId() + " " + chatMessage);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), chatMessage);
+
+        // ★★★ 추가: 참여자 각각에게 "새 메시지 알림" push
+        // message.getParticipantUserIds()는 List<Long> 또는 List<Integer> 형태여야 함
+        for (Long participantId : message.getParticipantUserIds()) {
+            messagingTemplate.convertAndSend("/sub/chat/user/" + participantId, Map.of("roomId", message.getRoomId()));
+        }
 
     }
 
