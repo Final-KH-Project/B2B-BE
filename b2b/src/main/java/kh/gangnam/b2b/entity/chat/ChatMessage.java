@@ -1,7 +1,7 @@
 package kh.gangnam.b2b.entity.chat;
 
 import jakarta.persistence.*;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public class ChatMessage {
     // 메시지 보낸 사람
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
-    private User sender;
+    private Employee sender;
 
     private String content;              // 메시지 내용
     private LocalDateTime sentAt = LocalDateTime.now(); // 전송 시각

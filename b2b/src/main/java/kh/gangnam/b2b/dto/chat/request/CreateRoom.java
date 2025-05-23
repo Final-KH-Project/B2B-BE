@@ -1,8 +1,6 @@
 package kh.gangnam.b2b.dto.chat.request;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
@@ -14,5 +12,5 @@ import java.util.List;
 @Data
 public class CreateRoom {
     private String title;          // 생성할 채팅방 이름
-    private List<Long> userIds;    // 채팅방에 참여할 유저 ID 리스트
+    private List<Long> employeeIds;    // 채팅방에 참여할 유저 ID 리스트
 }

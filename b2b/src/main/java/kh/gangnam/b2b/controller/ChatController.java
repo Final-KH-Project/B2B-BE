@@ -1,14 +1,15 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
-import kh.gangnam.b2b.entity.auth.User;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,22 +23,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@Slf4j
 public class ChatController {
 
     // 채팅 서비스 의존성 주입
     private final ChatService chatService;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
 
     // 유저 목록 조회 API 추가
     @GetMapping("/user")
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
     }
 
     // currentUser 조회
     @GetMapping("/me")
-    public User getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return userRepository.findByUsername(userDetails.getUsername());
+    public Employee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        return employeeRepository.findByLoginId(employeeDetails.getUsername());
     }
     /**
      * 채팅방 생성 API
@@ -55,12 +57,12 @@ public class ChatController {
      * 내 채팅방 목록 조회 API
      * - userId로 내가 속한 채팅방 리스트를 반환
      * - 중간테이블(ChatRoomUser) 기반 조회
-     * @param userId 사용자 ID
+     * @param employeeId 사용자 ID
      * @return 채팅방 리스트 DTO
      */
     @GetMapping("/users/{userId}/rooms")
-    public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable("userId") Long userId) {
-        return ResponseEntity.ok(chatService.readRooms(userId));
+    public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable("userId") Long employeeId) {
+        return ResponseEntity.ok(chatService.readRooms(employeeId));
     }
 
     /**

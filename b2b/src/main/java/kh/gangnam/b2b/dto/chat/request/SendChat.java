@@ -1,8 +1,6 @@
 package kh.gangnam.b2b.dto.chat.request;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
@@ -17,5 +15,5 @@ public class SendChat {
     private Long senderId;              // 메시지 보낸 사람
     private String message;             // 메시지 내용
     private String title;               // (선택) 새 방 생성 시 방 제목
-    private List<Long> participantUserIds; // (선택) 새 방 생성 시 참여자 리스트
+    private List<Long> participantEmployeeIds; // (선택) 새 방 생성 시 참여자 리스트
 }

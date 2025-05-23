@@ -8,10 +8,10 @@ import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.chat.ChatMessage;
 import kh.gangnam.b2b.entity.chat.ChatRoom;
-import kh.gangnam.b2b.entity.chat.ChatRoomUser;
+import kh.gangnam.b2b.entity.chat.ChatRoomEmployee;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
-import kh.gangnam.b2b.repository.ChatRoomUserRepository;
+import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class ChatServiceImpl implements ChatService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatRoomUserRepository chatRoomUserRepository;
+    private final ChatRoomEmployeeRepository chatRoomEmployeeRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final EmployeeRepository employeeRepository;
 
@@ -44,18 +44,18 @@ public class ChatServiceImpl implements ChatService {
      */
     @Override
     public Long createRoom(CreateRoom createRoom) {
-        List<Long> userIds = createRoom.getUserIds();
+        List<Long> employeeIds = createRoom.getEmployeeIds();
         // 1. userIds 정렬 (1,2와 2,1을 동일하게 처리)
-        List<Long> sortedUserIds = userIds.stream().sorted().collect(Collectors.toList());
+        List<Long> sortedEmployeeIds = employeeIds.stream().sorted().toList();
 
         // 2. 이미 같은 멤버 조합의 채팅방이 있는지 조회
-        List<ChatRoom> candidateRooms = chatRoomUserRepository.findChatRoomsByUserId(sortedUserIds.get(0));
+        List<ChatRoom> candidateRooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(sortedEmployeeIds.get(0));
         for (ChatRoom room : candidateRooms) {
-            List<Long> participantIds = room.getChatRoomUsers().stream()
-                    .map(cru -> cru.getUser().getUserId())
+            List<Long> participantIds = room.getChatRoomEmployees().stream()
+                    .map(cru -> cru.getEmployee().getEmployeeId())
                     .sorted()
-                    .collect(Collectors.toList());
-            if (participantIds.equals(sortedUserIds)) {
+                    .toList();
+            if (participantIds.equals(sortedEmployeeIds)) {
                 // 이미 존재하는 방이면 그 roomId 반환
                 return room.getId();
             }
@@ -66,16 +66,16 @@ public class ChatServiceImpl implements ChatService {
         room.setTitle(createRoom.getTitle());
         ChatRoom savedRoom = chatRoomRepository.save(room);
 
-        List<ChatRoomUser> members = userIds.stream()
-                .map(userId -> {
-                    Employee employee = employeeRepository.findById(userId)
+        List<ChatRoomEmployee> members = employeeIds.stream()
+                .map(employeeId -> {
+                    Employee employee = employeeRepository.findById(employeeId)
                             .orElseThrow(() -> new RuntimeException("User not found"));
-                    ChatRoomUser cru = new ChatRoomUser();
-                    cru.setUser(employee);
+                    ChatRoomEmployee cru = new ChatRoomEmployee();
+                    cru.setEmployee(employee);
                     cru.setChatRoom(savedRoom);
                     return cru;
                 }).collect(Collectors.toList());
-        chatRoomUserRepository.saveAll(members);
+        chatRoomEmployeeRepository.saveAll(members);
 
         return savedRoom.getId();
     }
@@ -90,7 +90,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ReadRooms> readRooms(Long employeeId) {
         // 1. 내가 속한 채팅방 리스트 조회
-        List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(employeeId);
+        List<ChatRoom> rooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(employeeId);
 
         // 2. 각 채팅방마다 최신 메시지/시간 포함해서 DTO로 변환
         return rooms.stream()
@@ -131,7 +131,7 @@ public class ChatServiceImpl implements ChatService {
                 .map(msg -> new ChatMessages(
                         msg.getId(),
                         msg.getChatRoom().getId(),
-                        msg.getSender().getUserId(),
+                        msg.getSender().getEmployeeId(),
                         msg.getContent(),
                         msg.getSentAt()
                 )).collect(Collectors.toList());
@@ -167,19 +167,19 @@ public class ChatServiceImpl implements ChatService {
 
         // 2. 중간 테이블(참여자) 저장 (없으면 추가)
         // SendChat에 참여자 리스트가 있다고 가정 (없으면 sender만 추가)
-        List<Long> participantIds = sendChat.getParticipantUserIds() != null
-                ? sendChat.getParticipantUserIds()
+        List<Long> participantIds = sendChat.getParticipantEmployeeIds() != null
+                ? sendChat.getParticipantEmployeeIds()
                 : List.of(sendChat.getSenderId());
 
         for (Long userId : participantIds) {
-            boolean exists = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
+            boolean exists = chatRoomEmployeeRepository.existsEmployeeInChatRoom(userId, room.getId());
             if (!exists) {
                 Employee employee = employeeRepository.findById(userId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
-                ChatRoomUser cru = new ChatRoomUser();
-                cru.setUser(employee);
+                ChatRoomEmployee cru = new ChatRoomEmployee();
+                cru.setEmployee(employee);
                 cru.setChatRoom(room);
-                chatRoomUserRepository.save(cru);
+                chatRoomEmployeeRepository.save(cru);
             }
         }
 

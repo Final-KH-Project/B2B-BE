@@ -5,11 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomEmployeeDetails implements UserDetails {
+public class CustomEmployeeDetails implements UserDetails, Principal {
 
     private final Employee employee;
 
