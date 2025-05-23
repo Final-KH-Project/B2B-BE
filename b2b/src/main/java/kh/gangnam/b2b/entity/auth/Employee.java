@@ -1,21 +1,26 @@
 package kh.gangnam.b2b.entity.auth;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.web.bind.annotation.Mapping;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.*;
 
 @Entity
 @Setter
 @Getter
-public class User {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Employee {
+
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long employeeId;
 
-    private String username;
+
+    private String loginId;
     private String password;
     private String name;
     private String profile;
@@ -25,6 +30,4 @@ public class User {
     private String phoneNumber;
 
     private String role;
-
-
 }

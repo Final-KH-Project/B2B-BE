@@ -5,14 +5,14 @@ import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ChatMessages;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.chat.ChatMessage;
 import kh.gangnam.b2b.entity.chat.ChatRoom;
 import kh.gangnam.b2b.entity.chat.ChatRoomUser;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
 import kh.gangnam.b2b.repository.ChatRoomUserRepository;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
 
     /**
      * 채팅방 생성
@@ -68,10 +68,10 @@ public class ChatServiceImpl implements ChatService {
 
         List<ChatRoomUser> members = userIds.stream()
                 .map(userId -> {
-                    User user = userRepository.findById(userId)
+                    Employee employee = employeeRepository.findById(userId)
                             .orElseThrow(() -> new RuntimeException("User not found"));
                     ChatRoomUser cru = new ChatRoomUser();
-                    cru.setUser(user);
+                    cru.setUser(employee);
                     cru.setChatRoom(savedRoom);
                     return cru;
                 }).collect(Collectors.toList());
@@ -84,13 +84,13 @@ public class ChatServiceImpl implements ChatService {
     /**
      * 내 채팅방 목록 조회
      *
-     * @param userId 사용자 ID
+     * @param employeeId 사용자 ID
      * @return 채팅방 리스트 DTO
      */
     @Override
-    public List<ReadRooms> readRooms(Long userId) {
+    public List<ReadRooms> readRooms(Long employeeId) {
         // 1. 내가 속한 채팅방 리스트 조회
-        List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
+        List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(employeeId);
 
         // 2. 각 채팅방마다 최신 메시지/시간 포함해서 DTO로 변환
         return rooms.stream()
@@ -174,17 +174,17 @@ public class ChatServiceImpl implements ChatService {
         for (Long userId : participantIds) {
             boolean exists = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
             if (!exists) {
-                User user = userRepository.findById(userId)
+                Employee employee = employeeRepository.findById(userId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
                 ChatRoomUser cru = new ChatRoomUser();
-                cru.setUser(user);
+                cru.setUser(employee);
                 cru.setChatRoom(room);
                 chatRoomUserRepository.save(cru);
             }
         }
 
         // 3. 채팅 메시지 저장
-        User sender = userRepository.findById(sendChat.getSenderId())
+        Employee sender = employeeRepository.findById(sendChat.getSenderId())
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
         ChatMessage message = new ChatMessage();
         message.setChatRoom(room);
