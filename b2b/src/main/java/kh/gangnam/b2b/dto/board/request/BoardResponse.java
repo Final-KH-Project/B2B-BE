@@ -14,10 +14,23 @@ public class BoardResponse {
     private String title;
     private String content;
     private BoardType type;
-
+    private Boolean isAuthor;
     private EmployeeResponse author;
     private LocalDateTime createdDate;
     private LocalDateTime updatedAt;
+
+    public static BoardResponse fromEntity(Board board,Long employeeId){
+        return  BoardResponse.builder()
+                .boardId(board.getBoardId())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .type(board.getType())
+                .author(EmployeeResponse.fromEntity(board.getAuthor()))
+                .isAuthor(board.getAuthor().getEmployeeId() == employeeId)
+                .createdDate(board.getCreatedDate())
+                .updatedAt(board.getUpdatedAt())
+                .build();
+    }
 
     public static BoardResponse fromEntity(Board board){
         return  BoardResponse.builder()
