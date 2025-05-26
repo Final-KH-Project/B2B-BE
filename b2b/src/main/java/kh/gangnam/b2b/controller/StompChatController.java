@@ -1,10 +1,8 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ChatMessages;
-import kh.gangnam.b2b.entity.auth.User;
-import kh.gangnam.b2b.repository.UserRepository;
 import kh.gangnam.b2b.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -23,24 +21,23 @@ import java.util.Map;
 @Controller
 @RequiredArgsConstructor
 public class StompChatController {
-//브로커 추가해야함
+    //브로커 추가해야함
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatWebSocketService chatWebSocketService;
-    private final UserRepository userRepository;
 
     @MessageMapping("/chat/messages")
     public void message(@Payload SendChat message, Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User userId = userDetails.getUserId();
+        CustomEmployeeDetails userDetails = (CustomEmployeeDetails) authentication.getPrincipal();
+        Long employeeId = userDetails.getEmployeeId();
         System.out.println("[WS] 메시지 수신: " + message);
-        ChatMessages chatMessage = chatWebSocketService.handleMessage(message, userDetails.getEmployeeId());
+        ChatMessages chatMessage = chatWebSocketService.handleMessage(message, employeeId);
         System.out.println("[WS] 브로드캐스트: /sub/chat/room/" + message.getRoomId() + " " + chatMessage);
         messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), chatMessage);
 
         // ★★★ 추가: 참여자 각각에게 "새 메시지 알림" push
         // message.getParticipantUserIds()는 List<Long> 또는 List<Integer> 형태여야 함
-        for (Long participantId : message.getParticipantUserIds()) {
-            messagingTemplate.convertAndSend("/sub/chat/user/" + participantId, Map.of("roomId", message.getRoomId()));
+        for (Long participantId : message.getParticipantEmployeeIds()) {
+            messagingTemplate.convertAndSend("/sub/chat/user/" + participantId, Map.of("roomId", message.getRoomId(),"senderId", employeeId ));
         }
 
     }

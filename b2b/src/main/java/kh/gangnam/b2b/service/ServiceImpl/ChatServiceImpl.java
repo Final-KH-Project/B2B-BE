@@ -5,14 +5,14 @@ import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ChatMessages;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.chat.ChatMessage;
 import kh.gangnam.b2b.entity.chat.ChatRoom;
-import kh.gangnam.b2b.entity.chat.ChatRoomUser;
+import kh.gangnam.b2b.entity.chat.ChatRoomEmployee;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
-import kh.gangnam.b2b.repository.ChatRoomUserRepository;
-import kh.gangnam.b2b.repository.UserRepository;
+import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 public class ChatServiceImpl implements ChatService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final ChatRoomUserRepository chatRoomUserRepository;
+    private final ChatRoomEmployeeRepository chatRoomEmployeeRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
 
     /**
      * 채팅방 생성
@@ -44,18 +44,18 @@ public class ChatServiceImpl implements ChatService {
      */
     @Override
     public Long createRoom(CreateRoom createRoom) {
-        List<Long> userIds = createRoom.getUserIds();
+        List<Long> employeeIds = createRoom.getEmployeeIds();
         // 1. userIds 정렬 (1,2와 2,1을 동일하게 처리)
-        List<Long> sortedUserIds = userIds.stream().sorted().collect(Collectors.toList());
+        List<Long> sortedEmployeeIds = employeeIds.stream().sorted().toList();
 
         // 2. 이미 같은 멤버 조합의 채팅방이 있는지 조회
-        List<ChatRoom> candidateRooms = chatRoomUserRepository.findChatRoomsByUserId(sortedUserIds.get(0));
+        List<ChatRoom> candidateRooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(sortedEmployeeIds.get(0));
         for (ChatRoom room : candidateRooms) {
-            List<Long> participantIds = room.getChatRoomUsers().stream()
-                    .map(cru -> cru.getUser().getUserId())
+            List<Long> participantIds = room.getChatRoomEmployees().stream()
+                    .map(cru -> cru.getEmployee().getEmployeeId())
                     .sorted()
-                    .collect(Collectors.toList());
-            if (participantIds.equals(sortedUserIds)) {
+                    .toList();
+            if (participantIds.equals(sortedEmployeeIds)) {
                 // 이미 존재하는 방이면 그 roomId 반환
                 return room.getId();
             }
@@ -66,31 +66,51 @@ public class ChatServiceImpl implements ChatService {
         room.setTitle(createRoom.getTitle());
         ChatRoom savedRoom = chatRoomRepository.save(room);
 
-        List<ChatRoomUser> members = userIds.stream()
-                .map(userId -> {
-                    User user = userRepository.findById(userId)
+        List<ChatRoomEmployee> members = employeeIds.stream()
+                .map(employeeId -> {
+                    Employee employee = employeeRepository.findById(employeeId)
                             .orElseThrow(() -> new RuntimeException("User not found"));
-                    ChatRoomUser cru = new ChatRoomUser();
-                    cru.setUser(user);
+                    ChatRoomEmployee cru = new ChatRoomEmployee();
+                    cru.setEmployee(employee);
                     cru.setChatRoom(savedRoom);
                     return cru;
                 }).collect(Collectors.toList());
-        chatRoomUserRepository.saveAll(members);
+        chatRoomEmployeeRepository.saveAll(members);
 
         return savedRoom.getId();
     }
+    /**
+     * 채팅방 나가기
+     * - 내가 나가면 내 참여자-방 관계만 삭제
+     * - 남은 참여자가 0명이면 방/메시지 모두 삭제(완전 삭제)
+     * @param chatRoomId      나갈 채팅방 ID
+     * @param employeeId  나가는 직원 ID
+     */
+    @Override
+    public void leaveRoom(Long chatRoomId, Long employeeId) {
+        // 1. 현재 직원(employeeId)을 해당 방(roomId) 참여자 목록에서 삭제
+        chatRoomEmployeeRepository.deleteByChatRoom_IdAndEmployee_EmployeeId(chatRoomId, employeeId);
 
+        // 2. 남은 참여자 수를 체크 (아직 방에 남아있는 직원 수)
+        int memberCount = chatRoomEmployeeRepository.countByChatRoom_Id(chatRoomId);
+
+        if (memberCount == 0) {
+            // 3. 마지막 참여자라면 방/메시지 모두 삭제
+            chatMessageRepository.deleteByChatRoom_Id(chatRoomId); // 메시지 전체 삭제
+            chatRoomRepository.deleteById(chatRoomId);             // 방 자체 삭제
+        }
+    }
 
     /**
      * 내 채팅방 목록 조회
      *
-     * @param userId 사용자 ID
+     * @param employeeId 사용자 ID
      * @return 채팅방 리스트 DTO
      */
     @Override
-    public List<ReadRooms> readRooms(Long userId) {
+    public List<ReadRooms> readRooms(Long employeeId) {
         // 1. 내가 속한 채팅방 리스트 조회
-        List<ChatRoom> rooms = chatRoomUserRepository.findChatRoomsByUserId(userId);
+        List<ChatRoom> rooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(employeeId);
 
         // 2. 각 채팅방마다 최신 메시지/시간 포함해서 DTO로 변환
         return rooms.stream()
@@ -131,7 +151,7 @@ public class ChatServiceImpl implements ChatService {
                 .map(msg -> new ChatMessages(
                         msg.getId(),
                         msg.getChatRoom().getId(),
-                        msg.getSender().getUserId(),
+                        msg.getSender().getEmployeeId(),
                         msg.getContent(),
                         msg.getSentAt()
                 )).collect(Collectors.toList());
@@ -167,24 +187,24 @@ public class ChatServiceImpl implements ChatService {
 
         // 2. 중간 테이블(참여자) 저장 (없으면 추가)
         // SendChat에 참여자 리스트가 있다고 가정 (없으면 sender만 추가)
-        List<Long> participantIds = sendChat.getParticipantUserIds() != null
-                ? sendChat.getParticipantUserIds()
+        List<Long> participantIds = sendChat.getParticipantEmployeeIds() != null
+                ? sendChat.getParticipantEmployeeIds()
                 : List.of(sendChat.getSenderId());
 
         for (Long userId : participantIds) {
-            boolean exists = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
+            boolean exists = chatRoomEmployeeRepository.existsEmployeeInChatRoom(userId, room.getId());
             if (!exists) {
-                User user = userRepository.findById(userId)
+                Employee employee = employeeRepository.findById(userId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
-                ChatRoomUser cru = new ChatRoomUser();
-                cru.setUser(user);
+                ChatRoomEmployee cru = new ChatRoomEmployee();
+                cru.setEmployee(employee);
                 cru.setChatRoom(room);
-                chatRoomUserRepository.save(cru);
+                chatRoomEmployeeRepository.save(cru);
             }
         }
 
         // 3. 채팅 메시지 저장
-        User sender = userRepository.findById(sendChat.getSenderId())
+        Employee sender = employeeRepository.findById(sendChat.getSenderId())
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
         ChatMessage message = new ChatMessage();
         message.setChatRoom(room);

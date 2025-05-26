@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.dto.auth;
 
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomUserDetails implements UserDetails, Principal {
+public class CustomEmployeeDetails implements UserDetails, Principal {
 
-    private final User user;
+    private final Employee employee;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -24,30 +24,30 @@ public class CustomUserDetails implements UserDetails, Principal {
             @Override
             public String getAuthority() {
 
-                return user.getRole();
+                return employee.getRole();
             }
         });
 
         return collection;
     }
-    public User getUserId(){
-        return getUserId();
+    public Employee getEmployee(){
+        return employee;
     }
 
     @Override
     public String getPassword() {
 
-        return user.getPassword();
+        return employee.getPassword();
     }
 
     @Override
     public String getUsername() {
 
-        return user.getLoginId();
+        return employee.getLoginId();
     }
 
     public Long getEmployeeId() {
-        return user.getEmployeeId();
+        return employee.getEmployeeId();
     }
 
     @Override
@@ -76,6 +76,6 @@ public class CustomUserDetails implements UserDetails, Principal {
 
     public String getName() {
         // Principal의 getName() 구현 (보통 username 반환)
-        return user.getName();
+        return employee.getName();
     }
 }

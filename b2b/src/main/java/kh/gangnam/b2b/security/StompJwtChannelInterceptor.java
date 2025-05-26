@@ -1,8 +1,8 @@
 package kh.gangnam.b2b.security;
 
 import io.jsonwebtoken.Claims;
-import kh.gangnam.b2b.dto.auth.CustomUserDetails;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -10,6 +10,8 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
+
+import java.security.Principal;
 
 /**
  * WebSocket 연결 시 쿠키에서 access 토큰을 추출해 검증하는 인터셉터
@@ -34,26 +36,26 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
                     // 2. JWT 검증 (유효하지 않으면 예외 발생)
                     Claims claims = jwtUtil.validateAndParseClaims(access);
 
-                    // 3. Principal(CustomUserDetails) 생성
-                    String username = claims.get("username", String.class);
+                    // 3. Principal(CustomEmployeeDetails) 생성
+                    String loginId = claims.get("loginId", String.class);
                     // userId는 Integer 또는 Long일 수 있으니 타입 변환 주의
-                    Object userIdObj = claims.get("userId");
-                    Long userId = userIdObj instanceof Integer
-                            ? ((Integer) userIdObj).longValue()
-                            : (Long) userIdObj;
+                    Object employeeIdObj = claims.get("employeeId");
+                    Long employeeId = employeeIdObj instanceof Integer
+                            ? ((Integer) employeeIdObj).longValue()
+                            : (Long) employeeIdObj;
                     String role = claims.get("role", String.class);
 
-                    // User 엔티티 생성 (필요한 필드만)
-                    User user = new User();
-                    user.setUserId(userId);
-                    user.setUsername(username);
-                    user.setRole(role);
+                    // Employee 엔티티 생성 (필요한 필드만)
+                    Employee employee = new Employee();
+                    employee.setEmployeeId(employeeId);
+                    employee.setLoginId(loginId);
+                    employee.setRole(role);
 
-                    // CustomUserDetails 생성 (Principal 구현체)
-                    CustomUserDetails userDetails = new CustomUserDetails(user);
+                    // CustomEmployeeDetails 생성 (Principal 구현체)
+                    CustomEmployeeDetails employeeDetails = new CustomEmployeeDetails(employee);
 
                     // 4. Principal 세팅 (★ 이 부분이 핵심!)
-                    accessor.setUser(userDetails); // CustomUserDetails가 Principal 구현체여야 함
+                    accessor.setUser(employeeDetails); // CustomUserDetails가 Principal 구현체여야 함
 
                 } else {
                     throw new IllegalArgumentException("Access Token not found in cookie");

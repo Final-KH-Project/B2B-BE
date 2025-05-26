@@ -3,7 +3,6 @@ package kh.gangnam.b2b.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import kh.gangnam.b2b.repository.RefreshRepository;
-import kh.gangnam.b2b.repository.UserRepository;
 import kh.gangnam.b2b.security.CustomLogoutFilter;
 import kh.gangnam.b2b.security.JWTFilter;
 import kh.gangnam.b2b.security.JWTUtil;
@@ -36,7 +35,6 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
-    private final UserRepository userRepository;
 
     @Value("${token.accessExpired}")
     private Long accessExpired;
@@ -44,13 +42,12 @@ public class SecurityConfig {
     @Value("${token.refreshExpired}")
     private Long refreshExpired;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository, UserRepository userRepository) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
 
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
         this.objectMapper = objectMapper;
         this.refreshRepository = refreshRepository;
-        this.userRepository = userRepository;
     }
 
     @Bean
@@ -113,12 +110,11 @@ public class SecurityConfig {
                 .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomLogoutFilter(jwtUtil, refreshRepository), LogoutFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration),
-                        jwtUtil,
-                        objectMapper,
-                        refreshRepository,
-                        accessExpired,
-                        refreshExpired,
-                        userRepository),
+                                jwtUtil,
+                                objectMapper,
+                                refreshRepository,
+                                accessExpired,
+                                refreshExpired),
                         UsernamePasswordAuthenticationFilter.class)
                 //세션 설정
                 .sessionManagement((session) -> session

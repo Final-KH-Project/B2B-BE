@@ -2,13 +2,13 @@ package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ChatMessages;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.chat.ChatMessage;
 import kh.gangnam.b2b.entity.chat.ChatRoom;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
-import kh.gangnam.b2b.repository.UserRepository;
-import kh.gangnam.b2b.repository.ChatRoomUserRepository;
+import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,17 +26,17 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final UserRepository userRepository;
-    private final ChatRoomUserRepository chatRoomUserRepository;
+    private final EmployeeRepository employeeRepository;
+    private final ChatRoomEmployeeRepository chatRoomEmployeeRepository;
 
     @Override
-    public ChatMessages handleMessage(SendChat message, Long userId) {
+    public ChatMessages handleMessage(SendChat message, Long employeeId) {
         // 1. 채팅방, 유저, 멤버십 검증
         ChatRoom room = chatRoomRepository.findById(message.getRoomId())
                 .orElseThrow(() -> new RuntimeException("채팅방 없음"));
-        User sender = userRepository.findById(userId)
+        Employee sender = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
-        boolean isMember = chatRoomUserRepository.existsUserInChatRoom(userId, room.getId());
+        boolean isMember = chatRoomEmployeeRepository.existsEmployeeInChatRoom(employeeId, room.getId());
         if (!isMember) throw new RuntimeException("채팅방 참여자가 아닙니다.");
 
         // 2. 메시지 저장
@@ -51,7 +51,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         return new ChatMessages(
                 saved.getId(),
                 saved.getChatRoom().getId(),
-                saved.getSender().getUserId(),
+                saved.getSender().getEmployeeId(),
                 saved.getContent(),
                 saved.getSentAt()
         );

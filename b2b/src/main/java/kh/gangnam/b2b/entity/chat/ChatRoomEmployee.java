@@ -1,7 +1,7 @@
 package kh.gangnam.b2b.entity.chat;
 
 import jakarta.persistence.*;
-import kh.gangnam.b2b.entity.auth.User;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,15 +11,15 @@ import lombok.Setter;
  */
 @Entity
 @Getter @Setter
-public class ChatRoomUser {
+public class ChatRoomEmployee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // 참여 유저
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
 
     // 참여 채팅방
     @ManyToOne(fetch = FetchType.LAZY)

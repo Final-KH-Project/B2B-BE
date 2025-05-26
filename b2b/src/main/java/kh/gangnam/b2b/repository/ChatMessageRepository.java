@@ -11,4 +11,7 @@ import java.util.List;
  */
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     List<ChatMessage> findByChatRoomIdOrderBySentAtAsc(Long chatRoomId);
+
+    // 특정 방의 모든 메시지 삭제
+    void deleteByChatRoom_Id(Long chatRoomId);
 }

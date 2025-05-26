@@ -12,7 +12,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class Employee {
 
 
     @Id

@@ -24,7 +24,7 @@ public class ChatRoom {
 
     // 이 채팅방에 참여 중인 유저 목록 (중간테이블)
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatRoomUser> chatRoomUsers = new ArrayList<>();
+    private List<ChatRoomEmployee> chatRoomEmployees = new ArrayList<>();
 
     // 이 채팅방에 속한 메시지 목록
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)

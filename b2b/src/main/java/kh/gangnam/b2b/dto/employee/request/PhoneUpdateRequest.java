@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.user.request;
+package kh.gangnam.b2b.dto.employee.request;
 
 import lombok.Getter;
 import lombok.Setter;
