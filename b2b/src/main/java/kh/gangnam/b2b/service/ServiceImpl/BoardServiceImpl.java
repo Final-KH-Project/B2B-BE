@@ -11,6 +11,7 @@ import kh.gangnam.b2b.service.BoardService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,8 @@ public class BoardServiceImpl implements BoardService {
     public BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId) {
 
         // 작성 employee 가져오기
-        Employee employee = employeeRepository.findByEmployeeId(employeeId);
+        Employee employee = employeeRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));;
         // DB에 게시물 저장
         Board board = boardRepository.save(saveRequest.toEntity(employee));
         String content = saveRequest.content();

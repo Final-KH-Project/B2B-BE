@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.service.BoardService;
@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import kh.gangnam.b2b.service.ServiceImpl.BoardServiceImpl;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
