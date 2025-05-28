@@ -2,6 +2,7 @@ package kh.gangnam.b2b.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import java.util.Map;
  * - InvalidTokenException 발생 시 구체적인 에러 메시지 제공
  */
 @Component
+@Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     /**
@@ -47,6 +49,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException {
 
         String errorMessage = "인증에 실패했습니다.";
+        log.warn("[AUTH] 인증 실패: {}", errorMessage);
         if (authException instanceof JwtTokenValidationException) {
             errorMessage = authException.getMessage();
         }

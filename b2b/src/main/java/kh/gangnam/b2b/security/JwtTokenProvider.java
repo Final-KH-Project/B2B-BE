@@ -6,13 +6,12 @@ import java.util.Set;
 
 import javax.crypto.SecretKey;
 
-import kh.gangnam.b2b.entity.auth.Employee;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 
@@ -34,6 +33,7 @@ import lombok.Getter;
  */
 @Getter
 @Component
+@Slf4j
 public class JwtTokenProvider {
 
     private static final String ROLES_CLAIM = "roles";
@@ -177,9 +177,11 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return !isTokenExpired(token);
         } catch (ExpiredJwtException ex) {
-            throw new JwtTokenValidationException("Token expired");
+            log.error("[TOKEN] Token expired: {}", ex.getMessage());
+            throw new JwtTokenValidationException("Token expired", ex);
         } catch (JwtException | IllegalArgumentException ex) {
-            throw new JwtTokenValidationException("Invalid token");
+            log.error("[TOKEN] Invalid token: {}", ex.getMessage());
+            throw new JwtTokenValidationException("Invalid token", ex);
         }
     }
 
@@ -225,8 +227,10 @@ public class JwtTokenProvider {
 
             return TokenResponse.of(newAccessToken, newRefreshToken, accessExpirationMs);
         } catch (ExpiredJwtException ex) {
-            throw new JwtTokenValidationException("만료된 리프레시 토큰");
+            log.warn("[TOKEN] 만료된 리프레시 토큰: {}", ex.getMessage());
+            throw new JwtTokenValidationException("리프레시 토큰 만료", ex);
         } catch (Exception ex) {
+            log.warn("[TOKEN] 리프레시 토큰 갱신 실패: {}", ex.getMessage());
             throw new JwtTokenValidationException("토큰 갱신 실패: " + ex.getMessage());
         }
     }

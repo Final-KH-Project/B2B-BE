@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             boolean shouldNotFilter = Arrays.stream(SecurityConstants.PUBLIC_GET_URLS)
                     .anyMatch(pattern -> pathMatcher.match(pattern, path));
             if (shouldNotFilter) {
-                log.debug("필터 통과 - GET 요청: {}", path);
+                log.debug("[FILTER] Pass-through (GET): {}", path);
             }
             return shouldNotFilter;
         }
@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             boolean shouldNotFilter = Arrays.stream(SecurityConstants.PUBLIC_POST_URLS)
                     .anyMatch(pattern -> pathMatcher.match(pattern, path));
             if (shouldNotFilter) {
-                log.debug("필터 통과 - POST 요청: {}", path);
+                log.debug("[FILTER] Pass-through (POST): {}", path);
             }
             return shouldNotFilter;
         }
@@ -97,15 +97,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 2. 토큰이 존재하고 유효한 경우 인증 처리
             if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+                log.info("[TOKEN] 유효한 Access Token. loginId: {}, URI: {}",
+                        jwtTokenProvider.getLoginId(accessToken), request.getRequestURI());
                 setAuthentication(accessToken, request);
             }
         } catch (ExpiredJwtException e) {
             // 3. Access Token이 만료된 경우 Refresh Token으로 갱신 시도
+            log.warn("[TOKEN] Access Token 만료. URI: {}", request.getRequestURI());
             String refreshToken = jwtCookieManager.getRefreshTokenFromCookie(request);
             if (refreshToken != null) {
                 try {
                     // 4. DB에서 기존 리프레시 토큰 존재 확인
                     if (!refreshTokenService.existsByRefresh(refreshToken)) {
+                        log.warn("[TOKEN] Refresh Token DB에 없음. URI: {}", request.getRequestURI());
                         throw new JwtTokenValidationException("Refresh Token이 DB에 없습니다.");
                     }
                     // 5. access, refresh 새 토큰 발급
@@ -119,6 +123,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             tokenResponse.refreshToken());
 
                     // 7. 새로운 Access Token으로 인증 설정
+                    log.info("[TOKEN] Access/Refresh Token 재발급 성공. employeeId: {}, URI: {}",
+                            employeeId, request.getRequestURI());
                     setAuthentication(tokenResponse.accessToken(), request);
 
                     // 8. 새로운 Access Token을 쿠키에 설정
@@ -126,16 +132,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     jwtCookieManager.setRefreshTokenCookie(response, tokenResponse.refreshToken());
 
                 } catch (Exception ex) {
-                    log.error("토큰 갱신 실패", ex);
+                    log.error("[TOKEN] 토큰 갱신 실패. URI: {}", request.getRequestURI(), ex);
                     handleJwtException(response, new JwtTokenValidationException("토큰 갱신에 실패했습니다."));
                     return;
                 }
             } else {
+                log.warn("[TOKEN] Refresh Token 없음. URI: {}", request.getRequestURI());
                 handleJwtException(response, new JwtTokenValidationException("Refresh Token이 없습니다."));
                 return;
             }
         } catch (Exception ex) {
-            log.error("JWT 인증 처리 중 오류 발생", ex);
+            log.error("[TOKEN] JWT 인증 처리 중 오류 발생. URI: {}", request.getRequestURI(), ex);
             handleJwtException(response, ex);
             return;
         }
@@ -154,6 +161,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String loginId = jwtTokenProvider.getLoginId(token);
         String role = jwtTokenProvider.getRole(token);
         Set<GrantedAuthority> authorities = jwtTokenProvider.getAuthoritiesFromToken(token);
+
+        log.info("[AUTH] 인증 정보 설정. loginId: {}, employeeId: {}, role: {}, URI: {}",
+                loginId, employeeId, role, request.getRequestURI());
 
         // 2. CustomEmployeeDetails 객체 생성
         Employee employee = new Employee();
@@ -199,13 +209,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         errorResponse.put("error", "Unauthorized");
 
         if (e instanceof ExpiredJwtException) {
-            log.error("JWT 토큰이 만료되었습니다", e);
+            log.warn("[TOKEN] JWT 토큰 만료", e);
             errorResponse.put("message", "토큰이 만료되었습니다");
         } else if (e instanceof JwtTokenValidationException) {
-            log.error("유효하지 않은 토큰", e);
+            log.error("[TOKEN] 유효하지 않은 토큰: {}", e.getMessage());
             errorResponse.put("message", e.getMessage());
         } else {
-            log.error("JWT 인증 처리 중 오류 발생", e);
+            log.error("[TOKEN] JWT 인증 처리 중 오류 발생", e);
             errorResponse.put("message", "인증에 실패했습니다");
         }
 
