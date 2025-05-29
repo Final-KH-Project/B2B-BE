@@ -2,7 +2,10 @@ package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
 import kh.gangnam.b2b.dto.board.request.*;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
+import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
+import kh.gangnam.b2b.dto.board.response.MessageResponse;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.board.*;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import kh.gangnam.b2b.entity.board.*;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
     private final EmployeeRepository employeeRepository;
+    private final CommentRepository commentRepository;
     private final BoardImageRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
 
@@ -35,6 +40,7 @@ public class BoardServiceImpl implements BoardService {
 
         // 작성 employee 가져오기
         Employee employee = employeeRepository.findByEmployeeId(employeeId);
+
         // DB에 게시물 저장
         Board board = boardRepository.save(saveRequest.toEntity(employee));
         String content = saveRequest.content();
@@ -66,11 +72,60 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<BoardResponse> getListBoard(int type, int page, int size) {
+    public CommentSaveResponse saveComment(CommentSaveRequest dto, Long employeeId) {
+
+        // id로 해당 employee,board,comment 찾기
+        Employee employee = employeeRepository.findByEmployeeId(employeeId);
+        Board board = boardRepository.findById(dto.boardId()).orElseThrow();
+        Comment parent = (dto.parentId() != null)?commentRepository.findById(dto.parentId()).orElseThrow():null;
+
+        // comment 테이블에 전달된 정보 저장
+        Comment comment = dto.toEntity(board,employee,parent);
+        commentRepository.save(comment);
+
+        return CommentSaveResponse.fromEntity(comment,employeeId);
+    }
+
+    @Override
+    public List<CommentSaveResponse> getCommentList(Long boardId, Long employeeId) {
+
+        // 보드에서 댓글 List로 불러오기
+        List<Comment> comment = boardRepository.findById(boardId).orElseThrow().getComments();
+
+        // dto로 변환해서 리턴
+        return comment.stream().map((commentSave)->{
+            return CommentSaveResponse.fromEntity(commentSave,employeeId);
+        }).toList();
+    }
+
+    @Override
+    public MessageResponse commentDeleteBoard(Long commentId) {
+
+        // 해당 댓글 삭제
+        commentRepository.deleteById(commentId);
+
+        return MessageResponse.sendMessage("삭제 성공");
+    }
+
+    @Override
+    @Transactional
+    public CommentUpdateResponse updateComment(CommentUpdateRequest dto, Long employeeId) {
+
+        System.out.println(dto);
+        // 해당하는 댓글 entity 찾기
+        Comment comment = commentRepository.findById(dto.commentId()).orElseThrow();
+
+        comment.setComment(dto.comment());
+
+        return CommentUpdateResponse.fromEntity(comment,employeeId);
+    }
+
+    @Override
+    public List<BoardResponse> getListBoard(int type, int page) {
         BoardType boardType = BoardType.useTypeNo(type);
 
         Sort sort=Sort.by(Sort.Direction.DESC, "boardId");
-        Pageable pageable= PageRequest.of(page-1,size, sort);
+        Pageable pageable= PageRequest.of(page-1,10, sort);
 
         return boardRepository.findAllByType(boardType,pageable).stream()
                 .map(BoardResponse::fromEntity)
@@ -78,9 +133,11 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public BoardResponse getBoard(Long boardId) {
+    public BoardResponse getBoard(Long boardId,Long employeeId) {
         return boardRepository.findById(boardId)
-                .map(BoardResponse::fromEntity)
+                .map((board)->{
+                    return BoardResponse.fromEntity(board,employeeId);
+                })
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다."));
     }
 
@@ -118,16 +175,17 @@ public class BoardServiceImpl implements BoardService {
         return BoardResponse.fromEntity(board);
 
     }
+
     @Override
     @Transactional
-    public String deleteBoard(Long boardId) {
+    public MessageResponse deleteBoard(Long boardId) {
 
         // 게시물과 s3에 업로드된 이미지 삭제
         boardRepository.deleteById(boardId);
         s3ServiceUtil.deleteBoardImage(boardId);
 
-        // cascade 한번에 날리려고 board 테이블에 onetomany 연관관계 추가
-        return "삭제 성공함!";
+
+        return MessageResponse.sendMessage("삭제 성공");
     }
 
     @Override
