@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.entity.board;
 
 import jakarta.persistence.*;
+import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,10 @@ public class BoardImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id",nullable = false)
     private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private Employee author;
 
 }
 
