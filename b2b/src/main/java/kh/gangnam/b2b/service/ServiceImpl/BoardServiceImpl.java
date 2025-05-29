@@ -76,7 +76,7 @@ public class BoardServiceImpl implements BoardService {
 
         // id로 해당 employee,board,comment 찾기
         Employee employee = employeeRepository.findByEmployeeId(employeeId);
-        Board board = boardRepository.findById(dto.boardId()).orElseThrow();
+        Board board = (dto.parentId() != null)?boardRepository.findById(dto.boardId()).orElseThrow():null;
         Comment parent = (dto.parentId() != null)?commentRepository.findById(dto.parentId()).orElseThrow():null;
 
         // comment 테이블에 전달된 정보 저장
