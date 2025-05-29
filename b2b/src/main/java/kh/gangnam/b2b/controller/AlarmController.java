@@ -1,14 +1,16 @@
 package kh.gangnam.b2b.controller;
 
 
+import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.service.AlarmService;
-import kh.gangnam.b2b.webSocket.AlarmMessage;
-import kh.gangnam.b2b.webSocket.NotificationMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 
 @Slf4j
@@ -18,21 +20,41 @@ public class AlarmController {
 
     private final AlarmService alarmService;
 
-    @MessageMapping("/hello") //발행
-    @SendTo ("/topic/message") //단일 메세지 생성
-    public AlarmMessage sendAlarmViaWebSocket(NotificationMessage message){
-        log.info("웹소켓 알림 수신: {}", message);
 
-        return AlarmMessage.builder().message("메세지 받으세요").build();
-
+    //읽지 않은 알림 갯수 api
+    @GetMapping("/api/employees/{employeeId}/alarm")
+    public ResponseEntity<Integer> unReadCount(@PathVariable("employeeId") Long employeeId){
+        return ResponseEntity.ok(alarmService.unReadCount(employeeId));
     }
+    @GetMapping("/api/employees/{loginId}/alarms/count")
+    public ResponseEntity<Integer> unReadCount(@PathVariable("loginId") String loginId){
+        return ResponseEntity.ok(alarmService.countUnReadBoard(loginId));
+    }
+
+    @PutMapping("/api/alarms/{alarmId}/read")
+    public ResponseEntity<Void> readAlarm(@PathVariable Long alarmId){
+        alarmService.readAlarm(alarmId);
+        return ResponseEntity.ok().build();
+    }
+
+    //전체 읽음 처리
+    @PutMapping("/api/alarms/read")
+    public ResponseEntity<Void> markAllAsRead (@AuthenticationPrincipal CustomEmployeeDetails userDetails){
+        alarmService.markAllAsRead(userDetails.getEmployeeId());
+        //System.out.println(">>>emp_id:"+userDetails.getEmployeeId());
+        return ResponseEntity.ok().build();
+    }
+
+
+
 //    @MessageMapping("/hello") //발행
-//    @SendTo ("/queue/message") //단일 메세지 생성
+//    @SendTo ("/topic/message") //단일 메세지 생성
 //    public AlarmMessage sendAlarmsViaWebSocket(NotificationMessage message){
 //        log.info("웹소켓 알림 수신: {}", message);
 //
 //        return AlarmMessage.builder().message("메세지 받으세요").build();
 //
 //    }
+
 
 }
