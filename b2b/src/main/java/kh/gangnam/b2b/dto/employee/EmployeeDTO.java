@@ -4,11 +4,12 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 public class EmployeeDTO {
-    private Long employeeId;
-    // 로그인 id
+
     private String loginId;
     private String name;
     private String profile;
@@ -16,11 +17,12 @@ public class EmployeeDTO {
     private String position;
     private String dateOfBirth;
     private String phoneNumber;
+    private String address;
+    private LocalDateTime createdDate;
     private String role;
 
     public static EmployeeDTO fromEntity(Employee employee) {
         return EmployeeDTO.builder()
-                .employeeId(employee.getEmployeeId())
                 .loginId(employee.getLoginId())
                 .name(employee.getName())
                 .profile(employee.getProfile())
@@ -28,6 +30,8 @@ public class EmployeeDTO {
                 .position(employee.getPosition())
                 .dateOfBirth(employee.getDateOfBirth())
                 .phoneNumber(employee.getPhoneNumber())
+                .address(employee.getAddress())
+                .createdDate(employee.getCreatedDate())
                 .role(employee.getRole())
                 .build();
     }
