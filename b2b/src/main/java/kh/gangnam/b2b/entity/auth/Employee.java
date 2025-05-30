@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import lombok.*;
 
@@ -31,4 +32,17 @@ public class Employee extends BaseTimeEntity {
     private String address;
 
     private String role;
+
+
+    public void updateProfile(UpdateProfileRequest request) {
+        if (request.getLoginId() != null) {
+            this.loginId = request.getLoginId();
+        }
+        if (request.getPhoneNumber() != null) {
+            this.phoneNumber = request.getPhoneNumber();
+        }
+        if (request.getAddress() != null) {
+            this.address = request.getAddress();
+        }
+    }
 }

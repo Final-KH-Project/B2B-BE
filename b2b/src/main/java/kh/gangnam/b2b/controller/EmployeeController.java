@@ -32,12 +32,20 @@ public class EmployeeController {
         employeeService.updatePassword(userDetails.getEmployeeId(), request);
         return ResponseEntity.ok().build();
     }
+    // 사용자 정보 변경
+    @PostMapping("/update/profile")
+    public EmployeeDTO updateProfile(
+        @RequestBody UpdateProfileRequest request,
+        @AuthenticationPrincipal CustomEmployeeDetails details) {
+        return employeeService.updateProfile(details.getEmployeeId(), request);
+    }
+
     // 부서 변경
     @PatchMapping("/department")
     public ResponseEntity<Void> updateDepartment(
             @RequestBody DepartmentUpdateRequest request,
-            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeService.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
+            @AuthenticationPrincipal CustomEmployeeDetails details) {
+        employeeService.updateDepartment(details.getEmployeeId(), request.getDepartment());
         return ResponseEntity.ok().build();
     }
     // 직급 변경
@@ -57,7 +65,7 @@ public class EmployeeController {
         return ResponseEntity.ok().build();
     }
     // 프로필 이미지 변경
-    @PostMapping("/update/profile")
+    @PostMapping("/update/profile-img")
     public ResponseEntity<Void> updateProfileImage(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
