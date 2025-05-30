@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.security;
+package kh.gangnam.b2b.config.security;
 
 import lombok.Builder;
 import lombok.Getter;

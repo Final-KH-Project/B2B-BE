@@ -1,7 +1,9 @@
 package kh.gangnam.b2b.config;
 
-import kh.gangnam.b2b.security.*;
-import kh.gangnam.b2b.security.CustomEmployeeDetailsService;
+import kh.gangnam.b2b.config.security.JwtAccessDeniedHandler;
+import kh.gangnam.b2b.config.security.JwtAuthenticationEntryPoint;
+import kh.gangnam.b2b.config.security.JwtAuthenticationFilter;
+import kh.gangnam.b2b.config.security.CustomEmployeeDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.security;
+package kh.gangnam.b2b.config.security;
 
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
