@@ -11,4 +11,5 @@ import java.time.LocalDateTime;
 public class LoginResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expiresAt;
+    private String loginId;
 }

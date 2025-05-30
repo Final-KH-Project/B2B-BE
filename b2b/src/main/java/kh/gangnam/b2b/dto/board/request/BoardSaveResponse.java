@@ -2,13 +2,17 @@ package kh.gangnam.b2b.dto.board.request;
 
 import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.entity.board.BoardType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@NoArgsConstructor //알림 메세지
+@AllArgsConstructor //알림 메세지 생성으로 추가
 public class BoardSaveResponse {
     private Long boardId;
     private String title;

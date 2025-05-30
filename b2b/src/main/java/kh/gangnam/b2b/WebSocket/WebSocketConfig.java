@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") //webSocket 엔드포인트 설정 (클라이언트 연결 주소)
                 .addInterceptors(jwtHandshakeInterceptor) //jwt 인증 인터셉터 연결
-                .setAllowedOriginPatterns("http://localhost:3000") //cors 허용
+                .setAllowedOriginPatterns("http://localhost:3000, http://localhost:3001") //cors 허용
                 .setHandshakeHandler(customHandshakeHandler)
                 .withSockJS(); //SockJS(프론트 라이브러리) fallback 지원. 웹소켓 미지원 브라우저 대비용
 

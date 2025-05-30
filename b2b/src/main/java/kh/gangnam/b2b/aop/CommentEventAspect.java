@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.aop;
 
 import kh.gangnam.b2b.WebSocket.AlarmMessage;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -35,26 +36,29 @@ public class CommentEventAspect {
         // 댓글 저장 메서드 실행
         Object result = joinPoint.proceed();
 
-        if (result instanceof Comment comment) {
-            log.info("댓글 저장 감지, 댓글 ID: {}", comment.commentId());
+        if (result instanceof CommentSaveResponse savedComment) {
+            log.info("댓글 저장 감지, 댓글 ID: {}", savedComment.getCommentId());
 
             // 게시글 정보 조회
-            Board board = boardRepository.findById(comment.boardId())
+            Board board = boardRepository.findById(savedComment.getBoardId())
                     .orElse(null);
             if (board == null) {
-                log.warn("댓글이 달린 게시글을 찾을 수 없습니다. boardId: {}", comment.boardId());
+                log.warn("댓글이 달린 게시글을 찾을 수 없습니다. boardId: {}", savedComment.getBoardId());
                 return result;
             }
 
             // 게시글 작성자
-            Employee postAuthor = board.getEmployee();
+            Employee postAuthor = board.getAuthor();
+            Long postAuthorId = postAuthor.getEmployeeId();
 
-            // 댓글 작성자가 게시글 작성자와 다를 때만 알림 발송
-            if (!Objects.equals(postAuthor.getId(), comment.employeeId())) {
+            // 댓글 작성자 ID
+            Long commenterId = savedComment.getAuthor().getAuthorId();
+
+            // 게시글 작성자와 댓글 작성자가 다를 경우에만 알림 전송
+            if (!Objects.equals(postAuthor.getEmployeeId(), commenterId)) {
                 AlarmMessage message = AlarmMessage.builder()
                         .type("COMMENT")
                         .message("회원님의 게시글에 새 댓글이 등록되었습니다.")
-                        .url("/board/" + board.getId())
                         .build();
 
                 String destination = "/topic/alarms.user." + postAuthor.getLoginId();

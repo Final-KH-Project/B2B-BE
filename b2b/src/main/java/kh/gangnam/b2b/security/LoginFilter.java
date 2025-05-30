@@ -88,6 +88,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // LoginResponse 객체 생성
         LoginResponse loginResponse = LoginResponse.builder()
                 .expiresAt(expiresAt)
+                .loginId(loginId)
                 .build();
 
         //Refresh 토큰 저장

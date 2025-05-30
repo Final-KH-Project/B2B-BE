@@ -9,10 +9,12 @@ import lombok.*;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+//@Data
 @Builder
+@Getter
 public class AlarmMessage {
 
     private String message;
     private String type;
+
 }

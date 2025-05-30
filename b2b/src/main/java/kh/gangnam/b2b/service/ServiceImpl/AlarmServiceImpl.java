@@ -2,12 +2,15 @@ package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.transaction.Transactional;
 import kh.gangnam.b2b.WebSocket.AlarmMessage;
+import kh.gangnam.b2b.dto.alarm.AlarmDTO;
 import kh.gangnam.b2b.dto.alarm.request.SaveAlarm;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.repository.AlarmRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.repository.board.BoardRepository;
 import kh.gangnam.b2b.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -27,6 +31,7 @@ public class AlarmServiceImpl implements AlarmService {
     // Alarm 서비스 비즈니스 로직 구현
     private final AlarmRepository alarmRepository;
     private final EmployeeRepository employeeRepository;
+    private final BoardRepository boardRepository;
     private final SimpMessagingTemplate messagingTemplate; // 메세지 전송용
 
 
@@ -52,6 +57,8 @@ public class AlarmServiceImpl implements AlarmService {
         return alarmRepository.countByEmployee_loginIdAndIsReadFalse(loginId);
     }
 
+
+
     @Transactional
     @Override
     public void readAlarm(Long alarmId)  {
@@ -76,7 +83,36 @@ public class AlarmServiceImpl implements AlarmService {
 
         messagingTemplate.convertAndSend("/topic/alarms", message);
     } // 알림 전체 읽음 처리
-    
+
+    @Override
+    public List<AlarmDTO> getAlarmsByLoginId(String loginId) {
+        return List.of();
+    }
+
+/*
+    @Transactional
+    public void createCommentAlarm(CommentSaveResponse savedComment) {
+        Board board = boardRepository.findById(savedComment.getBoardId())
+                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+
+        Employee postAuthor = board.getAuthor();
+        Long commenterId = savedComment.getAuthor().getAuthorId();
+
+        if (Objects.equals(postAuthor.getEmployeeId(), commenterId)) {
+            return; // 자기 자신에게는 알림 저장하지 않음
+        }
+
+        Alarm alarm = Alarm.builder()
+                .employee(postAuthor)
+                .board(board)
+                .message("회원님의 게시글에 새 댓글이 등록되었습니다.")
+                .type(AlarmType.COMMENT)
+                .isRead(false)
+                .build();
+
+        alarmRepository.save(alarm);
+    } //댓글 알림 생성
+    */
 
 
     // test용으로 생성
@@ -120,4 +156,7 @@ public class AlarmServiceImpl implements AlarmService {
         }
     }
 }
+
+
+
 

@@ -4,7 +4,9 @@ package kh.gangnam.b2b.aop;
 import jakarta.persistence.EntityNotFoundException;
 import kh.gangnam.b2b.WebSocket.NotificationPublisher;
 import kh.gangnam.b2b.dto.board.request.BoardSaveResponse;
+import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.entity.board.BoardType;
 import kh.gangnam.b2b.repository.AlarmRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -34,19 +36,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class BoardAlarmAspect {
 
-    //private final RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
     private final AlarmServiceImpl alarmServiceImpl;
     private final AlarmRepository alarmRepository;
     private final EmployeeRepository employeeRepository;
     private final NotificationPublisher notificationPublisher;
 
-    /*
+/*
     //RabbitMQ exchange,routingKey 설정
     @Value("${spring.rabbitmq.template.exchange}")
     private String exchange;
     @Value("${spring.rabbitmq.template.routing-key}")
     private String routingKey;
-     */
+*/
 
     @Around("execution(* kh.gangnam.b2b.service.*.BoardServiceImpl.save*(..))")
     public Object handleNotifyEvent(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -102,7 +104,7 @@ public class BoardAlarmAspect {
 //    private void publishNoticeEvent(BoardSaveResponse savedPost) {
 //       rabbitTemplate.convertAndSend(exchange,routingKey,savedPost);
 //    } //메세지 RabbitMQ 발행
-
+//
 //    private void createReadStatusForAllUsers(Long boardId){
 //        employeeRepository.findAll().forEach(employee -> {
 //            alarmRepository.save(Alarm.builder()

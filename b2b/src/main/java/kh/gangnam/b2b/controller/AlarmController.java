@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.controller;
 
 
+import kh.gangnam.b2b.dto.alarm.AlarmDTO;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.service.AlarmService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+
+import java.util.List;
 
 
 @Slf4j
@@ -30,6 +33,14 @@ public class AlarmController {
     public ResponseEntity<Integer> unReadCount(@PathVariable("loginId") String loginId){
         return ResponseEntity.ok(alarmService.countUnReadBoard(loginId));
     }
+
+    //알림 목록 호출
+    @GetMapping("/api/employees/{loginId}/alarms")
+    public ResponseEntity<List<AlarmDTO>> getAlarmList(@PathVariable String loginId) {
+        List<AlarmDTO> alarms = alarmService.getAlarmsByLoginId(loginId);
+        return ResponseEntity.ok(alarms);
+    }
+
 
     @PutMapping("/api/alarms/{alarmId}/read")
     public ResponseEntity<Void> readAlarm(@PathVariable Long alarmId){
