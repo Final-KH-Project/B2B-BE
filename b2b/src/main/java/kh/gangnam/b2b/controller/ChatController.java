@@ -2,6 +2,7 @@ package kh.gangnam.b2b.controller;
 
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
+import kh.gangnam.b2b.dto.chat.request.MarkAsReadRequest;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
@@ -9,7 +10,9 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +44,7 @@ public class ChatController {
     public Employee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
         return employeeRepository.findByLoginId(employeeDetails.getUsername());
     }
+
     /**
      * 채팅방 생성 API
      * - 프론트에서 채팅방 생성 요청 시 사용
@@ -81,10 +85,10 @@ public class ChatController {
      * @param roomId      나갈 채팅방 ID
      * @param employeeId  나가는 직원 ID
      */
-    @DeleteMapping("/{roomId}/employees/{employeeId}")
+    @DeleteMapping("/rooms/{roomId}/employees/{employeeId}")
     public ResponseEntity<?> leaveRoom(
-            @PathVariable Long roomId,
-            @PathVariable Long employeeId
+            @PathVariable("roomId") Long roomId,
+            @PathVariable("employeeId") Long employeeId
     ) {
         chatService.leaveRoom(roomId, employeeId);
         return ResponseEntity.ok().build();
@@ -101,4 +105,24 @@ public class ChatController {
         chatService.send(sendChat);
         return ResponseEntity.ok().build();
     }
+
+
+    // 안읽은 메시지 처리
+    @PostMapping("/rooms/{roomId}/read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable("roomId") Long roomId,
+            @RequestBody MarkAsReadRequest request
+    ) {
+        chatService.markAsRead(roomId, request.getEmployeeId(), request.getLastReadMessageId());
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/rooms/{roomId}/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(
+            @PathVariable("roomId") Long roomId,
+            @RequestParam Long employeeId
+    ) {
+        int count = chatService.getUnreadCount(roomId, employeeId);
+        return ResponseEntity.ok(count);
+    }
+
 }

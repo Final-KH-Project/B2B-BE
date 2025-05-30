@@ -5,11 +5,13 @@ import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ChatMessages;
 import kh.gangnam.b2b.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
 import java.util.Map;
 
@@ -20,6 +22,7 @@ import java.util.Map;
  */
 @Controller
 @RequiredArgsConstructor
+
 public class StompChatController {
     //브로커 추가해야함
     private final SimpMessagingTemplate messagingTemplate;
@@ -39,7 +42,11 @@ public class StompChatController {
         for (Long participantId : message.getParticipantEmployeeIds()) {
             messagingTemplate.convertAndSend("/sub/chat/user/" + participantId, Map.of("roomId", message.getRoomId(),"senderId", employeeId ));
         }
+    }
 
+    @EventListener
+    public void handleWebSocketConnectListener(SessionConnectedEvent event) {
+        System.out.println(">>> WebSocket 연결 성공: " + event.getMessage().getHeaders());
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 채팅방-유저 중간 테이블 Repository
@@ -15,7 +16,7 @@ import java.util.List;
 
 public interface ChatRoomEmployeeRepository extends JpaRepository<ChatRoomEmployee, Long> {
     @Query("SELECT cru.chatRoom FROM ChatRoomEmployee cru WHERE cru.employee.employeeId = :employeeId")
-    List<ChatRoom> findChatRoomsByEmployeeId(@Param("employeeId") Long employeeId);
+    List<ChatRoom> findChatRoomsByEmployeeIds(@Param("employeeId") Long employeeId);
     @Query("SELECT COUNT(cru) > 0 FROM ChatRoomEmployee cru WHERE cru.employee.employeeId = :employeeId AND cru.chatRoom.id = :chatRoomId")
     boolean existsEmployeeInChatRoom(@Param("employeeId") Long employeeId, @Param("chatRoomId") Long chatRoomId);
 
@@ -24,5 +25,7 @@ public interface ChatRoomEmployeeRepository extends JpaRepository<ChatRoomEmploy
 
     // 특정 방의 남은 참여자 수 조회
     int countByChatRoom_Id(Long chatRoomId);
-}
+    // 채팅방 ID와 직원 ID로 중간 엔티티 조회
+    Optional<ChatRoomEmployee> findByChatRoom_IdAndEmployee_EmployeeId(Long roomId, Long employeeId);
 
+}

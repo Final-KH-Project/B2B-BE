@@ -44,7 +44,15 @@ public interface ChatService {
      * @return
      */
     ReadRoom readRoom(Long roomId);
+    int getUnreadCount(Long roomId, Long employeeId);
+    /**
+     * 채팅방 나가기, 클릭
+     * 채팅방 리스트 화면에서 채팅방 나가기 기능 추가
+     * @param roomId
+     * */
+    void leaveRoom(Long chatroomId, Long employeeId);
 
-    void leaveRoom(Long roomId, Long employeeId);
+    // 마지막 메시지 내역
+    void markAsRead(Long roomId, Long employeeId, Long lastReadMessageId);
 
 }

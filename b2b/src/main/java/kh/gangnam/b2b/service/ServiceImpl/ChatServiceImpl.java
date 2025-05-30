@@ -36,32 +36,25 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final EmployeeRepository employeeRepository;
 
-    /**
-     * 채팅방 생성
-     *
-     * @param createRoom 채팅방 생성 요청 DTO
-     * @return 생성된 채팅방 ID
-     */
     @Override
     public Long createRoom(CreateRoom createRoom) {
         List<Long> employeeIds = createRoom.getEmployeeIds();
-        // 1. userIds 정렬 (1,2와 2,1을 동일하게 처리)
         List<Long> sortedEmployeeIds = employeeIds.stream().sorted().toList();
 
-        // 2. 이미 같은 멤버 조합의 채팅방이 있는지 조회
-        List<ChatRoom> candidateRooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(sortedEmployeeIds.get(0));
-        for (ChatRoom room : candidateRooms) {
+        // 1. 내가 속한(active=true) 방만 찾기
+        List<ChatRoom> myRooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeIds(employeeIds.get(0)); // 보통 내 ID로만 찾음
+
+        for (ChatRoom room : myRooms) {
             List<Long> participantIds = room.getChatRoomEmployees().stream()
                     .map(cru -> cru.getEmployee().getEmployeeId())
                     .sorted()
                     .toList();
             if (participantIds.equals(sortedEmployeeIds)) {
-                // 이미 존재하는 방이면 그 roomId 반환
                 return room.getId();
             }
         }
 
-        // 3. 없으면 새로 생성
+        // 2. 없으면 새로 생성
         ChatRoom room = new ChatRoom();
         room.setTitle(createRoom.getTitle());
         ChatRoom savedRoom = chatRoomRepository.save(room);
@@ -73,33 +66,27 @@ public class ChatServiceImpl implements ChatService {
                     ChatRoomEmployee cru = new ChatRoomEmployee();
                     cru.setEmployee(employee);
                     cru.setChatRoom(savedRoom);
+                    // active 필드가 있다면 true로, 아니면 아예 필드 없이
                     return cru;
                 }).collect(Collectors.toList());
         chatRoomEmployeeRepository.saveAll(members);
 
         return savedRoom.getId();
     }
-    /**
-     * 채팅방 나가기
-     * - 내가 나가면 내 참여자-방 관계만 삭제
-     * - 남은 참여자가 0명이면 방/메시지 모두 삭제(완전 삭제)
-     * @param chatRoomId      나갈 채팅방 ID
-     * @param employeeId  나가는 직원 ID
-     */
+
     @Override
     public void leaveRoom(Long chatRoomId, Long employeeId) {
-        // 1. 현재 직원(employeeId)을 해당 방(roomId) 참여자 목록에서 삭제
+        // 실제로 row 삭제
         chatRoomEmployeeRepository.deleteByChatRoom_IdAndEmployee_EmployeeId(chatRoomId, employeeId);
 
-        // 2. 남은 참여자 수를 체크 (아직 방에 남아있는 직원 수)
+        // 남은 멤버 수 확인
         int memberCount = chatRoomEmployeeRepository.countByChatRoom_Id(chatRoomId);
-
         if (memberCount == 0) {
-            // 3. 마지막 참여자라면 방/메시지 모두 삭제
-            chatMessageRepository.deleteByChatRoom_Id(chatRoomId); // 메시지 전체 삭제
-            chatRoomRepository.deleteById(chatRoomId);             // 방 자체 삭제
+            chatMessageRepository.deleteByChatRoom_Id(chatRoomId);
+            chatRoomRepository.deleteById(chatRoomId);
         }
     }
+
 
     /**
      * 내 채팅방 목록 조회
@@ -110,7 +97,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ReadRooms> readRooms(Long employeeId) {
         // 1. 내가 속한 채팅방 리스트 조회
-        List<ChatRoom> rooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeId(employeeId);
+        List<ChatRoom> rooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeIds(employeeId);
 
         // 2. 각 채팅방마다 최신 메시지/시간 포함해서 DTO로 변환
         return rooms.stream()
@@ -165,6 +152,33 @@ public class ChatServiceImpl implements ChatService {
         return dto;
     }
 
+    // service/ServiceImpl/ChatServiceImpl.java
+    @Override
+    public void markAsRead(Long roomId, Long employeeId, Long lastReadMessageId) {
+        ChatRoomEmployee cru = chatRoomEmployeeRepository
+                .findByChatRoom_IdAndEmployee_EmployeeId(roomId, employeeId)
+                .orElseThrow(() -> new RuntimeException("채팅방-유저 관계 없음"));
+
+        System.out.println("[읽음처리] roomId: " + roomId + ", employeeId: " + employeeId + ", lastReadMessageId: " + lastReadMessageId);
+
+        cru.setLastReadMessageId(lastReadMessageId);
+        cru.setLastReadAt(LocalDateTime.now());
+        chatRoomEmployeeRepository.save(cru);
+
+        System.out.println("[읽음처리] 저장된 ChatRoomEmployee: " + cru);
+    }
+
+
+    @Override
+    public int getUnreadCount(Long roomId, Long employeeId) {
+        ChatRoomEmployee cru = chatRoomEmployeeRepository
+                .findByChatRoom_IdAndEmployee_EmployeeId(roomId, employeeId)
+                .orElseThrow(() -> new RuntimeException("채팅방-유저 관계 없음"));
+        Long lastReadId = cru.getLastReadMessageId() != null ? cru.getLastReadMessageId() : 0L;
+        return chatMessageRepository.countUnreadMessages(roomId, lastReadId);
+    }
+
+
     /**
      * 메시지 저장 (REST API용)
      *
@@ -213,4 +227,6 @@ public class ChatServiceImpl implements ChatService {
         message.setSentAt(LocalDateTime.now());
         chatMessageRepository.save(message);
     }
+    // service/ServiceImpl/ChatServiceImpl.java
+
 }
