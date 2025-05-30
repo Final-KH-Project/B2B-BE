@@ -1,8 +1,6 @@
 package kh.gangnam.b2b.service;
 
 
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
-import kh.gangnam.b2b.dto.board.BoardDTO;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
@@ -11,6 +9,7 @@ import kh.gangnam.b2b.dto.board.response.MessageResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.List;
 
