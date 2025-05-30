@@ -1,4 +1,107 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
+import jakarta.transaction.Transactional;
+import kh.gangnam.b2b.dto.dept.DeptCreateRequest;
+import kh.gangnam.b2b.dto.dept.DeptDTO;
+import kh.gangnam.b2b.dto.employee.EmployeeDTO;
+import kh.gangnam.b2b.entity.Dept;
+import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.repository.DeptRepository;
+import kh.gangnam.b2b.repository.EmployeeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
 public class DeptServiceImpl {
+
+    private final EmployeeRepository employeeRepository;
+    private final DeptRepository deptRepository;
+
+
+    // 부서 생성
+    @Transactional
+    public DeptDTO createDept(DeptCreateRequest request) {
+        Dept parentDept = null;
+        if (request.getParentDeptId() != null) {
+            parentDept = deptRepository.findById(request.getParentDeptId())
+                    .orElseThrow(() -> new RuntimeException("상위 부서가 존재하지 않습니다."));
+        }
+
+        Employee head = null;
+        if (request.getHeadId() != null) {
+            head = employeeRepository.findById(request.getHeadId())
+                    .orElseThrow(() -> new RuntimeException("User Not found!"));
+        }
+
+        Dept dept = new Dept();
+        dept.setDeptName(request.getDeptName());
+        dept.setLocation(request.getLocation());
+        dept.setParentDept(parentDept);
+        dept.setHead(head);
+        deptRepository.save(dept);
+        return DeptDTO.fromEntity(dept);
+    }
+
+    // 부서에 있는 사원 리스트 조회
+    public List<EmployeeDTO> getEmployeesByDeptId(Long deptId) {
+        List<Employee> employees = employeeRepository.findByDeptDeptId(deptId);
+        return employees.stream()
+                .map(EmployeeDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // 부서 정보 조회
+    public DeptDTO getDeptInfo(Long deptId) {
+        Dept dept = deptRepository.findById(deptId)
+                .orElseThrow(() -> new RuntimeException("부서 정보가 없습니다."));
+        return DeptDTO.fromEntity(dept);
+    }
+
+    // 사원 부서 변경
+    @Transactional
+    public void moveEmployeeToDept(Long employeeId, Long newDeptId) {
+        // 1. 사원 조회
+        Employee employee = validEmployee(employeeId);
+
+        // 2. 새 부서 조회
+        Dept newDept = validDept(newDeptId);
+
+        // 3. 현재 부서와 동일한지 확인 (옵션)
+        if (employee.getDept() != null && employee.getDept().getDeptId().equals(newDeptId)) {
+            throw new RuntimeException("이미 해당 부서에 소속되어 있습니다.");
+        }
+
+        // 4. 부서 변경
+        employee.setDept(newDept);
+        employeeRepository.save(employee);
+    }
+
+    // 부서장 지정
+    @Transactional
+    public DeptDTO assignDeptHead(Long deptId, Long employeeId) {
+        Dept dept = validDept(deptId);
+        Employee head = validEmployee(employeeId);
+
+        dept.setHead(head);
+        head.setDept(dept);
+        employeeRepository.save(head);
+        deptRepository.save(dept);
+
+        return DeptDTO.fromEntity(dept);
+    }
+
+    private Employee validEmployee(Long employeeId) {
+        return employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("User Not found!"));
+    }
+
+    private Dept validDept(Long deptId) {
+        return deptRepository.findById(deptId)
+                .orElseThrow(() -> new RuntimeException("부서 정보가 없습니다."));
+    }
+
 }
