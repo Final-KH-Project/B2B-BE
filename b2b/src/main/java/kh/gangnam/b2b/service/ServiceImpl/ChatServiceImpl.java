@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -41,20 +42,27 @@ public class ChatServiceImpl implements ChatService {
         List<Long> employeeIds = createRoom.getEmployeeIds();
         List<Long> sortedEmployeeIds = employeeIds.stream().sorted().toList();
 
-        // 1. 내가 속한(active=true) 방만 찾기
-        List<ChatRoom> myRooms = chatRoomEmployeeRepository.findChatRoomsByEmployeeIds(employeeIds.get(0)); // 보통 내 ID로만 찾음
+        // 기존방(모든 참여자 포함, active 상관없이) 찾기
+        List<ChatRoom> candidateRooms = chatRoomEmployeeRepository.findAllRoomsByEmployeeIds(sortedEmployeeIds, sortedEmployeeIds.size());
 
-        for (ChatRoom room : myRooms) {
+        for (ChatRoom room : candidateRooms) {
             List<Long> participantIds = room.getChatRoomEmployees().stream()
                     .map(cru -> cru.getEmployee().getEmployeeId())
                     .sorted()
                     .toList();
             if (participantIds.equals(sortedEmployeeIds)) {
+                // 내 active=false면 true로 복구(재입장)
+                for (ChatRoomEmployee cru : room.getChatRoomEmployees()) {
+                    if (employeeIds.contains(cru.getEmployee().getEmployeeId()) && Boolean.FALSE.equals(cru.getActive())) {
+                        cru.setActive(true);
+                        chatRoomEmployeeRepository.save(cru);
+                    }
+                }
                 return room.getId();
             }
         }
 
-        // 2. 없으면 새로 생성
+        // 없으면 새로 생성
         ChatRoom room = new ChatRoom();
         room.setTitle(createRoom.getTitle());
         ChatRoom savedRoom = chatRoomRepository.save(room);
@@ -66,7 +74,7 @@ public class ChatServiceImpl implements ChatService {
                     ChatRoomEmployee cru = new ChatRoomEmployee();
                     cru.setEmployee(employee);
                     cru.setChatRoom(savedRoom);
-                    // active 필드가 있다면 true로, 아니면 아예 필드 없이
+                    cru.setActive(true);
                     return cru;
                 }).collect(Collectors.toList());
         chatRoomEmployeeRepository.saveAll(members);
@@ -74,18 +82,26 @@ public class ChatServiceImpl implements ChatService {
         return savedRoom.getId();
     }
 
+
     @Override
     public void leaveRoom(Long chatRoomId, Long employeeId) {
-        // 실제로 row 삭제
-        chatRoomEmployeeRepository.deleteByChatRoom_IdAndEmployee_EmployeeId(chatRoomId, employeeId);
+        Optional<ChatRoomEmployee> opt = chatRoomEmployeeRepository
+                .findByChatRoom_IdAndEmployee_EmployeeId(chatRoomId, employeeId);
+        if (opt.isEmpty()) {
+            // 이미 나간 방이면 그냥 무시(에러X)
+            return;
+        }
+        ChatRoomEmployee cru = opt.get();
+        cru.setActive(false); // soft delete
+        chatRoomEmployeeRepository.save(cru);
 
-        // 남은 멤버 수 확인
-        int memberCount = chatRoomEmployeeRepository.countByChatRoom_Id(chatRoomId);
+        int memberCount = chatRoomEmployeeRepository.countByChatRoom_IdAndActive(chatRoomId, true);
         if (memberCount == 0) {
             chatMessageRepository.deleteByChatRoom_Id(chatRoomId);
             chatRoomRepository.deleteById(chatRoomId);
         }
     }
+
 
 
     /**
