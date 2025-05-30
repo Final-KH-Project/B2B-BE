@@ -36,6 +36,33 @@ public class S3ServiceUtil {
     @Value("${spring.cloud.aws.s3.upload}")
     private String UPLOAD_PATH;
 
+    // 프로필 이미지 업로드
+    public S3Response uploadProfileImage(MultipartFile file, Long employeeId) {
+        // 기존 프로필 이미지 삭제 (없으면 무시)
+        deleteProfileImage(employeeId);
+
+        // 파일명: profile{employeeId}
+        String key = getProfileKey(employeeId);
+
+        try {
+            // 메타데이터 설정
+            ObjectMetadata metadata = ObjectMetadata.builder()
+                    .contentType(file.getContentType())
+                    .acl(ObjectCannedACL.PUBLIC_READ)
+                    .build();
+
+            // S3에 파일 업로드
+            S3Resource s3Resource = s3Template.upload(BUCKET_NAME, key, file.getInputStream(), metadata);
+
+            return S3Response.builder()
+                    .url(s3Resource.getURL().toString())
+                    .bucketKey(key)
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이미지 업로드 실패", e);
+        }
+    }
+
 
     // 게시글 수정 시 게시글 정보 가져오는 메서드 url 경로를 temp 로 변경
     public EditResponse editBoardUrl(Board board) {
@@ -184,6 +211,29 @@ public class S3ServiceUtil {
                     });
         } catch (Exception e) {
             throw new RuntimeException("임시 파일 삭제 실패", e);
+        }
+    }
+
+    // 프로필 이미지 파일 키 생성
+    private String getProfileKey(Long employeeId) {
+        return "profile/profile" + employeeId;
+    }
+
+    // 프로필 이미지 삭제 없어도 가능하게끔 수정
+    public void deleteProfileImage(Long employeeId) {
+        String key = getProfileKey(employeeId);
+        try {
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(key)
+                    .build());
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                // 파일이 없으면 무시
+                System.out.println("프로필 이미지가 없습니다: " + key);
+            } else {
+                throw new RuntimeException("프로필 이미지 삭제 중 오류 발생", e);
+            }
         }
     }
 }

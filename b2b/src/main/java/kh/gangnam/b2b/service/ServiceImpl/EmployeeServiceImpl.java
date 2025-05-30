@@ -2,8 +2,10 @@ package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.dto.employee.request.PasswordChangeRequest;
+import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ public class EmployeeServiceImpl {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final S3ServiceUtil s3ServiceUtil;
 
     // 프로필 조회
     public EmployeeDTO getEmployeeInfoByEmployeeId(Long employeeId) {
@@ -61,6 +64,12 @@ public class EmployeeServiceImpl {
     public void updateProfileImage(Long employeeId, MultipartFile file) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // S3에 프로필 이미지 업로드 (기존 파일 자동 삭제 포함)
+        S3Response s3Response = s3ServiceUtil.uploadProfileImage(file, employeeId);
+
+        // 프로필 URL 업데이트
+        employee.setProfile(s3Response.getUrl());
         employeeRepository.save(employee);
     }
 }

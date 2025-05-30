@@ -57,7 +57,7 @@ public class EmployeeController {
         return ResponseEntity.ok().build();
     }
     // 프로필 이미지 변경
-    @PatchMapping("/profile-image")
+    @PostMapping("/update/profile")
     public ResponseEntity<Void> updateProfileImage(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
