@@ -8,36 +8,44 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/employee")
 public class EmployeeController {
 
     private final EmployeeServiceImpl employeeService;
 
     // 마이페이지: 현재 로그인한 사용자 정보 조회
-    @GetMapping("/profile")
+    @GetMapping("/mypage")
     public ResponseEntity<EmployeeDTO> myPage(@AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        // userDetails는 JWTFilter에서 인증된 사용자 정보
         Long employeeId = userDetails.getEmployeeId();
         EmployeeDTO employeeDto = employeeService.getEmployeeInfoByEmployeeId(employeeId);
         return ResponseEntity.ok(employeeDto);
     }
     // 패스워드 변경
-    @PostMapping("/password")
+    @PostMapping("/update/password")
     public ResponseEntity<Void> updatePassword(
             @RequestBody PasswordChangeRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeService.updatePassword(userDetails.getEmployeeId(), request.getNewPassword());
+        employeeService.updatePassword(userDetails.getEmployeeId(), request);
         return ResponseEntity.ok().build();
     }
+    // 사용자 정보 변경
+    @PostMapping("/update/profile")
+    public EmployeeDTO updateProfile(
+        @RequestBody UpdateProfileRequest request,
+        @AuthenticationPrincipal CustomEmployeeDetails details) {
+        return employeeService.updateProfile(details.getEmployeeId(), request);
+    }
+
     // 부서 변경
     @PatchMapping("/department")
     public ResponseEntity<Void> updateDepartment(
             @RequestBody DepartmentUpdateRequest request,
-            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeService.updateDepartment(userDetails.getEmployeeId(), request.getDepartment());
+            @AuthenticationPrincipal CustomEmployeeDetails details) {
+        employeeService.updateDepartment(details.getEmployeeId(), request.getDepartment());
         return ResponseEntity.ok().build();
     }
     // 직급 변경
@@ -57,11 +65,11 @@ public class EmployeeController {
         return ResponseEntity.ok().build();
     }
     // 프로필 이미지 변경
-    @PatchMapping("/profile-image")
+    @PostMapping("/update/profile-img")
     public ResponseEntity<Void> updateProfileImage(
-            @RequestBody ProfileImageRequest request,
+            @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeService.updateProfileImage(userDetails.getEmployeeId(), request.getProfileImageUrl());
+        employeeService.updateProfileImage(userDetails.getEmployeeId(), file);
         return ResponseEntity.ok().build();
     }
 }
