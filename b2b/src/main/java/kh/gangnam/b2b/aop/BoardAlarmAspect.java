@@ -95,7 +95,7 @@ public class BoardAlarmAspect {
         Object result = joinPoint.proceed();
 
         // 5. 알림 읽음 처리
-        alarmRepository.markAsRead(employeeId, boardId);
+        alarmRepository.markAllAsReadByEmployeeId(employeeId);
         return result;
     } // 알림 읽음 처리
 

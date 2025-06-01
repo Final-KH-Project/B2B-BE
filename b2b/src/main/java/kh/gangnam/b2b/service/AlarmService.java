@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.service;
 
+import jakarta.transaction.Transactional;
 import kh.gangnam.b2b.dto.alarm.AlarmDTO;
 import kh.gangnam.b2b.dto.alarm.request.SaveAlarm;
 import kh.gangnam.b2b.entity.alarm.Alarm;
@@ -45,21 +46,24 @@ public interface AlarmService {
 
     Integer countUnReadBoard(String loginId);
 
-    //읽음 처리용
-     public void readAlarm(Long alarmId);
 
      //알림 목록 호출
     List<AlarmDTO> getAlarmsByLoginId(String loginId);
 
     //WebSocketEventListener 에서 호출
     List<Alarm> getUnreadAlarmsByUsername(String username);
-    
+
+    //읽음 처리용
+    @Transactional
+    void markAsRead(Long alarmId);
+
+    void markAllAsRead(Long employeeId);
     
 
     //테스트 코드용
     public void save(Long boardId);
 
-    void markAllAsRead(Long employeeId);
+
 
 
 }

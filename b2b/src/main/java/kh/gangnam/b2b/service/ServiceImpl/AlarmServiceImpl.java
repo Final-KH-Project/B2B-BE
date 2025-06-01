@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import kh.gangnam.b2b.WebSocket.AlarmMessage;
 import kh.gangnam.b2b.dto.alarm.AlarmDTO;
 import kh.gangnam.b2b.dto.alarm.request.SaveAlarm;
-import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,7 +45,7 @@ public class AlarmServiceImpl implements AlarmService {
         });
     } //DB에 알림 생성
 
-    //읽지 않은 알림 갯수 리턴
+    //읽지 않은 알림 개수 리턴
     @Override
     public Integer unReadCount(Long employeeId) {
         return alarmRepository.countByEmployee_employeeIdAndIsReadFalse(employeeId);
@@ -57,11 +56,23 @@ public class AlarmServiceImpl implements AlarmService {
         return alarmRepository.countByEmployee_loginIdAndIsReadFalse(loginId);
     }
 
+    //알람 목록 조회 리턴
+    public List<AlarmDTO> getAlarmsByLoginId(String loginId) {
+        Employee employee = employeeRepository.findByLoginId(loginId);
+                if(employee==null){
+                    throw new RuntimeException("사용자를 찾을 수 없습니다.");
+                }
+
+        List<Alarm> alarms = alarmRepository.findByEmployee_EmployeeIdOrderByCreatedDateDesc(employee.getEmployeeId());
+        return alarms.stream()
+                .map(AlarmDTO::alarmDTO)
+                .collect(Collectors.toList());
+    }
 
 
     @Transactional
     @Override
-    public void readAlarm(Long alarmId)  {
+    public void markAsRead(Long alarmId)  {
         Alarm alarm=alarmRepository.findById(alarmId)
                 .orElseThrow(()->new IllegalArgumentException("알림이 존재하지 않습니다."));
 
@@ -84,10 +95,7 @@ public class AlarmServiceImpl implements AlarmService {
         messagingTemplate.convertAndSend("/topic/alarms", message);
     } // 알림 전체 읽음 처리
 
-    @Override
-    public List<AlarmDTO> getAlarmsByLoginId(String loginId) {
-        return List.of();
-    }
+
 
 /*
     @Transactional

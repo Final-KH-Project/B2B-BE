@@ -36,15 +36,15 @@ public class AlarmController {
 
     //알림 목록 호출
     @GetMapping("/api/employees/{loginId}/alarms")
-    public ResponseEntity<List<AlarmDTO>> getAlarmList(@PathVariable String loginId) {
+    public ResponseEntity<List<AlarmDTO>> getAlarmList(@PathVariable("loginId") String loginId) {
         List<AlarmDTO> alarms = alarmService.getAlarmsByLoginId(loginId);
         return ResponseEntity.ok(alarms);
     }
 
-
+    //개별 읽음 처리
     @PutMapping("/api/alarms/{alarmId}/read")
-    public ResponseEntity<Void> readAlarm(@PathVariable Long alarmId){
-        alarmService.readAlarm(alarmId);
+    public ResponseEntity<Void> markAsRead(@PathVariable Long alarmId){
+        alarmService.markAsRead(alarmId);
         return ResponseEntity.ok().build();
     }
 
