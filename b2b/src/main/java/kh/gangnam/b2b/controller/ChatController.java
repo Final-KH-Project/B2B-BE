@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.MarkAsReadRequest;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
@@ -10,12 +10,12 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -42,7 +42,8 @@ public class ChatController {
     // currentUser 조회
     @GetMapping("/me")
     public Employee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
-        return employeeRepository.findByLoginId(employeeDetails.getUsername());
+        return employeeRepository.findByLoginId(employeeDetails.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     /**

@@ -87,4 +87,9 @@ public class CustomEmployeeDetails implements UserDetails, Principal {
 
         return true;
     }
+
+    @Override
+    public String getName() {
+        return loginId;
+    }
 }
