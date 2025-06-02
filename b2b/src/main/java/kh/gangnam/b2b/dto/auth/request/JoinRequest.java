@@ -4,9 +4,11 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Setter
 @Getter
-public class JoinDTO {
+public class JoinRequest {
 
     private String loginId;
     private String password;
@@ -15,6 +17,7 @@ public class JoinDTO {
     private String department;
     private String position;
     private String dateOfBirth;
+    private String address;
     private String phoneNumber;
 
 
@@ -26,6 +29,7 @@ public class JoinDTO {
                 .profile(this.profile)
                 .department(this.department)
                 .position(this.position)
+                .address(this.address)
                 .dateOfBirth(this.dateOfBirth)
                 .phoneNumber(this.phoneNumber)
                 .role(role)

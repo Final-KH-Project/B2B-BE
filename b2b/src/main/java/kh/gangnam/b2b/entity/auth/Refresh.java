@@ -1,10 +1,7 @@
 package kh.gangnam.b2b.entity.auth;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -21,6 +18,7 @@ public class Refresh {
     private Long id;
 
     private Long employeeId;
+    @Column(columnDefinition = "TEXT")
     private String refresh;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expiresAt;
