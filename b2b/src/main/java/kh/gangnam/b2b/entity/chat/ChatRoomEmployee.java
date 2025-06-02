@@ -34,4 +34,5 @@ public class ChatRoomEmployee {
 
     // 채팅방 나가기
     private Boolean active = true;
+    private LocalDateTime lastExitAt; // 추가
 }

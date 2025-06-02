@@ -76,10 +76,14 @@ public class ChatController {
      * @param roomId 채팅방 ID
      * @return 채팅방+메시지 내역 DTO
      */
-    @GetMapping("/rooms/{roomId}")
-    public ResponseEntity<ReadRoom> getRoomWithMessages(@PathVariable("roomId") Long roomId) {
-        return ResponseEntity.ok(chatService.readRoom(roomId));
+    @GetMapping("/rooms/{roomId}/employees/{employeeId}")
+    public ResponseEntity<ReadRoom> getRoomWithMessages(
+            @PathVariable("roomId") Long roomId,
+            @PathVariable("employeeId") Long employeeId
+    ) {
+        return ResponseEntity.ok(chatService.readRoom(roomId, employeeId));
     }
+
     /**
      * 채팅방 나가기 API
      * @param roomId      나갈 채팅방 ID
@@ -91,7 +95,7 @@ public class ChatController {
             @PathVariable("employeeId") Long employeeId
     ) {
         chatService.leaveRoom(roomId, employeeId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
     /**
      * 메시지 전송 API (REST 방식)

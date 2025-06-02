@@ -43,7 +43,7 @@ public interface ChatService {
      * ReadRoom -> 채팅 내역을 가지고 있는 DTO
      * @return
      */
-    ReadRoom readRoom(Long roomId);
+    ReadRoom readRoom(Long roomId, Long employeeId);
     int getUnreadCount(Long roomId, Long employeeId);
     /**
      * 채팅방 나가기, 클릭

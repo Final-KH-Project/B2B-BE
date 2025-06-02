@@ -19,3 +19,4 @@ public class ChatMessages {
     private LocalDateTime sentAt; // 보낸 시각
 }
 
+
