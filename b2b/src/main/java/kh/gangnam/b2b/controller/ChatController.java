@@ -17,7 +17,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 채팅 관련 REST API 컨트롤러
@@ -129,5 +131,24 @@ public class ChatController {
         int count = chatService.getUnreadCount(roomId, employeeId);
         return ResponseEntity.ok(count);
     }
+
+
+    @GetMapping("/rooms/unread-counts")
+    public ResponseEntity<Map<String, Integer>> getAllUnreadCounts(@RequestParam("employeeId") Long employeeId) {
+        System.out.println("[서버] /api/chat/rooms/unread-counts API 호출 employeeId=" + employeeId);
+        try {
+            Map<String, Integer> result = chatService.getAllUnreadCountsAsStringKey(employeeId);
+            System.out.println("[서버] unread-counts result: " + result);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("[서버] unread-counts 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyMap());
+        }
+    }
+
+
+
+
 
 }

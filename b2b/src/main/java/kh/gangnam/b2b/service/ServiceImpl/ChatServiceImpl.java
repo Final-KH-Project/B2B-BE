@@ -19,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -233,6 +231,45 @@ public class ChatServiceImpl implements ChatService {
         Long lastReadId = cru.getLastReadMessageId() != null ? cru.getLastReadMessageId() : 0L;
         return chatMessageRepository.countUnreadMessages(roomId, lastReadId);
     }
+
+    @Override
+    public Map<String, Integer> getAllUnreadCountsAsStringKey(Long employeeId) {
+        Map<String, Integer> result = new HashMap<>();
+        try {
+            System.out.println("[서버] getAllUnreadCountsAsStringKey 호출 employeeId=" + employeeId);
+            List<ChatRoomEmployee> participants = chatRoomEmployeeRepository.findByEmployee_EmployeeId(employeeId);
+            if (participants == null || participants.isEmpty()) {
+                System.out.println("[서버] 참여중인 채팅방 없음");
+                return result;
+            }
+            for (ChatRoomEmployee p : participants) {
+                if (p.getChatRoom() == null) {
+                    System.out.println("[서버] chatRoom이 null인 참여자 발견");
+                    continue;
+                }
+                Long roomId = p.getChatRoom().getId();
+                if (roomId == null) {
+                    System.out.println("[서버] roomId가 null인 참여자 발견");
+                    continue;
+                }
+                Long lastReadId = p.getLastReadMessageId() == null ? 0L : p.getLastReadMessageId();
+                int count = 0;
+                try {
+                    count = chatMessageRepository.countUnreadMessages(roomId, lastReadId);
+                    System.out.println("[서버] 방 " + roomId + "의 unreadCount=" + count + " (lastReadId=" + lastReadId + ")");
+                } catch (Exception e) {
+                    System.err.println("[서버] countUnreadMessages 에러: " + e.getMessage());
+                }
+                result.put(String.valueOf(roomId), count);
+            }
+            System.out.println("[서버] 최종 unreadCount Map: " + result);
+        } catch (Exception e) {
+            System.err.println("[서버] getAllUnreadCountsAsStringKey 전체 에러: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 
     /**
      * 메시지 전송 처리 (필요시 채팅방 및 참여자 추가)

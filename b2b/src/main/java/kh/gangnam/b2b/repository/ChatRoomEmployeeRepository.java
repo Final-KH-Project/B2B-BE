@@ -24,6 +24,8 @@ public interface ChatRoomEmployeeRepository extends JpaRepository<ChatRoomEmploy
             "GROUP BY cru.chatRoom " +
             "HAVING COUNT(DISTINCT cru.employee.employeeId) = :size")
     List<ChatRoom> findAllRoomsByEmployeeIds(@Param("employeeIds") List<Long> employeeIds, @Param("size") long size);
+    List<ChatRoomEmployee> findByEmployee_EmployeeId(Long employeeId);
+
     //방에서 남은 참여 인원 수
     int countByChatRoom_IdAndActive(Long chatRoomId, Boolean active);
 

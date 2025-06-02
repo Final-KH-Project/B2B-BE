@@ -6,6 +6,7 @@ import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ChatService {
 
@@ -55,4 +56,5 @@ public interface ChatService {
     // 마지막 메시지 내역
     void markAsRead(Long roomId, Long employeeId, Long lastReadMessageId);
 
+    Map<String, Integer> getAllUnreadCountsAsStringKey(Long employeeId);
 }
