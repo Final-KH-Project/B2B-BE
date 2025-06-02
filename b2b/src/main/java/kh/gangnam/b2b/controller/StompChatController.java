@@ -11,11 +11,11 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
-import java.security.Principal;
 import java.util.Map;
 
 /**
@@ -33,7 +33,9 @@ public class StompChatController {
 
     @MessageMapping("/chat/messages")
     public void message(@Payload SendChat message,
-                        @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
+                        Authentication authentication) {
+
+        CustomEmployeeDetails userDetails = (CustomEmployeeDetails) authentication.getPrincipal();
         if (userDetails == null) {
             throw new AuthenticationCredentialsNotFoundException("인증 필요");
         }

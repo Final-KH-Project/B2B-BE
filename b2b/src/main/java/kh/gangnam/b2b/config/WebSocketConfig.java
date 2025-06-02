@@ -51,8 +51,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-        // ★ 핵심: 리졸버를 리스트의 맨 앞에 추가
-        argumentResolvers.add(0, new AuthenticationPrincipalArgumentResolver());
+        argumentResolvers.add(new AuthenticationPrincipalArgumentResolver());
     }
 
     // 추가: 클라이언트 인바운드 채널 설정

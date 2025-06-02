@@ -67,7 +67,7 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
                 SecurityContextHolder.setContext(context);
 
                 // 6. STOMP 세션에 Principal 저장
-                accessor.setUser(userDetails); // userDetails로 변경
+                accessor.setUser(authToken); // userDetails로 변경
             }
         }
         return message;
