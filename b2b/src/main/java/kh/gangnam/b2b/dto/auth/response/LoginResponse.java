@@ -10,6 +10,6 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class LoginResponse {
-//    private String loginId;
+    private String loginId;
     private Date expiresAt;
 }
