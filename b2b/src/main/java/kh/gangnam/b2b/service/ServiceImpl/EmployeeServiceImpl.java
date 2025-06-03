@@ -51,7 +51,7 @@ public class EmployeeServiceImpl {
     // 부서 변경
     public void updateDepartment(Long employeeId, String department) {
         Employee employee = validEmployee(employeeId);
-        employee.setDepartment(department);
+//        employee.setDepartment(department);
         employeeRepository.save(employee);
     }
     // 직급 변경

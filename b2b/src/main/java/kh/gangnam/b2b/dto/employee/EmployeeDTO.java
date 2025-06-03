@@ -14,6 +14,7 @@ public class EmployeeDTO {
     private String name;
     private String profile;
     private String department;
+    private String manager;
     private String position;
     private String dateOfBirth;
     private String phoneNumber;
@@ -25,8 +26,9 @@ public class EmployeeDTO {
         return EmployeeDTO.builder()
                 .loginId(employee.getLoginId())
                 .name(employee.getName())
+                .manager(employee.getManager() !=null ? employee.getManager().getName() : null)
+                .department(employee.getDept() != null ? employee.getDept().getDeptName() : null)
                 .profile(employee.getProfile())
-                .department(employee.getDepartment())
                 .position(employee.getPosition())
                 .dateOfBirth(employee.getDateOfBirth())
                 .phoneNumber(employee.getPhoneNumber())

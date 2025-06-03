@@ -13,9 +13,6 @@ public class JoinRequest {
     private String loginId;
     private String password;
     private String name;
-    private String profile;
-    private String department;
-    private String position;
     private String dateOfBirth;
     private String address;
     private String phoneNumber;
@@ -26,10 +23,8 @@ public class JoinRequest {
                 .loginId(this.loginId)
                 .password(encodedPassword)
                 .name(this.name)
-                .profile(this.profile)
-                .department(this.department)
-                .position(this.position)
                 .address(this.address)
+                .position("신규가입")
                 .dateOfBirth(this.dateOfBirth)
                 .phoneNumber(this.phoneNumber)
                 .role(role)
