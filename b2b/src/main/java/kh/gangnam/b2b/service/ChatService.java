@@ -2,59 +2,45 @@ package kh.gangnam.b2b.service;
 
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
+import kh.gangnam.b2b.dto.chat.response.ChatEmployee;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 채팅 비즈니스 로직 서비스
+ */
 public interface ChatService {
 
-    /**
-     * 메시지 전송
-     * 메세지 전송을 위한 SendChat DTO
-     * @param sendChat
-     * 반환값으로 전송 성공 여부 status
-     * @return
-     */
+    /** 전체 직원 목록 조회 */
+    List<ChatEmployee> getAllEmployees();
+
+    /** 로그인 ID로 직원 정보 조회 */
+    ChatEmployee getCurrentEmployee(String loginId);
+
+    /** 채팅 메시지 전송 */
     void send(SendChat sendChat);
 
-    /**
-     * 채팅방 생성
-     * 채팅방 생성을 위한 CreateRoom DTO
-     * @param createRoom
-     * 반환값으로 전송 성공 여부 status
-     * @return
-     */
+    /** 채팅방 생성 */
     Long createRoom(CreateRoom createRoom);
 
-    /**
-     * 채팅방 리스트 조회
-     * User 엔티티의 userId
-     * @param employeeId
-     * ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
-     * @return
-     */
+    /** 내 채팅방 목록 조회 */
     List<ReadRooms> readRooms(Long employeeId);
 
-    /**
-     * 채팅방 입장, 클릭
-     * 채팅방 리스트 화면에서 채팅방을 클릭했을 때 해당 채팅방 id
-     * @param roomId
-     * ReadRoom -> 채팅 내역을 가지고 있는 DTO
-     * @return
-     */
+    /** 채팅방 상세(메시지 내역) 조회 */
     ReadRoom readRoom(Long roomId, Long employeeId);
-    int getUnreadCount(Long roomId, Long employeeId);
-    /**
-     * 채팅방 나가기, 클릭
-     * 채팅방 리스트 화면에서 채팅방 나가기 기능 추가
-     * @param roomId
-     * */
-    void leaveRoom(Long chatroomId, Long employeeId);
 
-    // 마지막 메시지 내역
+    /** 채팅방 나가기 */
+    void leaveRoom(Long roomId, Long employeeId);
+
+    /** 메시지 읽음 처리 */
     void markAsRead(Long roomId, Long employeeId, Long lastReadMessageId);
 
+    /** 특정 채팅방의 안읽은 메시지 개수 조회 */
+    int getUnreadCount(Long roomId, Long employeeId);
+
+    /** 내가 속한 모든 채팅방의 안읽은 메시지 개수 조회 */
     Map<String, Integer> getAllUnreadCountsAsStringKey(Long employeeId);
 }
