@@ -4,6 +4,7 @@ import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.MarkAsReadRequest;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
+import kh.gangnam.b2b.dto.chat.response.ChatEmployee;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
 import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -20,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 채팅 관련 REST API 컨트롤러
@@ -37,15 +39,19 @@ public class ChatController {
 
     // 유저 목록 조회 API 추가
     @GetMapping("/user")
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public List<ChatEmployee> getAllEmployees() {
+        List<Employee> employees = employeeRepository.findAll();
+        return employees.stream()
+                .map(ChatEmployee::fromEntity)
+                .collect(Collectors.toList());
     }
 
     // currentUser 조회
     @GetMapping("/me")
-    public Employee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
-        return employeeRepository.findByLoginId(employeeDetails.getUsername())
+    public ChatEmployee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        Employee employee = employeeRepository.findByLoginId(employeeDetails.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return ChatEmployee.fromEntity(employee);
     }
 
     /**
