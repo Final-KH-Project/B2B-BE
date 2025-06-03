@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.config;
 
+import jakarta.annotation.PostConstruct;
 import kh.gangnam.b2b.config.security.JwtAccessDeniedHandler;
 import kh.gangnam.b2b.config.security.JwtAuthenticationEntryPoint;
 import kh.gangnam.b2b.config.security.JwtAuthenticationFilter;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -24,6 +26,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -33,11 +36,21 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
 
+    @Value("${websocket.allowed}")
+    private String webSocketEndPoint;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomEmployeeDetailsService customEmployeeDetailsService;
 
+
+    @PostConstruct
+    public void init() {
+        SecurityContextHolder.setStrategyName(
+                SecurityContextHolder.MODE_INHERITABLETHREADLOCAL
+        );
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,19 +70,21 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 // 요청 인증 설정
+                // API와 WebSocket 요청에 JWT 필터 적용
+                .securityMatcher("/api/**", webSocketEndPoint)
                 .authorizeHttpRequests(auth -> auth
                         // GET 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.GET, SecurityConstants.PUBLIC_GET_URLS).permitAll()
                         // POST 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.POST, SecurityConstants.PUBLIC_POST_URLS).permitAll()
+                        .requestMatchers(webSocketEndPoint).authenticated()
                         // 나머지 요청 인증 필요
                         .anyRequest().authenticated())
                 // UserDetailsService 설정
                 .userDetailsService(customEmployeeDetailsService)
                 // JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // API와 WebSocket 요청에 JWT 필터 적용
-                .securityMatcher("/api/**", "/ws/**");
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
     /**
@@ -106,24 +121,24 @@ public class SecurityConfig {
                 HttpHeaders.ACCEPT,
                 HttpHeaders.ORIGIN,
                 HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD,
-                HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS
-                //"Sec-WebSocket-Key",           // WebSocket 핸드셰이크
-                //"Sec-WebSocket-Version",       // WebSocket 버전
-                //"Sec-WebSocket-Protocol",      // WebSocket 프로토콜
-                //"Sec-WebSocket-Extensions"     // WebSocket 확장
+                HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS,
+                "Sec-WebSocket-Key",           // WebSocket 핸드셰이크
+                "Sec-WebSocket-Version",       // WebSocket 버전
+                "Sec-WebSocket-Protocol",      // WebSocket 프로토콜
+                "Sec-WebSocket-Extensions",     // WebSocket 확장
+                "cookie"
         ));
 
         // 인증 정보 포함
         configuration.setAllowCredentials(true);
 
         // 노출할 헤더 설정
-        /*
         configuration.setExposedHeaders(Arrays.asList(
-            "Sec-WebSocket-Accept",
-            "Sec-WebSocket-Protocol",
-            "Sec-WebSocket-Extensions"
+                "Sec-WebSocket-Accept",
+                "Sec-WebSocket-Protocol",
+                "Sec-WebSocket-Extensions",
+                "cookie"
         ));
-        */
         // CORS 설정을 적용할 URL 패턴 설정
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

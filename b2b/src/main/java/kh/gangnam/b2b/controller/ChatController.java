@@ -1,16 +1,154 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.service.ServiceImpl.ChatServiceImpl;
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
+import kh.gangnam.b2b.dto.chat.request.CreateRoom;
+import kh.gangnam.b2b.dto.chat.request.MarkAsReadRequest;
+import kh.gangnam.b2b.dto.chat.request.SendChat;
+import kh.gangnam.b2b.dto.chat.response.ReadRoom;
+import kh.gangnam.b2b.dto.chat.response.ReadRooms;
+import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 채팅 관련 REST API 컨트롤러
+ * - 채팅방 생성, 내 채팅방 목록 조회, 채팅방 상세(메시지 내역) 조회, 메시지 전송 기능 제공
+ */
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/chat")
+@RequiredArgsConstructor
+@Slf4j
 public class ChatController {
 
-    // Chat 엔트포인트 Controller
+    // 채팅 서비스 의존성 주입
+    private final ChatService chatService;
+    private final EmployeeRepository employeeRepository;
 
-    private final ChatServiceImpl chatServiceImpl;
+    // 유저 목록 조회 API 추가
+    @GetMapping("/user")
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
+    }
+
+    // currentUser 조회
+    @GetMapping("/me")
+    public Employee getCurrentEmployee(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        return employeeRepository.findByLoginId(employeeDetails.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    /**
+     * 채팅방 생성 API
+     * - 프론트에서 채팅방 생성 요청 시 사용
+     * - 참여자(userIds), 방 이름(title) 등 CreateRoom DTO로 전달
+     * @param createRoom 채팅방 생성 요청 DTO
+     * @return 생성된 채팅방의 ID
+     */
+    @PostMapping("/rooms")
+    public ResponseEntity<Long> createRoom(@RequestBody CreateRoom createRoom) {
+        return ResponseEntity.ok(chatService.createRoom(createRoom));
+    }
+
+    /**
+     * 내 채팅방 목록 조회 API
+     * - userId로 내가 속한 채팅방 리스트를 반환
+     * - 중간테이블(ChatRoomUser) 기반 조회
+     * @param employeeId 사용자 ID
+     * @return 채팅방 리스트 DTO
+     */
+    @GetMapping("/users/{userId}/rooms")
+    public ResponseEntity<List<ReadRooms>> getMyRooms(@PathVariable("userId") Long employeeId) {
+        return ResponseEntity.ok(chatService.readRooms(employeeId));
+    }
+
+    /**
+     * 채팅방 상세(메시지 내역) 조회 API
+     * - 채팅방 ID로 해당 채팅방과 메시지 내역을 한 번에 조회
+     * - N+1 문제 없이 JOIN FETCH로 가져옴
+     * @param roomId 채팅방 ID
+     * @return 채팅방+메시지 내역 DTO
+     */
+    @GetMapping("/rooms/{roomId}/employees/{employeeId}")
+    public ResponseEntity<ReadRoom> getRoomWithMessages(
+            @PathVariable("roomId") Long roomId,
+            @PathVariable("employeeId") Long employeeId
+    ) {
+        return ResponseEntity.ok(chatService.readRoom(roomId, employeeId));
+    }
+
+    /**
+     * 채팅방 나가기 API
+     * @param roomId      나갈 채팅방 ID
+     * @param employeeId  나가는 직원 ID
+     */
+    @DeleteMapping("/rooms/{roomId}/employees/{employeeId}")
+    public ResponseEntity<?> leaveRoom(
+            @PathVariable("roomId") Long roomId,
+            @PathVariable("employeeId") Long employeeId
+    ) {
+        chatService.leaveRoom(roomId, employeeId);
+        return ResponseEntity.noContent().build();
+    }
+    /**
+     * 메시지 전송 API (REST 방식)
+     * - 채팅방, 유저, 멤버십 검증 후 메시지 저장
+     * - 실시간(WebSocket)과 별개로 REST 방식 메시지 저장이 필요할 때 사용
+     * @param sendChat 메시지 전송 요청 DTO
+     * @return 성공 시 200 OK 반환
+     */
+    @PostMapping("/messages")
+    public ResponseEntity<Void> sendMessage(@RequestBody SendChat sendChat) {
+        chatService.send(sendChat);
+        return ResponseEntity.ok().build();
+    }
+
+
+    // 안읽은 메시지 처리
+    @PostMapping("/rooms/{roomId}/read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable("roomId") Long roomId,
+            @RequestBody MarkAsReadRequest request
+    ) {
+        chatService.markAsRead(roomId, request.getEmployeeId(), request.getLastReadMessageId());
+        return ResponseEntity.ok().build();
+    }
+    @GetMapping("/rooms/{roomId}/unread-count")
+    public ResponseEntity<Integer> getUnreadCount(
+            @PathVariable("roomId") Long roomId,
+            @RequestParam Long employeeId
+    ) {
+        int count = chatService.getUnreadCount(roomId, employeeId);
+        return ResponseEntity.ok(count);
+    }
+
+
+    @GetMapping("/rooms/unread-counts")
+    public ResponseEntity<Map<String, Integer>> getAllUnreadCounts(@RequestParam("employeeId") Long employeeId) {
+        System.out.println("[서버] /api/chat/rooms/unread-counts API 호출 employeeId=" + employeeId);
+        try {
+            Map<String, Integer> result = chatService.getAllUnreadCountsAsStringKey(employeeId);
+            System.out.println("[서버] unread-counts result: " + result);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("[서버] unread-counts 에러: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Collections.emptyMap());
+        }
+    }
+
+
+
+
+
 }

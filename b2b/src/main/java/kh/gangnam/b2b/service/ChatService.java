@@ -3,10 +3,10 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.chat.request.CreateRoom;
 import kh.gangnam.b2b.dto.chat.request.SendChat;
 import kh.gangnam.b2b.dto.chat.response.ReadRoom;
-import kh.gangnam.b2b.entity.chat.ChatRoomUser;
-import org.springframework.http.ResponseEntity;
+import kh.gangnam.b2b.dto.chat.response.ReadRooms;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ChatService {
 
@@ -17,7 +17,7 @@ public interface ChatService {
      * 반환값으로 전송 성공 여부 status
      * @return
      */
-    ResponseEntity<?> send(SendChat sendChat);
+    void send(SendChat sendChat);
 
     /**
      * 채팅방 생성
@@ -26,16 +26,16 @@ public interface ChatService {
      * 반환값으로 전송 성공 여부 status
      * @return
      */
-    ResponseEntity<?> createRoom(CreateRoom createRoom);
+    Long createRoom(CreateRoom createRoom);
 
     /**
      * 채팅방 리스트 조회
-     * User 엔티티의 employeeId
+     * User 엔티티의 userId
      * @param employeeId
      * ChatRoomUser 리스트 -> 최근 이용 내역 순으로 정렬할 예정
      * @return
      */
-    ResponseEntity<List<ChatRoomUser>> readRooms(Long employeeId);
+    List<ReadRooms> readRooms(Long employeeId);
 
     /**
      * 채팅방 입장, 클릭
@@ -44,5 +44,17 @@ public interface ChatService {
      * ReadRoom -> 채팅 내역을 가지고 있는 DTO
      * @return
      */
-    ResponseEntity<ReadRoom> readRoom(Long roomId);
+    ReadRoom readRoom(Long roomId, Long employeeId);
+    int getUnreadCount(Long roomId, Long employeeId);
+    /**
+     * 채팅방 나가기, 클릭
+     * 채팅방 리스트 화면에서 채팅방 나가기 기능 추가
+     * @param roomId
+     * */
+    void leaveRoom(Long chatroomId, Long employeeId);
+
+    // 마지막 메시지 내역
+    void markAsRead(Long roomId, Long employeeId, Long lastReadMessageId);
+
+    Map<String, Integer> getAllUnreadCountsAsStringKey(Long employeeId);
 }
