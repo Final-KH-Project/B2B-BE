@@ -1,9 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.dept.DeptCreateRequest;
-import kh.gangnam.b2b.dto.dept.DeptDTO;
-import kh.gangnam.b2b.dto.dept.MoveEmployeeToDeptRequest;
-import kh.gangnam.b2b.dto.dept.UpdateHeadRequest;
+import kh.gangnam.b2b.dto.dept.*;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.service.ServiceImpl.DeptServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +32,6 @@ public class DeptController {
         deptService.moveEmployeeToDept(request.getEmployeeId(), request.getDeptId());
     }
 
-
     // 부서장 지정
     @PostMapping("/update/head")
     public DeptDTO assignDeptHead(@RequestBody UpdateHeadRequest request) {
@@ -46,5 +42,11 @@ public class DeptController {
     @PostMapping("/create")
     public DeptDTO createDept(@RequestBody DeptCreateRequest request) {
         return deptService.createDept(request);
+    }
+
+    // 부서 내 사수 지정
+    @PostMapping("/update/mentor")
+    public void updateMentor(@RequestBody UpdateMentorRequest request) {
+        deptService.assignEmployeeMentor(request);
     }
 }
