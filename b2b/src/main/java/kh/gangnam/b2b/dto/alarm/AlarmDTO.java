@@ -20,8 +20,8 @@ public class AlarmDTO {
     private Long boardId;
     private String title;
     private Long commentId;
-    private Integer commentCount;
-    //private String commentAuthorName; // 게시글의 댓글 작성자
+//    private Integer commentCount;
+    private String commentAuthorName; // 게시글의 댓글 작성자
 
     private AlarmType type;
     private LocalDateTime createdDate;
@@ -42,6 +42,10 @@ public class AlarmDTO {
                 .type(alarm.getType())
                 //.commentContent(alarm.getComment() != null ? alarm.getComment().getComment() : null)
                 .createdDate(alarm.getCreatedDate())
+                .commentAuthorName(
+                        alarm.getComment() != null && alarm.getComment().getAuthor() != null
+                            ? alarm.getComment().getAuthor().getName() : null
+                )
 
                 .isRead(alarm.isRead())
                 .build();

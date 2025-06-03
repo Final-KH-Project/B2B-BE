@@ -61,7 +61,6 @@ public class RabbitMQConfig {
      * AWS MQ에서 수동으로 생성한 경우 @Bean 어노테이션 제거
      *
      * @return Queue 객체
-     * @param durable true: 서버 재시작 후에도 큐 유지, false: 임시 큐
      */
     //@Bean  // AWS MQ 사용 시 주석 처리하나, 배포 또는 테스트 시 필요할 수 있음
     Queue queue() {

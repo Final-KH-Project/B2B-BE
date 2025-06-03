@@ -204,6 +204,16 @@ public class JwtTokenProvider {
         return Collections.singleton(new SimpleGrantedAuthority(role));
     }
 
+    // 사용자 정보 추출 전용 메서드
+    public CustomEmployeeDetails getUserDetailsFromToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return new CustomEmployeeDetails(
+                claims.get("employeeId", Long.class),
+                claims.getSubject(), // loginId
+                claims.get("role", String.class)
+        );
+    }
+
     public TokenResponse refreshToken(String refreshToken) {
         try {
             // 1. 토큰 자체 유효성 검사

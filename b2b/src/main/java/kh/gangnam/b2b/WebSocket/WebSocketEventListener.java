@@ -26,7 +26,6 @@ public class WebSocketEventListener {
     private final SimpMessagingTemplate messagingTemplate;
 
 
-
     // 클라이언트가 웹소켓 연결 시 호출
     @EventListener
     public void handleConnect(SessionConnectedEvent event){

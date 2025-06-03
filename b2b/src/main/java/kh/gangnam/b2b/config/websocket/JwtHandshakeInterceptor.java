@@ -1,8 +1,10 @@
-package kh.gangnam.b2b.WebSocket;
+package kh.gangnam.b2b.config.websocket;
 
-import kh.gangnam.b2b.security.JWTUtil;
+import kh.gangnam.b2b.config.security.JwtCookieManager;
+import kh.gangnam.b2b.config.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -10,17 +12,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component // 스프링 빈으로 등록
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
-    private final JWTUtil jwtUtil;
+    private final JwtCookieManager jwtCookieManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
         @Override
         public boolean beforeHandshake(
@@ -33,43 +35,26 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             if (!(request instanceof ServletServerHttpRequest)) {
                 return false;
             }
-
             HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
 
             log.info("[HandshakeInterceptor] WebSocket 요청 {}",servletRequest.getRequestURI());
             log.info("Query String: " + servletRequest.getQueryString());
 
-            // 2. 쿠키에서 access_token 꺼내기
-            String token = null;
-            if (servletRequest.getCookies() != null) {
-                for (Cookie cookie : servletRequest.getCookies()) {
-                    if ("access".equals(cookie.getName())) {
-                        token = cookie.getValue();
-                        break;
-                    }
-                }
-            }
-
-            if (token == null) {
-                log.warn("WebSocket 연결 실패: access_token 쿠키 없음");
-                return false;
-            }
+            // 2. 쿠키에서 access 꺼내기
+            String access = jwtCookieManager.getAccessTokenFromCookie(servletRequest);
 
             // 3. 토큰 유효성 검사
             try {
-                if (jwtUtil.isExpired(token)) {
-                    log.warn("WebSocket 연결 실패: JWT 토큰 만료");
+                if (!jwtTokenProvider.validateToken(access)) {
+                    response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return false;
                 }
 
-                String username = jwtUtil.getLoginId(token); //jwt에서 로그인 사용자 ID 꺼냄
-                attributes.put("username", username); // 세션 속성에 저장 (WebSocket에서 사용 가능)
+                attributes.put("access", access);
                 return true;
-                //webSocket에서 세션 직접 접근 불가, 그래서 사용자 정보를 attributes 수동 저장
-
-
-            } catch (Exception e) {
-                log.error("WebSocket 연결 실패: JWT 토큰 파싱 실패", e);
+            } catch (Exception ex) {
+                log.error("WebSocket 연결 거부: {}", ex.getMessage());
+                response.setStatusCode(HttpStatus.FORBIDDEN);
                 return false;
             }
         }

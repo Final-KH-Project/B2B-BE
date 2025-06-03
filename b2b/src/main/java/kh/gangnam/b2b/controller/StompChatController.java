@@ -55,7 +55,7 @@ public class StompChatController {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        log.info("[WebSocket] 연결 성공: {}", event.getMessage().getHeaders());
+        log.info("[WebSocket] 연결 성공: {}", event.getMessage().getHeaders().getTimestamp());
     }
 
 }

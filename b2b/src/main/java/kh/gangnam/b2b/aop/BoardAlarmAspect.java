@@ -86,11 +86,9 @@ public class BoardAlarmAspect {
         System.out.println("username>>>:"+loginId);
 
         // 3. loginId → employeeId 추출
-        Employee employee = employeeRepository.findByLoginId(loginId);
-        if (employee == null) {
-            throw new EntityNotFoundException("해당 loginId를 가진 사용자가 없습니다.");
-        }
-        Long employeeId=employee.getEmployeeId();
+        Employee employee = employeeRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("해당 사원이 없습니다."));
+        Long employeeId = employee.getEmployeeId();
 
         // 4. 게시글 조회 실행
         Object result = joinPoint.proceed();

@@ -123,10 +123,8 @@ public class AlarmServiceImpl implements AlarmService {
 
     //알람 목록 조회 리턴
     public List<AlarmDTO> getAlarmsByLoginId(String loginId) {
-        Employee employee = employeeRepository.findByLoginId(loginId);
-                if(employee==null){
-                    throw new RuntimeException("사용자를 찾을 수 없습니다.");
-                }
+        Employee employee = employeeRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("해당 사원이 없습니다."));
 
         List<Alarm> alarms = alarmRepository.findByEmployee_EmployeeIdOrderByCreatedDateDesc(employee.getEmployeeId());
         return alarms.stream()
@@ -138,7 +136,7 @@ public class AlarmServiceImpl implements AlarmService {
 
     @Override
     public void markAsRead(Long alarmId)  {
-        Alarm alarm=alarmRepository.findById(alarmId)
+        Alarm alarm = alarmRepository.findById(alarmId)
                 .orElseThrow(()->new IllegalArgumentException("알림이 존재하지 않습니다."));
 
         alarm.setRead(true);//읽음 처리
@@ -218,7 +216,9 @@ public class AlarmServiceImpl implements AlarmService {
     //username -> LoginId 변환에 사용
     @Override
     public List<Alarm> getUnreadAlarmsByUsername(String username) {
-        Employee employee = employeeRepository.findByLoginId(username); //세션 username == loginId
+        //세션 username == loginId
+        Employee employee = employeeRepository.findByLoginId(username)
+                .orElseThrow(() -> new RuntimeException("해당 사원이 없습니다."));
 
         if (employee != null) {
             Long userId = employee.getEmployeeId();

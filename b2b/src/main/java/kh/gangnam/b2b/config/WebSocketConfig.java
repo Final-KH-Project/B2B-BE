@@ -1,6 +1,8 @@
 package kh.gangnam.b2b.config;
 
 import jakarta.servlet.http.Cookie;
+import kh.gangnam.b2b.config.websocket.CustomHandshakeHandler;
+import kh.gangnam.b2b.config.websocket.JwtHandshakeInterceptor;
 import kh.gangnam.b2b.security.StompJwtChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +35,8 @@ import java.util.Map;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompJwtChannelInterceptor stompJwtChannelInterceptor;
+    private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
+    private final CustomHandshakeHandler customHandshakeHandler;
 
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
@@ -63,37 +67,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // webSocket 엔드포인트 설정(클라이언트 연결 주소)
         registry.addEndpoint(webSocketEndPoint)
                 .setAllowedOriginPatterns("*")
-                .addInterceptors(new HandshakeInterceptor() {
-                    @Override
-                    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                                   WebSocketHandler wsHandler, Map<String, Object> attributes) {
-
-                        if (request instanceof ServletServerHttpRequest servletRequest) {
-                            Cookie cookie = WebUtils.getCookie(
-                                    servletRequest.getServletRequest(),
-                                    accessTokenCookieName
-                            );
-                            if (cookie != null) {
-                                attributes.put(accessTokenCookieName, cookie.getValue());
-                            }
-                        }
-                        return true;
-                    }
-
-                    @Override
-                    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
-
-                    }
-                })
+                .addInterceptors(jwtHandshakeInterceptor)
+                .setHandshakeHandler(customHandshakeHandler)
+                .withSockJS();
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(jwtHandshakeInterceptor)
+                .setHandshakeHandler(customHandshakeHandler)
                 .withSockJS();
     }
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // /sub로 시작하는 경로를 구독 브로커로 사용
-        registry.enableSimpleBroker("/sub");
-        // /pub로 시작하는 경로를 메시지 발행용으로 사용
+        // sub 로 시작하는 경로를 구독 브로커로 사용
+        // 메세지 생성 엔드포인트
+        registry.enableSimpleBroker("/sub", "/topic", "/queue");
+        // /pub 로 시작하는 경로를 메시지 발행용으로 사용
         registry.setApplicationDestinationPrefixes("/pub");
+        registry.setUserDestinationPrefix("/user");
     }
 }

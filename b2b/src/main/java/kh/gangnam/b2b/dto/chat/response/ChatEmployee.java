@@ -2,10 +2,12 @@ package kh.gangnam.b2b.dto.chat.response;
 
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Builder
+@Getter
 public class ChatEmployee {
     private Long employeeId;
     private String name;

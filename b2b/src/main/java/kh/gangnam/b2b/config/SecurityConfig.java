@@ -26,7 +26,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -71,13 +70,16 @@ public class SecurityConfig {
                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 // 요청 인증 설정
                 // API와 WebSocket 요청에 JWT 필터 적용
-                .securityMatcher("/api/**", webSocketEndPoint)
+                .securityMatcher("/api/**", webSocketEndPoint, "/ws/**", "/ws", "/ws-stomp")
                 .authorizeHttpRequests(auth -> auth
                         // GET 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.GET, SecurityConstants.PUBLIC_GET_URLS).permitAll()
                         // POST 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.POST, SecurityConstants.PUBLIC_POST_URLS).permitAll()
-                        .requestMatchers(webSocketEndPoint).authenticated()
+
+                        .requestMatchers("/ws-stomp",webSocketEndPoint).authenticated()
+                        .requestMatchers("/ws", "/ws/**").authenticated()
+
                         // 나머지 요청 인증 필요
                         .anyRequest().authenticated())
                 // UserDetailsService 설정

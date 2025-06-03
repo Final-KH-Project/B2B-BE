@@ -1,8 +1,8 @@
 package kh.gangnam.b2b.controller;
 
 
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.alarm.AlarmDTO;
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
