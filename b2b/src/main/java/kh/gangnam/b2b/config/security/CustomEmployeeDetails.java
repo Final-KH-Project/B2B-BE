@@ -1,17 +1,39 @@
-package kh.gangnam.b2b.dto.auth;
+package kh.gangnam.b2b.config.security;
 
 import kh.gangnam.b2b.entity.auth.Employee;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 
 @RequiredArgsConstructor
-public class CustomEmployeeDetails implements UserDetails {
+public class CustomEmployeeDetails implements UserDetails, Principal {
 
-    private final Employee employee;
+    @Getter
+    private final Long employeeId;
+    private final String loginId;
+    private final String password;
+    @Getter
+    private final String role;
+
+    public CustomEmployeeDetails(Employee employee) {
+        this.employeeId = employee.getEmployeeId();
+        this.loginId = employee.getLoginId();
+        this.password = employee.getPassword();
+        this.role = employee.getRole();
+    }
+
+    public CustomEmployeeDetails(Long employeeId, String loginId, String role) {
+        this.employeeId = employeeId;
+        this.loginId = loginId;
+        this.role = role;
+        // refresh 토큰 갱신 시에는 비밀번호 필요 없음
+        this.password = "";
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -23,30 +45,23 @@ public class CustomEmployeeDetails implements UserDetails {
             @Override
             public String getAuthority() {
 
-                return employee.getRole();
+                return role;
             }
         });
 
         return collection;
     }
-    public Employee getEmployee(){
-        return employee;
-    }
 
     @Override
     public String getPassword() {
 
-        return employee.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
 
-        return employee.getLoginId();
-    }
-
-    public Long getEmployeeId() {
-        return employee.getEmployeeId();
+        return loginId;
     }
 
     @Override
@@ -71,5 +86,10 @@ public class CustomEmployeeDetails implements UserDetails {
     public boolean isEnabled() {
 
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return loginId;
     }
 }
