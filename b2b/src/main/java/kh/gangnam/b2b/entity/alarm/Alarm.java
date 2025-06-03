@@ -1,9 +1,11 @@
 package kh.gangnam.b2b.entity.alarm;
 
 import jakarta.persistence.*;
+import kh.gangnam.b2b.dto.alarm.AlarmType;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
+import kh.gangnam.b2b.entity.board.Comment;
 import lombok.*;
 
 
@@ -29,6 +31,14 @@ public class Alarm extends BaseTimeEntity {
     @ManyToOne()
     @JoinColumn(name = "board_id")
     private Board board;
+    
+    // 댓글 알림
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
+
+    @Enumerated(EnumType.STRING)
+    private AlarmType Type;
 
 
     //읽음 여부 처리

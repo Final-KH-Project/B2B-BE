@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.WebSocket;
 
 import kh.gangnam.b2b.dto.board.request.BoardSaveResponse;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,8 @@ public class Receiver { //RabbitMQ 메세지 수신 및 WebSocket 전달 클래�
             // Java 16부터 도입된 instanceof 패턴 매칭: 타입 체크와 캐스팅을 동시에 수행
             if (message instanceof BoardSaveResponse event) {
                 handlePostCreatedEvent(event);
+            } else if (message instanceof CommentSaveResponse comment) {
+                handleCommentCreatedEvent(comment);
             } else if (message instanceof AlarmMessage alarmMessage) {
                 handleGreeting(alarmMessage);
             } else {
@@ -37,6 +40,15 @@ public class Receiver { //RabbitMQ 메세지 수신 및 WebSocket 전달 클래�
     private void handlePostCreatedEvent(BoardSaveResponse event) {
         log.info("알람 메시지 수신: {}", event);
         messagingTemplate.convertAndSend("/topic/alarms", event);
+    }
+
+    /**
+     * 댓글 알람 메시지 처리
+     * @param comment CommentSaveResponse 객체
+     */
+    private void handleCommentCreatedEvent(CommentSaveResponse comment) {
+        log.info("댓글 알람 메시지 수신: {}", comment);
+        messagingTemplate.convertAndSend("/topic/alarms", comment);
     }
 
     /**

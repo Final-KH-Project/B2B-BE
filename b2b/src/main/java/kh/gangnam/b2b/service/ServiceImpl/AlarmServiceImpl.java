@@ -1,15 +1,20 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import kh.gangnam.b2b.WebSocket.AlarmMessage;
 import kh.gangnam.b2b.dto.alarm.AlarmDTO;
+import kh.gangnam.b2b.dto.alarm.AlarmType;
 import kh.gangnam.b2b.dto.alarm.request.SaveAlarm;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.board.Board;
+import kh.gangnam.b2b.entity.board.Comment;
 import kh.gangnam.b2b.repository.AlarmRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.board.BoardRepository;
+import kh.gangnam.b2b.repository.board.CommentRepository;
 import kh.gangnam.b2b.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;;
@@ -32,6 +37,7 @@ public class AlarmServiceImpl implements AlarmService {
     private final EmployeeRepository employeeRepository;
     private final BoardRepository boardRepository;
     private final SimpMessagingTemplate messagingTemplate; // 메세지 전송용
+    private final CommentRepository commentRepository;
 
 
     // TODO 알람 전송 시 알람 데이터베이스 저장
@@ -41,9 +47,68 @@ public class AlarmServiceImpl implements AlarmService {
             alarmRepository.save(Alarm.builder()
                     .employee(employee)
                     .board(Board.builder().boardId(boardId).build())
+                    .comment(null)  // 게시글 알람이므로 댓글은 null
+                    .Type(AlarmType.BOARD_NEW)  // 게시글 알람 타입 설정
                     .build());
         });
-    } //DB에 알림 생성
+    } //게시글 알람 DB 생성
+
+    //내 게시글 댓글작성 알람 DB 생성
+    public void createCommentAlarmForPostWriter(CommentSaveResponse savedComment, Long commentWriterId){
+        try {
+            // 1. 게시글 정보 조회해서 작성자 찾기
+            Board board = boardRepository.findById(savedComment.getBoardId())
+                    .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+
+
+            // 2. 댓글 작성자와 게시글 작성자가 같으면 알림 생성하지 않음
+            Long postWriterId = board.getAuthor().getEmployeeId();
+            if (!postWriterId.equals(commentWriterId)) {
+                // 3. 게시글 작성자에게 댓글 알림 생성
+                Alarm savedAlarm = alarmRepository.save(Alarm.builder()
+                        .employee(board.getAuthor())  // 게시글 작성자
+                        .board(board)
+                        .comment(Comment.builder().commentId(savedComment.getCommentId()).build())
+                        .Type(AlarmType.COMMENT_NEW)  // 댓글 알람 타입 설정
+                        .isRead(false)
+                        .build());
+
+
+                log.info("댓글 알림 생성 완료 - 게시글 작성자 ID: {}, 댓글 작성자 ID: {}",
+                        postWriterId, commentWriterId);
+            } else {
+                log.info("자신의 게시글에 자신이 댓글 작성 - 알림 생성 안함");
+            }
+
+        } catch (Exception e) {
+            log.error("댓글 알림 생성 중 오류 발생: {}", e.getMessage(), e);
+        }
+    }
+/*
+    //게시글 댓글 개수
+    public AlarmDTO convertToDTO(Alarm alarm) {
+        AlarmDTO dto = AlarmDTO.alarmDTO(alarm);
+
+        System.out.println("알림 타입: " + alarm.getType()); // 1. 타입 확인
+        System.out.println("댓글 존재 여부: " + (alarm.getComment() != null)); // 2. 댓글 확인
+
+        // 댓글 알림인 경우에만 댓글 개수 설정
+        if (alarm.getType() == AlarmType.COMMENT_NEW &&
+                alarm.getComment() != null &&
+                alarm.getComment().getBoard() != null) {
+
+
+            System.out.println("조건문 통과!"); // 여기까지 와야 함
+            Long commentCount = commentRepository.countByBoard_BoardId(
+                    alarm.getComment().getBoard().getBoardId()
+            );
+            System.out.println("댓글 개수: " + commentCount); // 디버깅용
+            dto.setCommentCount(commentCount.intValue());
+        }
+
+        return dto;
+    }
+    */
 
     //읽지 않은 알림 개수 리턴
     @Override
@@ -70,7 +135,7 @@ public class AlarmServiceImpl implements AlarmService {
     }
 
 
-    @Transactional
+
     @Override
     public void markAsRead(Long alarmId)  {
         Alarm alarm=alarmRepository.findById(alarmId)

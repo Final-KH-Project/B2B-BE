@@ -50,7 +50,8 @@ public class BoardAlarmAspect {
     private String routingKey;
 */
 
-    @Around("execution(* kh.gangnam.b2b.service.*.BoardServiceImpl.save*(..))")
+    @Around("execution(* kh.gangnam.b2b.service.*.BoardServiceImpl.save*(..))"
+    + "!execution(* kh.gangnam.b2b.service.*.BoardServiceImpl.saveComment(..))")
     public Object handleNotifyEvent(ProceedingJoinPoint joinPoint) throws Throwable {
         // 메서드 실행
         Object result = joinPoint.proceed();

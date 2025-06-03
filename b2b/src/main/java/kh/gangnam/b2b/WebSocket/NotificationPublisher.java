@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.WebSocket;
 
 import kh.gangnam.b2b.dto.board.request.BoardSaveResponse;
+import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,5 +21,9 @@ public class NotificationPublisher {
 
     public void publishNoticeEvent(BoardSaveResponse savedPost) {
         rabbitTemplate.convertAndSend(exchange,routingKey,savedPost);
+    } //메세지 RabbitMQ로 발행
+
+    public void publishCommentEvent(CommentSaveResponse savedComment) {
+        rabbitTemplate.convertAndSend(exchange,routingKey,savedComment);
     } //메세지 RabbitMQ로 발행
 }

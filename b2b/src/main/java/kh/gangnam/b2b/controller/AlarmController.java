@@ -43,7 +43,7 @@ public class AlarmController {
 
     //개별 읽음 처리
     @PutMapping("/api/alarms/{alarmId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long alarmId){
+    public ResponseEntity<Void> markAsRead(@PathVariable("alarmId") Long alarmId){
         alarmService.markAsRead(alarmId);
         return ResponseEntity.ok().build();
     }

@@ -46,17 +46,17 @@ public interface AlarmService {
 
     Integer countUnReadBoard(String loginId);
 
-
      //알림 목록 호출
     List<AlarmDTO> getAlarmsByLoginId(String loginId);
 
     //WebSocketEventListener 에서 호출
     List<Alarm> getUnreadAlarmsByUsername(String username);
 
-    //읽음 처리용
+    //개별 읽음 처리용
     @Transactional
     void markAsRead(Long alarmId);
 
+    //전체 읽음 처리용
     void markAllAsRead(Long employeeId);
     
 
