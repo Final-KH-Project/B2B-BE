@@ -2,7 +2,7 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
-import kh.gangnam.b2b.dto.work.LeaveRequestDTO;
+import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
 import kh.gangnam.b2b.dto.work.request.leave.WorkApplyRequest;
@@ -10,7 +10,6 @@ import kh.gangnam.b2b.dto.work.response.attendance.DailyAttendanceResponse;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -21,8 +20,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -129,30 +130,35 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Transactional(readOnly = true)
     @Override
     public WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate) {
-        // 사원 조회
+        // 1. 사원 조회
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
 
-        // 기준 날짜의 주간 범위 계산
-        LocalDate startOfWeek = referenceDate.minusDays(referenceDate.getDayOfWeek().getValue() - 1);
+        // 2. 기준 날짜를 포함하는 주의 월요일 ~ 일요일 계산
+        LocalDate startOfWeek = referenceDate.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
 
-        // 주간 기록 조회
-        List<WorkHistory> records = workHistoryRepository.findAllByEmployeeAndWorkDateBetween(
-                employee, startOfWeek, endOfWeek);
+        // 3. 주간 응답용 리스트 준비
+        List<DailyAttendanceResponse> dailyResponses = new ArrayList<>();
 
-        // 일자별 응답 변환
-        List<DailyAttendanceResponse> dailyResponses = records.stream()
-                .map(r -> DailyAttendanceResponse.builder()
-                        .workDate(r.getWorkDate())
-                        .workType(r.getWorkType())
-                        .startTime(r.getStartTime())
-                        .endTime(r.getEndTime())
-                        .note(r.getNote())
-                        .build())
-                .toList();
+        // 4. 월~일까지 하루씩 반복
+        for (LocalDate date = startOfWeek; !date.isAfter(endOfWeek); date = date.plusDays(1)) {
+            // 4-1. 해당 날짜의 출근 기록 조회
+            WorkHistory work = workHistoryRepository.findByEmployeeAndWorkDate(employee, date);
 
-        // 주간 응답 반환
+            // 4-2. 결과 조립 (없는 경우 null로 대체)
+            DailyAttendanceResponse daily = DailyAttendanceResponse.builder()
+                    .workDate(date)
+                    .workType(work != null ? work.getWorkType() : null)
+                    .startTime(work != null ? work.getStartTime() : null)
+                    .endTime(work != null ? work.getEndTime() : null)
+                    .note(work != null ? work.getNote() : null)
+                    .build();
+
+            dailyResponses.add(daily);
+        }
+
+        // 5. 최종 응답 생성 및 반환
         return WeeklyAttendanceResponse.builder()
                 .startDate(startOfWeek)
                 .endDate(endOfWeek)
@@ -163,7 +169,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     //  연차/반차/출장 신청 처리 - leave_request 테이블에 저장
     @Transactional
     @Override
-    public void applyLeave(Long employeeId, LeaveRequestDTO dto) {
+    public void applyLeave(Long employeeId, LeaveRequest dto) {
         // 신청자 조회
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("신청자 없음"));
@@ -173,7 +179,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
 
         // LeaveRequest 엔티티 생성 및 값 설정
-        LeaveRequest request = new LeaveRequest();
+        kh.gangnam.b2b.entity.work.LeaveRequest request = new kh.gangnam.b2b.entity.work.LeaveRequest();
         request.setEmployee(employee);
         request.setApprover(approver);
         request.setWorkType(dto.getWorkType());

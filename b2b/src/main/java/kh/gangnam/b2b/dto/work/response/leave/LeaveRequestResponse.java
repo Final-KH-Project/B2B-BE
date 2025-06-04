@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.dto.work.response.leave;
 
+import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.entity.work.WorkType;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class LeaveRequestResponse {
     private WorkType workType;
     private LocalDate startDate;
     private LocalDate endDate;
-    //private ApprovalStatus status;
+    private ApprovalStatus status;
     private String reason;
 
     public static LeaveRequestResponse from(LeaveRequest req) {
@@ -27,7 +28,7 @@ public class LeaveRequestResponse {
         res.setStartDate(req.getStartDate());
         res.setEndDate(req.getEndDate());
         res.setWorkType(req.getWorkType());
-        //res.setStatus(req.getStatus());
+        res.setStatus(req.getStatus());
         res.setReason(req.getReason());
         return res;
     }

@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.work;
+package kh.gangnam.b2b.dto.work.request.leave;
 
 import kh.gangnam.b2b.entity.work.WorkType;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class LeaveRequestDTO {
+public class LeaveRequest {
     private Long approverId;
     private WorkType workType;       // 연차 유형
     private LocalDate startDate;     // 시작 날짜

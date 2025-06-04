@@ -21,4 +21,6 @@ public interface WorkHistoryRepository extends JpaRepository<WorkHistory, Long> 
 
     // 한 주간의 기록을 가져오기 위해 사용(근태 현황UI용)
     List<WorkHistory> findAllByEmployeeAndWorkDateBetween(Employee employee, LocalDate startOfWeek, LocalDate endOfWeek);
+
+    WorkHistory findByEmployeeAndWorkDate(Employee employee, LocalDate date);
 }

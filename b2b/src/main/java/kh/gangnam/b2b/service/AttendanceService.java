@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.service;
 
-import kh.gangnam.b2b.dto.work.LeaveRequestDTO;
+import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
@@ -23,5 +23,5 @@ public interface AttendanceService {
     WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate);
 
     @Transactional
-    void applyLeave(Long employeeId, LeaveRequestDTO dto);
+    void applyLeave(Long employeeId, LeaveRequest dto);
 }

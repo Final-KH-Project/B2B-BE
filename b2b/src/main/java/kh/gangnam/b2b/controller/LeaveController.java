@@ -1,10 +1,10 @@
 package kh.gangnam.b2b.controller;
 
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
-import kh.gangnam.b2b.dto.work.LeaveRequestDTO;
+import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
+import kh.gangnam.b2b.dto.work.response.ApiResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveStatusResponse;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.service.LeaveRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +21,14 @@ public class LeaveController {
     private final LeaveRequestService leaveRequestService;
 
     @PostMapping("/apply")
-    public ResponseEntity<?> applyLeave(@AuthenticationPrincipal CustomEmployeeDetails user,
-                                        @RequestBody LeaveRequestDTO request) {
+    public ResponseEntity<?> applyLeave(
+            @AuthenticationPrincipal CustomEmployeeDetails user,
+            @RequestBody LeaveRequest request
+    ) {
+        System.out.println("현재 로그인 사용자 ID:" + user.getEmployeeId());
+
         leaveRequestService.applyLeave(user.getEmployeeId(), request);
-        return ResponseEntity.ok("연차 신청 완료");
+        return ResponseEntity.ok(ApiResponse.success("연차 신청 완료"));
     }
 
     @GetMapping("/status")
@@ -42,7 +46,7 @@ public class LeaveController {
     @GetMapping("/my")
     public ResponseEntity<List<LeaveRequestResponse>> getMyLeaveRequests(
             @AuthenticationPrincipal CustomEmployeeDetails user){
-        List<LeaveRequest> list = leaveRequestService.getMyRequests(user.getEmployeeId());
+        List<kh.gangnam.b2b.entity.work.LeaveRequest> list = leaveRequestService.getMyRequests(user.getEmployeeId());
         List<LeaveRequestResponse> result = list.stream()
                 .map(LeaveRequestResponse::from)
                 .toList();
