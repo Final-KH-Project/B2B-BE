@@ -60,7 +60,6 @@ public class JwtTokenProvider {
     }
 
     // 토큰에서 사용자 정보 추출
-    // 토큰 검증 시 사용자 식별에 사용
     // 토큰에서 employeeId 추출 (주체로부터)
     public String getLoginId(String token) {
         return extractAllClaims(token).getSubject();
@@ -73,6 +72,11 @@ public class JwtTokenProvider {
 
     public Long getEmployeeId(String token) {
         return extractAllClaims(token).get("employeeId", Long.class);
+    }
+
+    // 이름이 햇갈려서 RealName 실명으로 지정
+    public String getRealName(String token){
+        return extractAllClaims(token).get("name", String.class);
     }
 
     public String getRole(String token) {
@@ -150,10 +154,11 @@ public class JwtTokenProvider {
         }
 
         return Jwts.builder()
-                .subject(userDetails.getUsername())  // 주체(Subject)를 employeeId로 설정
+                .subject(userDetails.getUsername())  // 주체(Subject)를 loginId 로 설정
                 .claim("category", category)
                 .claim("loginId", userDetails.getUsername())
                 .claim("employeeId", userDetails.getEmployeeId())
+                .claim("name", userDetails.getRealName())
                 .claim("role", userDetails.getRole())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
@@ -210,7 +215,9 @@ public class JwtTokenProvider {
         return new CustomEmployeeDetails(
                 claims.get("employeeId", Long.class),
                 claims.getSubject(), // loginId
+                claims.get("name", String.class),
                 claims.get("role", String.class)
+
         );
     }
 
@@ -225,6 +232,7 @@ public class JwtTokenProvider {
             CustomEmployeeDetails userDetails = new CustomEmployeeDetails(
                     getEmployeeId(refreshToken),
                     getLoginId(refreshToken),
+                    getRealName(refreshToken),
                     getRole(refreshToken)
             );
             Authentication authentication = new UsernamePasswordAuthenticationToken(

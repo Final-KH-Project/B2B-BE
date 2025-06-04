@@ -12,4 +12,5 @@ import java.util.Date;
 public class LoginResponse {
     private String loginId;
     private Date expiresAt;
+    private String name;
 }

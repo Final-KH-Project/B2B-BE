@@ -85,7 +85,9 @@ public class AuthService {
         // 응답 생성
         Date expiresAt = jwtTokenProvider.extractExpiration(accessToken);
         String loginId = userDetails.getUsername();
-        return ResponseEntity.ok(new LoginResponse(loginId,expiresAt));
+        String name = userDetails.getRealName();
+        log.info("name: {}", name);
+        return ResponseEntity.ok(new LoginResponse(loginId, expiresAt, name));
     }
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 refresh 토큰 추출
