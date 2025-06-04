@@ -3,6 +3,7 @@ package kh.gangnam.b2b.repository.work;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
+import org.hibernate.jdbc.Work;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -22,5 +23,5 @@ public interface WorkHistoryRepository extends JpaRepository<WorkHistory, Long> 
     // 한 주간의 기록을 가져오기 위해 사용(근태 현황UI용)
     List<WorkHistory> findAllByEmployeeAndWorkDateBetween(Employee employee, LocalDate startOfWeek, LocalDate endOfWeek);
 
-    WorkHistory findByEmployeeAndWorkDate(Employee employee, LocalDate date);
+    List<WorkHistory> findByEmployeeAndWorkDate(Employee employee, LocalDate date);
 }
