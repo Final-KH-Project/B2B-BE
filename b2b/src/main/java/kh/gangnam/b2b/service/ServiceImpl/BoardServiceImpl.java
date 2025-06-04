@@ -5,7 +5,7 @@ import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
-import kh.gangnam.b2b.dto.board.response.MessageResponse;
+import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.repository.board.*;
@@ -21,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import kh.gangnam.b2b.entity.board.*;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor

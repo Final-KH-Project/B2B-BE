@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.dto.board.response;
+package kh.gangnam.b2b.dto;
 
 import lombok.Builder;
 import lombok.Getter;

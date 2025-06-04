@@ -1,11 +1,11 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
-import kh.gangnam.b2b.dto.board.response.MessageResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
 import kh.gangnam.b2b.service.BoardService;
 import lombok.RequiredArgsConstructor;
