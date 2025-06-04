@@ -3,12 +3,18 @@ package kh.gangnam.b2b.entity.Meeting;
 import jakarta.persistence.*;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.auth.Employee;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MeetingReservation extends BaseTimeEntity {
 
     @Id

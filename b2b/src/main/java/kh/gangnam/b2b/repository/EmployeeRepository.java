@@ -17,4 +17,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByDeptDeptId(Long deptId);
 
     Optional<Employee> findByEmployeeIdAndDept_DeptId(Long employeeId, Long deptId);
+
+    List<Employee> findAllById(Iterable<Long> ids);
 }
