@@ -7,7 +7,9 @@ import jakarta.persistence.Id;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 
+@DynamicUpdate
 @Entity
 @Setter
 @Getter
