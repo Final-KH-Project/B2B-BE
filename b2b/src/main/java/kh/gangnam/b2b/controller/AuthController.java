@@ -1,6 +1,9 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.request.JoinDTO;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kh.gangnam.b2b.dto.auth.request.JoinRequest;
+import kh.gangnam.b2b.dto.auth.request.LoginRequest;
 import kh.gangnam.b2b.service.ServiceImpl.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +19,18 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/join")
-    public ResponseEntity<String> joinProcess(@RequestBody JoinDTO joinDTO) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginDTO, HttpServletResponse response) {
+        return authService.login(loginDTO, response);
+    }
 
-        return authService.joinProcess(joinDTO);
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        return authService.logout(request, response);
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<String> join(@RequestBody JoinRequest joinRequest) {
+        return authService.join(joinRequest);
     }
 }
