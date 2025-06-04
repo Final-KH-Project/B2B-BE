@@ -36,11 +36,11 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
 
-    @Value("${token.accessExpired}")
-    private Long accessExpired;
+    @Value("${jwt.token.accessExpiration}")
+    private Long accessExpiration;
 
-    @Value("${token.refreshExpired}")
-    private Long refreshExpired;
+    @Value("${jwt.token.refreshExpiration}")
+    private Long refreshExpiration;
 
     public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, ObjectMapper objectMapper, RefreshRepository refreshRepository) {
 
@@ -113,8 +113,8 @@ public class SecurityConfig {
                         jwtUtil,
                         objectMapper,
                         refreshRepository,
-                        accessExpired,
-                        refreshExpired),
+                        accessExpiration,
+                        refreshExpiration),
                         UsernamePasswordAuthenticationFilter.class)
                 //세션 설정
                 .sessionManagement((session) -> session

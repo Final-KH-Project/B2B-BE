@@ -28,10 +28,10 @@ public class ReissueController {
     private final ObjectMapper objectMapper;
     private final RefreshRepository refreshRepository;
 
-    @Value("${token.accessExpired}")
+    @Value("${jwt.token.accessExpiration}")
     private Long accessExpired;
 
-    @Value("${token.refreshExpired}")
+    @Value("${jwt.token.refreshExpiration}")
     private Long refreshExpired;
 
 
