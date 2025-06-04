@@ -34,7 +34,7 @@ public class CustomEmployeeDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
 
-        // employeeId로 조회
+        // loginId로 조회
         Employee employee = employeeRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return new CustomEmployeeDetails(employee);

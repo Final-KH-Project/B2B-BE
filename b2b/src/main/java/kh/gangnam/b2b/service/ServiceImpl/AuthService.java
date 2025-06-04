@@ -57,7 +57,7 @@ public class AuthService {
         // 비밀번호 인코딩
         String encodedPassword = bCryptPasswordEncoder.encode(password);
 
-        // User 엔티티로 변환
+        // Employee 엔티티로 변환
         Employee employee = joinRequest.toEntity(encodedPassword, "ROLE_ADMIN");
 
         employeeRepository.save(employee);
