@@ -31,6 +31,19 @@ public class ApprovalController {
         return ResponseEntity.ok(result);
     }
 
+    // 완료(승인/반려) 목록 조회 (예시: 모든 승인/반려된 휴가 요청)
+    @GetMapping("/completed")
+    public ResponseEntity<List<LeaveRequestResponse>> getCompletedRequests(
+            @AuthenticationPrincipal CustomEmployeeDetails details) {
+
+        Long employeeId = details.getEmployeeId();
+        String role = details.getRole();
+
+        // status가 APPROVED 또는 REJECTED인 요청만 반환하도록 서비스에서 처리
+        List<LeaveRequestResponse> result = approvalService.getCompletedRequests(employeeId);
+        return ResponseEntity.ok(result);
+    }
+
 
     // 결재자 승인/반려 처리
     @PostMapping("/{requestId}/decision")

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,5 +59,16 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .collect(Collectors.toList());
     }
 
+    // [추가] 완료(승인/반려) 목록 조회
+    @Override
+    public List<LeaveRequestResponse> getCompletedRequests(Long employeeId) {
+        // 상태가 APPROVED 또는 REJECTED인 연차 요청만 조회
+        List<LeaveRequest> completedRequests = leaveRequestRepository
+                .findByStatusIn(Arrays.asList(ApprovalStatus.APPROVED, ApprovalStatus.REJECTED));
+
+        return completedRequests.stream()
+                .map(LeaveRequestResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 
 }
