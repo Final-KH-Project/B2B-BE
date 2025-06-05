@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
@@ -19,13 +20,18 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
     // 사원별, 연도별
     List<Salary> findByEmployeeAndSalaryYearMonthStartingWithOrderBySalaryDateDesc(Employee employee, String year);
 
+    Optional<Salary> findByEmployeeAndSalaryYearMonth(Employee employee, String yearMonth);
+
     // 전체, 부서별, 월별(인사팀용)
-    @Query("SELECT p FROM Salary p " +
-            "WHERE p.employee.dept = :dept " +
-            "AND p.salaryYearMonth = :yearMonth ORDER BY p.salaryDate DESC")
-    List<Salary> findByDeptAndSalaryYearMonth(@Param("dept") Dept dept,
-                                        @Param("yearMonth") String yearMonth,
-                                        Pageable pageable);
+    @Query("SELECT s FROM Salary s " +
+            "WHERE s.employee.dept = :dept " +
+            "AND s.salaryYearMonth = :yearMonth " +
+            "ORDER BY s.salaryDate DESC")
+    Page<Salary> findByDeptAndSalaryYearMonth(
+            @Param("dept") Dept dept,
+            @Param("yearMonth") String yearMonth,
+            Pageable pageable
+    );
 
     // 전체, 월별(인사팀용)
     Page<Salary> findBySalaryYearMonthOrderBySalaryDateDesc(String yearMonth, Pageable pageable);

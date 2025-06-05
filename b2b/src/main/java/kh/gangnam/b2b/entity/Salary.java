@@ -2,6 +2,7 @@ package kh.gangnam.b2b.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.*;
 
@@ -44,4 +45,14 @@ public class Salary {
 
     @Column(name = "memo")
     private String memo;
+
+    public void update(SalaryCreateRequest request, Employee employee) {
+        this.employee = employee;
+        this.salaryYearMonth = request.getSalaryYearMonth();
+        this.baseSalary = request.getBaseSalary();
+        this.incentive = request.getIncentive();
+        this.bonus = request.getBonus();
+        this.salaryDate = request.getSalaryDate();
+        this.memo = request.getMemo();
+    }
 }
