@@ -160,6 +160,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Long employeeId = jwtTokenProvider.getEmployeeId(token);
         String loginId = jwtTokenProvider.getLoginId(token);
         String role = jwtTokenProvider.getRole(token);
+        String name = jwtTokenProvider.getRealName(token);
         Set<GrantedAuthority> authorities = jwtTokenProvider.getAuthoritiesFromToken(token);
 
         log.info("[AUTH] 인증 정보 설정. loginId: {}, employeeId: {}, role: {}, URI: {}",
@@ -169,7 +170,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Employee employee = new Employee();
         employee.setEmployeeId(employeeId);
         employee.setLoginId(loginId);
+        employee.setName(name);
         employee.setRole(role);
+
         CustomEmployeeDetails userDetails = new CustomEmployeeDetails(employee);
 
         // 3. principal에 userDetails 저장

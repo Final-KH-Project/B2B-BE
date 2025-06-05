@@ -11,6 +11,7 @@ import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.config.security.JwtCookieManager;
 import kh.gangnam.b2b.config.security.JwtTokenProvider;
 import kh.gangnam.b2b.config.security.RefreshTokenService;
+import kh.gangnam.b2b.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -84,7 +85,9 @@ public class AuthService {
 
         // 응답 생성
         Date expiresAt = jwtTokenProvider.extractExpiration(accessToken);
-        return ResponseEntity.ok(new LoginResponse(expiresAt));
+        String loginId = userDetails.getUsername();
+        String name = userDetails.getRealName();
+        return ResponseEntity.ok(new LoginResponse(loginId, expiresAt, name));
     }
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         // 쿠키에서 refresh 토큰 추출

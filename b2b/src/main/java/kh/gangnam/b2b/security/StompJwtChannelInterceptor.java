@@ -49,7 +49,8 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
                 Long employeeId = jwtTokenProvider.getEmployeeId(access);
                 String loginId = jwtTokenProvider.getLoginId(access);
                 String role = jwtTokenProvider.getRole(access);
-                CustomEmployeeDetails userDetails = new CustomEmployeeDetails(employeeId, loginId, role);
+                String name = jwtTokenProvider.getRealName(access);
+                CustomEmployeeDetails userDetails = new CustomEmployeeDetails(employeeId, loginId, name, role);
 
                 // 권한 정보 생성
                 Set<GrantedAuthority> authorities = jwtTokenProvider.getAuthoritiesFromToken(access);

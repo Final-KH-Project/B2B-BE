@@ -71,6 +71,8 @@ public class DeptServiceImpl {
 
         // 4. 부서 변경
         employee.setDept(newDept);
+        // 5. 사수 초기화
+        employee.setManager(null);
         employeeRepository.save(employee);
     }
 
