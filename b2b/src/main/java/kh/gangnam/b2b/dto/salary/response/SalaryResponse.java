@@ -15,6 +15,7 @@ import java.time.LocalDate;
 public class SalaryResponse {
 
     // 급여 정보
+    private Long salaryId;
     private String salaryYearMonth;
     private Long baseSalary;
     private Long incentive;
@@ -35,6 +36,7 @@ public class SalaryResponse {
         Dept dept = employee.getDept();
 
         return SalaryResponse.builder()
+                .salaryId(salary.getSalaryId())
                 .salaryYearMonth(salary.getSalaryYearMonth())
                 .baseSalary(salary.getBaseSalary())
                 .incentive(salary.getIncentive())
