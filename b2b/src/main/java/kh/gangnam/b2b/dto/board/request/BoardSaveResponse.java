@@ -5,6 +5,8 @@ import kh.gangnam.b2b.entity.board.BoardType;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class BoardSaveResponse {
@@ -14,14 +16,18 @@ public class BoardSaveResponse {
     private BoardType type;
 
     private Long  authorId;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedAt;
 
     public static BoardSaveResponse fromEntity(Board board){
-        return  BoardSaveResponse.builder()
+        return BoardSaveResponse.builder()
                 .boardId(board.getBoardId())
                 .title(board.getTitle())
                 .content(board.getContent())
                 .type(board.getType())
                 .authorId(board.getAuthor().getEmployeeId())
+                .createdDate(board.getCreatedDate())
+                .updatedAt(board.getUpdatedAt())
                 .build();
     }
 
