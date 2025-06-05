@@ -6,9 +6,10 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Builder
 @Getter
+@Builder
 public class ChatEmployee {
+    private String loginId;
     private Long employeeId;
     private String name;
     private String profile;
@@ -21,10 +22,11 @@ public class ChatEmployee {
 
     public static ChatEmployee fromEntity(Employee employee) {
         return ChatEmployee.builder()
+                .loginId(employee.getLoginId())
                 .employeeId(employee.getEmployeeId())
                 .name(employee.getName())
                 .manager(employee.getManager() != null ? employee.getManager().getName() : null)
-                .department(employee.getDept() != null ? employee.getDept().getDeptName() : null)
+                .department(employee.getDept() != null ? employee.getDept().getDeptName() : "부서없음")
                 .profile(employee.getProfile())
                 .position(employee.getPosition())
                 .dateOfBirth(employee.getDateOfBirth())
