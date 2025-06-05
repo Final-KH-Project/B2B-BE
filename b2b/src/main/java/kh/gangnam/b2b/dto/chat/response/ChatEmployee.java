@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.dto.chat.response;
 
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,7 @@ public class ChatEmployee {
     private String profile;
     private String department;
     private String manager;
-    private String position;
+    private Position position;
     private String dateOfBirth;
     private String phoneNumber;
     private LocalDateTime createdDate;

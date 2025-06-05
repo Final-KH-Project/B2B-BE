@@ -3,18 +3,21 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.auth.request.JoinRequest;
 import kh.gangnam.b2b.dto.dept.DeptCreateRequest;
 import kh.gangnam.b2b.dto.dept.DeptDTO;
+import kh.gangnam.b2b.dto.employee.request.PositionUpdateRequest;
 import kh.gangnam.b2b.service.ServiceImpl.AuthServiceImpl;
 import kh.gangnam.b2b.service.ServiceImpl.DeptServiceImpl;
+import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 @RequiredArgsConstructor
 public class DummyEmployeeLoader implements CommandLineRunner {
 
     private final AuthServiceImpl authService;
     private final DeptServiceImpl deptService;
+    private final EmployeeServiceImpl employeeService; // 직급 변경 서비스 추가
 
     @Override
     public void run(String... args) {
@@ -59,6 +62,9 @@ public class DummyEmployeeLoader implements CommandLineRunner {
                 design1.getDeptId(),
                 design2.getDeptId()
         );
+
+        // 5. 직급 배정
+        assignPositions();
     }
 
     // 100명 사용자 생성 메서드
@@ -152,6 +158,45 @@ public class DummyEmployeeLoader implements CommandLineRunner {
             deptService.assignDeptHead(deptId, employeeId);
         } catch (Exception e) {
             System.err.println("부서장 지정 실패: " + deptId + " - " + employeeId);
+        }
+    }
+
+    // 직급 배정 메서드
+    private void assignPositions() {
+        // CEO
+        updatePosition(1L, "CEO");
+
+        // EXECUTIVE
+        updatePosition(2L, "EXECUTIVE");
+        updatePosition(11L, "EXECUTIVE");
+
+        // MANAGER
+        updatePosition(3L, "MANAGER");
+        updatePosition(12L, "MANAGER");
+        updatePosition(13L, "MANAGER");
+
+        // TEAM_LEADER
+        updatePosition(4L, "TEAM_LEADER");
+        updatePosition(14L, "TEAM_LEADER");
+        updatePosition(15L, "TEAM_LEADER");
+        updatePosition(16L, "TEAM_LEADER");
+
+        // STAFF (나머지)
+        for (long i = 5L; i <= 100L; i++) {
+            if (i == 11L || i == 12L || i == 13L || i == 14L || i == 15L || i == 16L) continue;
+            updatePosition(i, "STAFF");
+        }
+    }
+
+    // 직급 변경 공통 메서드
+    private void updatePosition(Long employeeId, String position) {
+        try {
+            PositionUpdateRequest req = new PositionUpdateRequest();
+            req.setEmployeeId(employeeId);
+            req.setPosition(position);
+            employeeService.updatePosition(req);
+        } catch (Exception e) {
+            System.err.println("직급 변경 실패: " + employeeId + " → " + position);
         }
     }
 }

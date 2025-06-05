@@ -15,7 +15,7 @@ public class EmployeeDTO {
     private String profile;
     private String department;
     private String manager;
-    private String position;
+    private Position position;
     private String dateOfBirth;
     private String phoneNumber;
     private String address;

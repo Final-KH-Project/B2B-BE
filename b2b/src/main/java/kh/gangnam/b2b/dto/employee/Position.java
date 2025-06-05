@@ -5,7 +5,8 @@ public enum Position {
     EXECUTIVE,     // 경영진 (임원)
     MANAGER,       // 매니저 (부/팀장)
     TEAM_LEADER,   // 팀장
-    STAFF;         // 일반 직원
+    STAFF,         // 일반 직원
+    NEWBIE;         // 신입
 
     // 문자열이 유효한 Enum 값인지 체크
     public static boolean isValid(String value) {
