@@ -20,8 +20,6 @@ public class SalaryCreateRequest {
     @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])$")
     private String salaryYearMonth;
 
-    @Positive
-    private Long baseSalary;
 
     @PositiveOrZero
     private Long incentive;

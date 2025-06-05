@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.salary.request.SalaryPayRequest;
 import kh.gangnam.b2b.dto.salary.response.SalaryResponse;
 import kh.gangnam.b2b.service.ServiceImpl.SalaryServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +44,7 @@ public class HrSalaryController {
         return ResponseEntity.ok().build();
     }
 
+    // 부서별 사원 급여 일괄 지급
     @PostMapping("/salary/pay/dept/{deptId}")
     public ResponseEntity<Void> paySalariesByDept(
             @PathVariable Long deptId,
@@ -51,7 +53,7 @@ public class HrSalaryController {
         salaryService.paySalariesByDept(
                 deptId,
                 request.getPaidDate(),
-                request.getTargetMonth() // ✅ targetMonth 사용
+                request.getTargetMonth()
         );
         return ResponseEntity.ok().build();
     }
@@ -78,4 +80,13 @@ public class HrSalaryController {
             ) {
         return ResponseEntity.ok(salaryService.getSalariesByDept(deptId, yearMonth, pageable));
     }
+
+    // 누락 급여 자동 생성
+    @PutMapping("/salary/auto-generate/date/{date}")
+    public ResponseEntity<Void> generateMissingSalaries(@PathVariable(name = "date") String targetMonth) {
+        salaryService.generateMissingSalaries(targetMonth);
+        return ResponseEntity.ok().build();
+    }
+
+
 }

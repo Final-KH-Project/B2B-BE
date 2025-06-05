@@ -14,9 +14,11 @@ import kh.gangnam.b2b.repository.SalaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -53,7 +55,13 @@ public class SalaryServiceImpl {
     // 급여 생성 | 수정
     public SalaryResponse createOrUpdateSalary(SalaryCreateRequest request) {
         Employee employee = validEmployee(request.getEmployeeId());
+
+        // 급여가 이미 지급된 경우 수정 불가
         Salary salary = getOrCreateSalary(employee, request.getSalaryYearMonth());
+        if (salary.getSalaryStatus() == SalaryStatus.PAID) {
+            throw new RuntimeException("지급 완료된 급여는 수정할 수 없습니다");
+        }
+
         salary.update(request, employee);
         return SalaryResponse.fromEntity(salaryRepo.save(salary));
     }
@@ -149,6 +157,52 @@ public class SalaryServiceImpl {
     private Employee validEmployee(Long employeeId) {
         return employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("사원을 찾을 수 없음"));
+    }
+
+    @Scheduled(cron = "0 0 0 1 * *") // 매월 1일 00:00 실행
+    @Transactional
+    public void generateMonthlySalaries() {
+        String targetMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        LocalDate defaultPayDate = LocalDate.now().plusMonths(1).withDayOfMonth(25);  // 예: 다음 달 25일
+
+        employeeRepo.findAll().forEach(employee -> {
+            // 해당 월 급여가 없으면 생성
+            if (!salaryRepo.existsByEmployeeAndSalaryYearMonth(employee, targetMonth)) {
+                Salary salary = Salary.builder()
+                        .employee(employee)
+                        .salaryYearMonth(targetMonth)
+                        .baseSalary(employee.getBaseSalary())  // 사원 계약 급여 사용
+                        .incentive(0L)
+                        .bonus(0L)
+                        .salaryDate(defaultPayDate)
+                        .salaryStatus(SalaryStatus.SCHEDULED)
+                        .build();
+                salaryRepo.save(salary);
+            }
+        });
+    }
+    // 서버가 꺼져서 스케쥴러가 안 돌아갈 때 수동으로 급여 내역 생성
+    @Transactional
+    public void generateMissingSalaries(String targetMonth) {
+        String month = (targetMonth != null)
+                ? targetMonth
+                : LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        LocalDate defaultPayDate = LocalDate.now().withDayOfMonth(25);
+
+        employeeRepo.findAll().forEach(employee -> {
+            if (!salaryRepo.existsByEmployeeAndSalaryYearMonth(employee, month)) {
+                Salary salary = Salary.builder()
+                        .employee(employee)
+                        .salaryYearMonth(month)
+                        .baseSalary(employee.getBaseSalary())
+                        .incentive(0L)
+                        .bonus(0L)
+                        .salaryDate(defaultPayDate)
+                        .salaryStatus(SalaryStatus.SCHEDULED)
+                        .build();
+                salaryRepo.save(salary);
+            }
+        });
     }
 
 }

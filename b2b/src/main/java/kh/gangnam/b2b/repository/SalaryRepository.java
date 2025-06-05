@@ -40,4 +40,7 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
     // 전체, 월별(인사팀용)
     Page<Salary> findBySalaryYearMonthOrderBySalaryDateDesc(String yearMonth, Pageable pageable);
+
+    // 급여 존재 여부 확인
+    boolean existsByEmployeeAndSalaryYearMonth(Employee employee, String salaryYearMonth);
 }

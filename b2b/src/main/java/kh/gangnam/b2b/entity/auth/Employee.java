@@ -32,6 +32,9 @@ public class Employee extends BaseTimeEntity {
     @JoinColumn(name = "manager_id")
     private Employee manager;
 
+    @Column(name = "base_salary", nullable = false)
+    private Long baseSalary;
+
     @Column(name = "login_id", nullable = false)
     private String loginId;
     @Column(name = "password", nullable = false)
