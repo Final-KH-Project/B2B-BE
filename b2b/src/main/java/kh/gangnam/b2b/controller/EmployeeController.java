@@ -10,6 +10,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/employee")
@@ -26,11 +29,13 @@ public class EmployeeController {
     }
     // 패스워드 변경
     @PostMapping("/update/password")
-    public ResponseEntity<Void> updatePassword(
+    public ResponseEntity<Map<String,String>> updatePassword(
             @RequestBody PasswordChangeRequest request,
             @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
         employeeService.updatePassword(userDetails.getEmployeeId(), request);
-        return ResponseEntity.ok().build();
+        Map<String,String> result=new HashMap<>();
+        result.put("result","success");
+        return ResponseEntity.ok(result);
     }
     // 사용자 정보 변경
     @PostMapping("/update/profile")
