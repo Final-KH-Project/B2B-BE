@@ -5,6 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DepartmentUpdateRequest {
-    private String department;
+public class DeptUpdateRequest {
+    private Long employeeId;
+    private Long deptId;
 }
