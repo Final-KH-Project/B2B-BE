@@ -17,6 +17,7 @@ public class CustomEmployeeDetails implements UserDetails, Principal {
     private final Long employeeId;
     private final String loginId;
     private final String password;
+    private final String name;
     @Getter
     private final String role;
 
@@ -24,13 +25,15 @@ public class CustomEmployeeDetails implements UserDetails, Principal {
         this.employeeId = employee.getEmployeeId();
         this.loginId = employee.getLoginId();
         this.password = employee.getPassword();
+        this.name = employee.getName();
         this.role = employee.getRole();
     }
 
-    public CustomEmployeeDetails(Long employeeId, String loginId, String role) {
+    public CustomEmployeeDetails(Long employeeId, String loginId, String name, String role) {
         this.employeeId = employeeId;
         this.loginId = loginId;
         this.role = role;
+        this.name = name;
         // refresh 토큰 갱신 시에는 비밀번호 필요 없음
         this.password = "";
     }
@@ -91,5 +94,8 @@ public class CustomEmployeeDetails implements UserDetails, Principal {
     @Override
     public String getName() {
         return loginId;
+    }
+    public String getRealName() {
+        return name;
     }
 }

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@Getter
 public class ChatEmployee {
     private String loginId;
     private Long employeeId;
