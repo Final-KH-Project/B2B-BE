@@ -2,13 +2,17 @@ package kh.gangnam.b2b.dto.board.response;
 
 import kh.gangnam.b2b.dto.board.request.EmployeeResponse;
 import kh.gangnam.b2b.entity.board.Comment;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
+@NoArgsConstructor //알림 메세지
+@AllArgsConstructor //알림 메세지 생성으로 추가
 public class CommentSaveResponse {
 
     private Long commentId;
