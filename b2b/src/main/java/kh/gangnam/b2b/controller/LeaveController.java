@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.response.ApiResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;

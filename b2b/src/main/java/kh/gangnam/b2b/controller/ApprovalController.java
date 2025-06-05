@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.approval.request.LeaveApprovalRequest;
 import kh.gangnam.b2b.dto.approval.response.LeaveApprovalResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
@@ -21,14 +22,11 @@ public class ApprovalController {
     // 승인 대기 목록 조회 (부서장만 가능)
     @GetMapping("/pending")
     public ResponseEntity<List<LeaveRequestResponse>> getPendingRequests(
-            @AuthenticationPrincipal(expression = "employeeId") Long employeeId,
-            @AuthenticationPrincipal(expression = "role") String role) {
-        // 여기서 실제 값이 잘 들어오는지 확인
-        System.out.println("employeeId: " + employeeId + ", role: " + role);
+            @AuthenticationPrincipal CustomEmployeeDetails details) {
 
-        if (!"ROLE_HEAD".equals(role)) {
-            return ResponseEntity.status(403).build();
-        }
+        Long employeeId = details.getEmployeeId();
+        String role = details.getRole();
+
         List<LeaveRequestResponse> result = approvalService.getPendingRequests(employeeId);
         return ResponseEntity.ok(result);
     }
@@ -39,12 +37,7 @@ public class ApprovalController {
     public ResponseEntity<LeaveApprovalResponse> processApproval(
             @PathVariable("requestId") Long requestId,
             @AuthenticationPrincipal(expression = "employeeId") Long employeeId,
-            @AuthenticationPrincipal(expression = "role") String role,
             @RequestBody LeaveApprovalRequest approvalRequest) {
-        // 권한 체크: ROLE_HEAD만 접근 가능
-        if (!"ROLE_HEAD".equals(role)) {
-            return ResponseEntity.status(403).build();
-        }
         LeaveApprovalResponse response = approvalService.processApproval(requestId, employeeId, approvalRequest);
         return ResponseEntity.ok(response);
     }

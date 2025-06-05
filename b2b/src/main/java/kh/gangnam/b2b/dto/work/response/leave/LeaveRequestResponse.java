@@ -27,7 +27,12 @@ public class LeaveRequestResponse {
         LeaveRequestResponse dto = new LeaveRequestResponse();
         dto.setLeaveRequestId(leaveRequest.getLeaveRequestId());
         dto.setEmployeeName(leaveRequest.getEmployee().getName());
-        dto.setDepartmentName(leaveRequest.getEmployee().getDepartment());
+        if (leaveRequest.getEmployee().getDept() != null) {
+            dto.setDepartmentName(leaveRequest.getEmployee().getDept().getDeptName());
+        } else {
+            dto.setDepartmentName(null); // 또는 "미지정" 등 기본값
+        }
+
         dto.setPosition(leaveRequest.getEmployee().getPosition());
         dto.setWorkType(leaveRequest.getWorkType().name());
         dto.setStartDate(leaveRequest.getStartDate());

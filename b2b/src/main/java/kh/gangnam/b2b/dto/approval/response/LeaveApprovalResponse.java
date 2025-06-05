@@ -27,7 +27,7 @@ public class LeaveApprovalResponse {
         LeaveApprovalResponse dto = new LeaveApprovalResponse();
         dto.setLeaveRequestId(entity.getLeaveRequestId());
         dto.setEmployeeName(entity.getEmployee().getName());
-        dto.setDepartmentName(entity.getEmployee().getDepartment());
+        dto.setDepartmentName((entity.getEmployee().getDept() != null) ? entity.getEmployee().getDept().getDeptName() : "부서없음");
         dto.setWorkType(entity.getWorkType());
         dto.setStartDate(entity.getStartDate());
         dto.setEndDate(entity.getEndDate());

@@ -41,6 +41,9 @@ public final class SecurityConstants{
             ,"/api/comments/{id}"        // GET: 특정 댓글
             ,"/api/boards/{boardId}/comments"  // GET: 특정 게시글의 댓글 목록
 
+            //승인 권한
+            ,"/api/approval"
+
             // WebSocket
             ,"/ws"                     // WebSocket 기본 엔드포인트
             ,"/ws/**"                  // WebSocket 하위 엔드포인트

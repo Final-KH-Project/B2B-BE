@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.controller;
 
-import kh.gangnam.b2b.dto.auth.CustomEmployeeDetails;
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;

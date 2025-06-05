@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.service.impl;
+package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.approval.request.LeaveApprovalRequest;
 import kh.gangnam.b2b.dto.approval.response.LeaveApprovalResponse;
@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +26,6 @@ public class ApprovalServiceImpl implements ApprovalService {
         LeaveRequest leaveRequest = leaveRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("연차 요청 정보를 찾을 수 없습니다."));
 
-        // 권한 체크
-        if (!leaveRequest.getApprover().getEmployeeId().equals(employeeId)) {
-            throw new AccessDeniedException("해당 부서장만 승인/반려할 수 있습니다.");
-        }
 
         // 승인/반려 상태만 엔티티에 반영 (반려사유는 엔티티에 저장하지 않음)
         if (approvalRequest.getApprovalStatus() == ApprovalStatus.APPROVED) {
@@ -52,14 +49,14 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     @Override
     public List<LeaveRequestResponse> getPendingRequests(Long employeeId) {
-        // 결재자(부서장) 기준, 상태가 PENDING인 연차 요청만 조회
+        // 결재자 조건 없이 상태가 PENDING인 모든 연차 요청 조회
         List<LeaveRequest> pendingRequests = leaveRequestRepository
-                .findByApprover_EmployeeIdAndStatus(employeeId, ApprovalStatus.PENDING);
+                .findByStatus(ApprovalStatus.PENDING);
 
-        // 엔티티 리스트를 DTO 리스트로 변환
         return pendingRequests.stream()
                 .map(LeaveRequestResponse::fromEntity)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
+
 
 }
