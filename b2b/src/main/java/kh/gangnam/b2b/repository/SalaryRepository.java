@@ -15,10 +15,11 @@ import java.util.Optional;
 
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
-    // 사원별, 최신순 10개
-    List<Salary> findTop10ByEmployeeAndSalaryStatusOrderBySalaryDateDesc(
-            Employee employee, SalaryStatus status
-    );
+    // 사원 개인 급여 내역 페이징
+    Page<Salary> findByEmployeeAndSalaryStatusOrderBySalaryDateDesc(Employee employee, SalaryStatus status, Pageable pageable);
+
+    // 사원 개인 급여 내역 연도별
+    Page<Salary> findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(Employee employee, String year, SalaryStatus status, Pageable pageable);
 
     // 사원별, 연도별
     List<Salary> findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(

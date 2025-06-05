@@ -38,23 +38,22 @@ public class SalaryServiceImpl {
     // 비즈니스 로직
 
     // 사원 개인이 최신 10개 급여
-    public List<SalaryResponse> getMySalaryHistory(Long employeeId) {
+    public Page<SalaryResponse> getMySalaryHistory(Long employeeId, Pageable pageable) {
         Employee employee = validEmployee(employeeId);
-        List<Salary> salaries = salaryRepo
-                .findTop10ByEmployeeAndSalaryStatusOrderBySalaryDateDesc(employee, SalaryStatus.PAID);
-        return salaries.stream()
-                .map(SalaryResponse::fromEntity).toList();
+        Page<Salary> salaries = salaryRepo
+                .findByEmployeeAndSalaryStatusOrderBySalaryDateDesc(employee, SalaryStatus.PAID, pageable);
+        return salaries.map(SalaryResponse::fromEntity);
     }
 
+
     // 연도별 조회
-    public List<SalaryResponse> getMySalaryByYear(String year, Long employeeId) {
+    public Page<SalaryResponse> getMySalaryByYear(String year, Long employeeId, Pageable pageable) {
         Employee employee = validEmployee(employeeId);
-        List<Salary> salaries = salaryRepo
+        Page<Salary> salaries = salaryRepo
                 .findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(
-                        employee, year, SalaryStatus.PAID
+                        employee, year, SalaryStatus.PAID, pageable
                 );
-        return salaries.stream()
-                .map(SalaryResponse::fromEntity).toList();
+        return salaries.map(SalaryResponse::fromEntity);
     }
 
     // 급여 생성 | 수정
