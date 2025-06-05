@@ -86,7 +86,6 @@ public class AuthService {
         Date expiresAt = jwtTokenProvider.extractExpiration(accessToken);
         String loginId = userDetails.getUsername();
         String name = userDetails.getRealName();
-        log.info("name: {}", name);
         return ResponseEntity.ok(new LoginResponse(loginId, expiresAt, name));
     }
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
