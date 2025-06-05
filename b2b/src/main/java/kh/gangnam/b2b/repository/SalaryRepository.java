@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.repository;
 
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -15,10 +16,14 @@ import java.util.Optional;
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
     // 사원별, 최신순 10개
-    List<Salary> findTop10ByEmployeeOrderBySalaryDateDesc(Employee employee);
+    List<Salary> findTop10ByEmployeeAndSalaryStatusOrderBySalaryDateDesc(
+            Employee employee, SalaryStatus status
+    );
 
     // 사원별, 연도별
-    List<Salary> findByEmployeeAndSalaryYearMonthStartingWithOrderBySalaryDateDesc(Employee employee, String year);
+    List<Salary> findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(
+            Employee employee, String year, SalaryStatus status
+    );
 
     Optional<Salary> findByEmployeeAndSalaryYearMonth(Employee employee, String yearMonth);
 

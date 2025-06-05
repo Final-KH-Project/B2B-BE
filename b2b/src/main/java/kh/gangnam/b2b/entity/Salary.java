@@ -2,6 +2,7 @@ package kh.gangnam.b2b.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.*;
@@ -43,10 +44,18 @@ public class Salary {
     @Column(name = "salary_date", nullable = false)
     private LocalDate salaryDate;
 
+    @Column(name = "salary_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SalaryStatus salaryStatus;
+
     @Column(name = "memo")
     private String memo;
 
     public void update(SalaryCreateRequest request, Employee employee) {
+
+        if (this.salaryStatus == SalaryStatus.PAID) {
+            throw new IllegalStateException("지급 완료된 급여는 수정할 수 없습니다");
+        }
         this.employee = employee;
         this.salaryYearMonth = request.getSalaryYearMonth();
         this.baseSalary = request.getBaseSalary();

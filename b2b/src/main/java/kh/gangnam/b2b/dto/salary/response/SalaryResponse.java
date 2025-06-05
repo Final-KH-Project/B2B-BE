@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.dto.salary.response;
 
 import kh.gangnam.b2b.dto.employee.Position;
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -19,6 +20,7 @@ public class SalaryResponse {
     private Long incentive;
     private Long bonus;
     private LocalDate salaryDate;
+    private SalaryStatus salaryStatus;
     private String memo;
 
     // 사원 정보
@@ -39,6 +41,7 @@ public class SalaryResponse {
                 .bonus(salary.getBonus())
                 .salaryDate(salary.getSalaryDate())
                 .memo(salary.getMemo())
+                .salaryStatus(salary.getSalaryStatus())
 
                 .employeeId(employee.getEmployeeId())
                 .employeeName(employee.getName())

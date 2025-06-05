@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.controller;
 
 import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
+import kh.gangnam.b2b.dto.salary.request.SalaryPayRequest;
 import kh.gangnam.b2b.dto.salary.response.SalaryResponse;
 import kh.gangnam.b2b.service.ServiceImpl.SalaryServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,37 @@ public class HrSalaryController {
     @PostMapping("/salary")
     public ResponseEntity<SalaryResponse> createOrUpdateSalary(@RequestBody SalaryCreateRequest request) {
         return ResponseEntity.ok(salaryService.createOrUpdateSalary(request));
+    }
+
+    // 급여 단일 지급
+    @PutMapping("/salary/{salaryId}/pay")
+    public ResponseEntity<SalaryResponse> paySalary(
+            @PathVariable(name = "salaryId") Long salaryId,
+            @RequestBody SalaryPayRequest request
+    ) {
+        return ResponseEntity.ok(salaryService.paySalary(salaryId, request));
+    }
+
+    @PostMapping("/salary/pay/all")
+    public ResponseEntity<Void> payAllSalaries(@RequestBody SalaryPayRequest request) {
+        salaryService.payAllSalaries(
+                request.getPaidDate(),
+                request.getTargetMonth()
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/salary/pay/dept/{deptId}")
+    public ResponseEntity<Void> paySalariesByDept(
+            @PathVariable Long deptId,
+            @RequestBody SalaryPayRequest request
+    ) {
+        salaryService.paySalariesByDept(
+                deptId,
+                request.getPaidDate(),
+                request.getTargetMonth() // ✅ targetMonth 사용
+        );
+        return ResponseEntity.ok().build();
     }
 
     // 전체 급여 조회 (월별 + 페이지네이션)

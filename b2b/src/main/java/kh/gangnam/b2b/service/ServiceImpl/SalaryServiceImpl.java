@@ -1,6 +1,9 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
+import jakarta.transaction.Transactional;
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
+import kh.gangnam.b2b.dto.salary.request.SalaryPayRequest;
 import kh.gangnam.b2b.dto.salary.response.SalaryResponse;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,11 +28,13 @@ public class SalaryServiceImpl {
     private final DeptRepository deptRepo;
 
 
-    // 최신 10개 급여
+    // 비즈니스 로직
+
+    // 사원 개인이 최신 10개 급여
     public List<SalaryResponse> getMySalaryHistory(Long employeeId) {
         Employee employee = validEmployee(employeeId);
-
-        List<Salary> salaries = salaryRepo.findTop10ByEmployeeOrderBySalaryDateDesc(employee);
+        List<Salary> salaries = salaryRepo
+                .findTop10ByEmployeeAndSalaryStatusOrderBySalaryDateDesc(employee, SalaryStatus.PAID);
         return salaries.stream()
                 .map(SalaryResponse::fromEntity).toList();
     }
@@ -36,42 +42,113 @@ public class SalaryServiceImpl {
     // 연도별 조회
     public List<SalaryResponse> getMySalaryByYear(String year, Long employeeId) {
         Employee employee = validEmployee(employeeId);
-
-        List<Salary> salaries = salaryRepo.findByEmployeeAndSalaryYearMonthStartingWithOrderBySalaryDateDesc(employee, year);
+        List<Salary> salaries = salaryRepo
+                .findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(
+                        employee, year, SalaryStatus.PAID
+                );
         return salaries.stream()
                 .map(SalaryResponse::fromEntity).toList();
     }
 
-
     // 급여 생성 | 수정
     public SalaryResponse createOrUpdateSalary(SalaryCreateRequest request) {
         Employee employee = validEmployee(request.getEmployeeId());
-
-        Salary salary = salaryRepo.findByEmployeeAndSalaryYearMonth(employee, request.getSalaryYearMonth())
-                .orElseGet(Salary::new);
-
+        Salary salary = getOrCreateSalary(employee, request.getSalaryYearMonth());
         salary.update(request, employee);
-
         return SalaryResponse.fromEntity(salaryRepo.save(salary));
     }
-    // 전체 급여 조회
+
+    // 단일 급여 지급
+    public SalaryResponse paySalary(Long salaryId, SalaryPayRequest request) {
+        Salary salary = salaryRepo.findById(salaryId)
+                .orElseThrow(() -> new RuntimeException("급여 정보 없음"));
+        validatePaymentDate(request.getPaidDate());
+        updateSalaryStatus(salary, SalaryStatus.PAID, request.getPaidDate());
+        salary.setMemo(request.getMemo());
+        return SalaryResponse.fromEntity(salaryRepo.save(salary));
+    }
+
+    // 전체 사원 급여 일괄 지급
+    @Transactional
+    public void payAllSalaries(LocalDate paidDate, String targetMonth) {
+        List<Employee> employees = employeeRepo.findAll();
+        employees.forEach(emp ->
+                processPaymentForEmployee(emp, paidDate, targetMonth)
+        );
+    }
+
+    // 부서별 사원 급여 일괄 지급
+    @Transactional
+    public void paySalariesByDept(Long deptId, LocalDate paidDate, String targetMonth) {
+        Dept dept = getValidDept(deptId);
+        List<Employee> employees = employeeRepo.findByDept(dept);
+        employees.forEach(emp ->
+                processPaymentForEmployee(emp, paidDate, targetMonth)
+        );
+    }
+
+    // 공통 지급 처리 로직 (private)
+    private void processPaymentForEmployee(
+            Employee employee,
+            LocalDate paidDate,
+            String targetMonth
+    ) {
+        Salary salary = getOrCreateSalary(employee, targetMonth);
+        validatePaymentDate(paidDate);
+        updateSalaryStatus(salary, SalaryStatus.PAID, paidDate);
+        salaryRepo.save(salary);
+    }
+
+    // 전체 급여 조회 (월별 + 페이지네이션)
     public Page<SalaryResponse> getAllSalaries(String yearMonth, Pageable pageable) {
         return salaryRepo.findBySalaryYearMonthOrderBySalaryDateDesc(yearMonth, pageable)
                 .map(SalaryResponse::fromEntity);
     }
 
-    // 부서별 급여 조회
+    // 부서별 급여 조회 (월별 + 페이지네이션)
     public Page<SalaryResponse> getSalariesByDept(Long deptId, String yearMonth, Pageable pageable) {
-        Dept dept = deptRepo.findById(deptId)
-                .orElseThrow(() -> new RuntimeException("부서 없음"));
+        Dept dept = getValidDept(deptId);
         return salaryRepo.findByDeptAndSalaryYearMonth(dept, yearMonth, pageable)
                 .map(SalaryResponse::fromEntity);
     }
 
+    // 공통 유틸 메서드
+    /** 사원과 월로 Salary 조회 또는 생성 */
+    private Salary getOrCreateSalary(Employee employee, String targetMonth) {
+        return salaryRepo.findByEmployeeAndSalaryYearMonth(employee, targetMonth)
+                .orElseGet(() -> Salary.builder()
+                        .employee(employee)
+                        .salaryYearMonth(targetMonth)
+                        .salaryStatus(SalaryStatus.SCHEDULED)
+                        .build());
+    }
 
-    // 현재 로그인한 사원 정보 추출
+    /** 지급일 유효성 검증 */
+    private void validatePaymentDate(LocalDate paidDate) {
+        if (paidDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("미래 날짜는 지급일로 설정할 수 없습니다");
+        }
+    }
+
+    /** 급여 상태 및 지급일 업데이트 */
+    private void updateSalaryStatus(Salary salary, SalaryStatus status, LocalDate paidDate) {
+        if (status == SalaryStatus.PAID && salary.getSalaryStatus() == SalaryStatus.PAID) {
+            throw new RuntimeException("이미 지급된 급여입니다");
+        }
+        salary.setSalaryStatus(status);
+        salary.setSalaryDate(paidDate);
+    }
+
+    /** 부서 유효성 검증 및 조회 */
+    private Dept getValidDept(Long deptId) {
+        return deptRepo.findById(deptId)
+                .orElseThrow(() -> new RuntimeException("부서 없음"));
+    }
+
+    /** 사원 유효성 검증 및 조회 */
     private Employee validEmployee(Long employeeId) {
         return employeeRepo.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("사원을 찾을 수 없음"));
     }
+
 }
