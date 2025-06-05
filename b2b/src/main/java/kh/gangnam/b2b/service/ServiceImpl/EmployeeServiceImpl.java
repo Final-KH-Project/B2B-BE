@@ -1,7 +1,9 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.PasswordChangeRequest;
+import kh.gangnam.b2b.dto.employee.request.PositionUpdateRequest;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -48,16 +50,12 @@ public class EmployeeServiceImpl {
         return EmployeeDTO.fromEntity(employee);
     }
 
-    // 부서 변경
-    public void updateDepartment(Long employeeId, String department) {
-        Employee employee = validEmployee(employeeId);
-//        employee.setDepartment(department);
-        employeeRepository.save(employee);
-    }
     // 직급 변경
-    public void updatePosition(Long employeeId, String position) {
-        Employee employee = validEmployee(employeeId);
-        employee.setPosition(position);
+    public void updatePosition(PositionUpdateRequest request) {
+        Employee employee = validEmployee(request.getEmployeeId());
+        // Enum 에서 직접 변환 및 검증
+        Position newPosition = Position.from(request.getPosition());
+        employee.setPosition(newPosition);
         employeeRepository.save(employee);
     }
     // 전화번호 변경

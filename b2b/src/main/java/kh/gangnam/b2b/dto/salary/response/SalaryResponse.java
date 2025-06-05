@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.dto.salary.response;
 
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -23,7 +24,7 @@ public class SalaryResponse {
     // 사원 정보
     private Long employeeId;
     private String employeeName;
-    private String position;
+    private Position position;
     private String deptName;
 
     public static SalaryResponse fromEntity(Salary salary) {

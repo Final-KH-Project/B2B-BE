@@ -45,20 +45,11 @@ public class EmployeeController {
         return employeeService.updateProfile(details.getEmployeeId(), request);
     }
 
-    // 부서 변경
-    @PatchMapping("/department")
-    public ResponseEntity<Void> updateDepartment(
-            @RequestBody DepartmentUpdateRequest request,
-            @AuthenticationPrincipal CustomEmployeeDetails details) {
-        employeeService.updateDepartment(details.getEmployeeId(), request.getDepartment());
-        return ResponseEntity.ok().build();
-    }
     // 직급 변경
     @PatchMapping("/position")
     public ResponseEntity<Void> updatePosition(
-            @RequestBody PositionUpdateRequest request,
-            @AuthenticationPrincipal CustomEmployeeDetails userDetails) {
-        employeeService.updatePosition(userDetails.getEmployeeId(), request.getPosition());
+            @RequestBody PositionUpdateRequest request) {
+        employeeService.updatePosition(request);
         return ResponseEntity.ok().build();
     }
     // 전화번호 변경
