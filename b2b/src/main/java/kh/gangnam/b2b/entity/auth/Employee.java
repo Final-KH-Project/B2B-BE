@@ -7,7 +7,9 @@ import kh.gangnam.b2b.entity.Dept;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
 
+import org.hibernate.annotations.DynamicUpdate;
 
+@DynamicUpdate
 @Entity
 @Setter
 @Getter

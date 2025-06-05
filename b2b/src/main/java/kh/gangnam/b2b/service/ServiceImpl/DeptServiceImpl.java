@@ -28,21 +28,15 @@ public class DeptServiceImpl {
     public DeptDTO createDept(DeptCreateRequest request) {
         Dept parentDept = null;
         if (request.getParentDeptId() != null) {
-            parentDept = deptRepository.findById(request.getParentDeptId())
-                    .orElseThrow(() -> new RuntimeException("상위 부서가 존재하지 않습니다."));
+            parentDept = validDeptId(request.getParentDeptId());
         }
 
         Employee head = null;
         if (request.getHeadId() != null) {
-            head = employeeRepository.findById(request.getHeadId())
-                    .orElseThrow(() -> new RuntimeException("User Not found!"));
+            head = validEmployeeId(request.getHeadId());
         }
 
-        Dept dept = new Dept();
-        dept.setDeptName(request.getDeptName());
-        dept.setLocation(request.getLocation());
-        dept.setParentDept(parentDept);
-        dept.setHead(head);
+        Dept dept = request.toEntity(head, parentDept);
         deptRepository.save(dept);
         return DeptDTO.fromEntity(dept);
     }
@@ -57,8 +51,7 @@ public class DeptServiceImpl {
 
     // 부서 정보 조회
     public DeptDTO getDeptInfo(Long deptId) {
-        Dept dept = deptRepository.findById(deptId)
-                .orElseThrow(() -> new RuntimeException("부서 정보가 없습니다."));
+        Dept dept = validDeptId(deptId);
         return DeptDTO.fromEntity(dept);
     }
 

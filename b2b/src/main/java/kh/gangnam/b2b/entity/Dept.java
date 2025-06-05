@@ -2,12 +2,14 @@ package kh.gangnam.b2b.entity;
 
 import jakarta.persistence.*;
 import kh.gangnam.b2b.entity.auth.Employee;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Dept {
 
     @Id
