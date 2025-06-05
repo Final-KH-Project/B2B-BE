@@ -42,9 +42,9 @@ public interface AlarmService {
 
 
     //읽지 않은 알림 갯수 확인용
-    Integer unReadCount(Long employeeId);
-
     Integer countUnReadBoard(String loginId);
+
+    Integer unReadCount(Long employeeId);
 
      //알림 목록 호출
     List<AlarmDTO> getAlarmsByLoginId(String loginId);
