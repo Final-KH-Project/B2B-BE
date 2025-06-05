@@ -48,7 +48,7 @@ public class LeaveController {
             @AuthenticationPrincipal CustomEmployeeDetails user){
         List<kh.gangnam.b2b.entity.work.LeaveRequest> list = leaveRequestService.getMyRequests(user.getEmployeeId());
         List<LeaveRequestResponse> result = list.stream()
-                .map(LeaveRequestResponse::from)
+                .map(LeaveRequestResponse::fromEntity)
                 .toList();
 
         return ResponseEntity.ok(result);

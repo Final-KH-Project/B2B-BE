@@ -2,13 +2,17 @@ package kh.gangnam.b2b.service.impl;
 
 import kh.gangnam.b2b.dto.approval.request.LeaveApprovalRequest;
 import kh.gangnam.b2b.dto.approval.response.LeaveApprovalResponse;
+import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequest;
+import kh.gangnam.b2b.repository.approval.ApprovalLeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,4 +49,17 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
         return response;
     }
+
+    @Override
+    public List<LeaveRequestResponse> getPendingRequests(Long employeeId) {
+        // 결재자(부서장) 기준, 상태가 PENDING인 연차 요청만 조회
+        List<LeaveRequest> pendingRequests = leaveRequestRepository
+                .findByApprover_EmployeeIdAndStatus(employeeId, ApprovalStatus.PENDING);
+
+        // 엔티티 리스트를 DTO 리스트로 변환
+        return pendingRequests.stream()
+                .map(LeaveRequestResponse::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
 }

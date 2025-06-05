@@ -46,6 +46,11 @@ public class LeaveRequest {
     @Column(name = "reason", length = 500)
     private String reason;
 
+    // ✅ 반려 사유 필드 추가
+    @Getter
+    @Setter
+    @Column(name = "reject_reason", length = 500)
+    private String rejectReason;
     // 기본 생성자, getter/setter
 }
 

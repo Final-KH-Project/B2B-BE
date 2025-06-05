@@ -8,28 +8,36 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-
 @Getter
 @Setter
-@Data
 public class LeaveRequestResponse {
     private Long leaveRequestId;
     private String employeeName;
-    private WorkType workType;
+    private String departmentName;
+    private String position;
+    private String workType;
     private LocalDate startDate;
     private LocalDate endDate;
-    private ApprovalStatus status;
+    private String status;
     private String reason;
+    private String rejectReason;
+    private String approverName;
 
-    public static LeaveRequestResponse from(LeaveRequest req) {
-        LeaveRequestResponse res = new LeaveRequestResponse();
-        res.setLeaveRequestId(req.getLeaveRequestId());
-        res.setEmployeeName(req.getEmployee().getName());
-        res.setStartDate(req.getStartDate());
-        res.setEndDate(req.getEndDate());
-        res.setWorkType(req.getWorkType());
-        res.setStatus(req.getStatus());
-        res.setReason(req.getReason());
-        return res;
+    public static LeaveRequestResponse fromEntity(LeaveRequest leaveRequest) {
+        LeaveRequestResponse dto = new LeaveRequestResponse();
+        dto.setLeaveRequestId(leaveRequest.getLeaveRequestId());
+        dto.setEmployeeName(leaveRequest.getEmployee().getName());
+        dto.setDepartmentName(leaveRequest.getEmployee().getDepartment());
+        dto.setPosition(leaveRequest.getEmployee().getPosition());
+        dto.setWorkType(leaveRequest.getWorkType().name());
+        dto.setStartDate(leaveRequest.getStartDate());
+        dto.setEndDate(leaveRequest.getEndDate());
+        dto.setStatus(leaveRequest.getStatus().name());
+        dto.setReason(leaveRequest.getReason());
+        dto.setRejectReason(leaveRequest.getRejectReason()); // 엔티티에 필드가 있으면
+        dto.setApproverName(leaveRequest.getApprover().getName());
+        return dto;
     }
 }
+
+
