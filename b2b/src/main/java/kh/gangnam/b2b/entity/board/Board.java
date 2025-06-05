@@ -38,6 +38,11 @@ public class Board extends BaseTimeEntity {
     @Builder.Default
     private List<BoardImage> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @OrderBy("createdDate DESC")
+    private List<Comment> comments = new ArrayList<>();
+
     // 수정 후 수정된 Board를 리턴
     public Board update(UpdateRequest dto){
         this.title=dto.title();
