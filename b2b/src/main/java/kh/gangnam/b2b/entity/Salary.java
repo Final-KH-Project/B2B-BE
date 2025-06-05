@@ -55,9 +55,9 @@ public class Salary {
         if (this.salaryStatus == SalaryStatus.PAID) {
             throw new IllegalStateException("지급 완료된 급여는 수정할 수 없습니다");
         }
-        this.employee = employee;
-        this.salaryYearMonth = request.getSalaryYearMonth();
+        // 기본 급여는 사원 정보에서 자동 설정
         this.baseSalary = employee.getBaseSalary();
+
         this.incentive = request.getIncentive();
         this.bonus = request.getBonus();
         this.salaryDate = request.getSalaryDate();

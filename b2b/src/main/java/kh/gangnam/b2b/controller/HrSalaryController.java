@@ -35,6 +35,7 @@ public class HrSalaryController {
         return ResponseEntity.ok(salaryService.paySalary(salaryId, request));
     }
 
+    // 전체 사원 급여 예정 지급
     @PostMapping("/salary/pay/all")
     public ResponseEntity<Void> payAllSalaries(@RequestBody SalaryPayRequest request) {
         salaryService.payAllSalaries(
@@ -47,7 +48,7 @@ public class HrSalaryController {
     // 부서별 사원 급여 일괄 지급
     @PostMapping("/salary/pay/dept/{deptId}")
     public ResponseEntity<Void> paySalariesByDept(
-            @PathVariable Long deptId,
+            @PathVariable(name = "deptId") Long deptId,
             @RequestBody SalaryPayRequest request
     ) {
         salaryService.paySalariesByDept(
@@ -55,6 +56,12 @@ public class HrSalaryController {
                 request.getPaidDate(),
                 request.getTargetMonth()
         );
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/salaries/assign")
+    public ResponseEntity<Void> assignSalariesToAll() {
+        salaryService.assignSalariesToAllEmployees();
         return ResponseEntity.ok().build();
     }
 

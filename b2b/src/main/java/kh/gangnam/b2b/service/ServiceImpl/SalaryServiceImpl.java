@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.transaction.Transactional;
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
 import kh.gangnam.b2b.dto.salary.request.SalaryPayRequest;
@@ -12,6 +13,7 @@ import kh.gangnam.b2b.repository.DeptRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.SalaryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,9 +22,12 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SalaryServiceImpl {
 
     private final SalaryRepository salaryRepo;
@@ -205,4 +210,44 @@ public class SalaryServiceImpl {
         });
     }
 
+    public void assignSalaryBasedOnPosition(Employee employee) {
+        // 직급별 기본 급여 (단위: 원)
+        Map<Position, Long> baseSalaries = Map.of(
+                Position.CEO, 100_000_000L,
+                Position.EXECUTIVE, 70_000_000L,
+                Position.MANAGER, 50_000_000L,
+                Position.TEAM_LEADER, 35_000_000L,
+                Position.STAFF, 25_000_000L
+        );
+
+        // 기본 급여 조회 (기본값: STAFF)
+        Long baseSalary = baseSalaries.getOrDefault(employee.getPosition(), 25_000_000L);
+
+        // -20% ~ +20% 랜덤 변동
+        double variation = ThreadLocalRandom.current().nextDouble(0.8, 1.2);
+        Long adjustedSalary = (long) (baseSalary * variation);
+
+        // 급여 생성 요청 DTO
+        SalaryCreateRequest request = SalaryCreateRequest.builder()
+                .employeeId(employee.getEmployeeId())
+                .salaryYearMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")))
+                .incentive(0L)  // 초기값 0
+                .bonus(0L)      // 초기값 0
+                .salaryDate(LocalDate.now().plusMonths(1).withDayOfMonth(25)) // 다음달 25일
+                .build();
+
+        // 급여 생성/수정
+        createOrUpdateSalary(request);
+    }
+    @Transactional
+    public void assignSalariesToAllEmployees() {
+        List<Employee> employees = employeeRepo.findAll();
+        employees.forEach(employee -> {
+            try {
+                assignSalaryBasedOnPosition(employee);
+            } catch (Exception e) {
+                log.error("급여 생성 실패: {} {}", employee.getEmployeeId(), e.getMessage());
+            }
+        });
+    }
 }

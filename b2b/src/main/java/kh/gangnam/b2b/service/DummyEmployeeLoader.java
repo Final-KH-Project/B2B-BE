@@ -3,21 +3,34 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.auth.request.JoinRequest;
 import kh.gangnam.b2b.dto.dept.DeptCreateRequest;
 import kh.gangnam.b2b.dto.dept.DeptDTO;
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.PositionUpdateRequest;
+import kh.gangnam.b2b.dto.salary.request.SalaryCreateRequest;
+import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ServiceImpl.AuthServiceImpl;
 import kh.gangnam.b2b.service.ServiceImpl.DeptServiceImpl;
 import kh.gangnam.b2b.service.ServiceImpl.EmployeeServiceImpl;
+import kh.gangnam.b2b.service.ServiceImpl.SalaryServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-//@Component
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
+@Component
 @RequiredArgsConstructor
 public class DummyEmployeeLoader implements CommandLineRunner {
 
     private final AuthServiceImpl authService;
     private final DeptServiceImpl deptService;
-    private final EmployeeServiceImpl employeeService; // 직급 변경 서비스 추가
+    private final EmployeeServiceImpl employeeService;
+    private final EmployeeRepository employeeRepo;
+    private final SalaryServiceImpl salaryService;
 
     @Override
     public void run(String... args) {
@@ -65,6 +78,9 @@ public class DummyEmployeeLoader implements CommandLineRunner {
 
         // 5. 직급 배정
         assignPositions();
+
+        // 6. 급여 자동 배정
+        assignSalaries();
     }
 
     // 100명 사용자 생성 메서드
@@ -107,35 +123,17 @@ public class DummyEmployeeLoader implements CommandLineRunner {
     private void assignRemainingEmployees(Long executiveId, Long devManagerId, Long designManagerId,
                                           Long customerId, Long hrId,
                                           Long dev1Id, Long dev2Id, Long design1Id, Long design2Id) {
-        // 경영진: 2명 (11번)
         moveEmployee(11L, executiveId);
-
-        // 개발매니져팀: 3명 (12~13번)
         moveEmployees(12L, 13L, devManagerId);
-
-        // 디자인매니져팀: 4명 (14~16번)
         moveEmployees(14L, 16L, designManagerId);
-
-        // 개발1팀: 15명 (17~31번)
         moveEmployees(17L, 31L, dev1Id);
-
-        // 개발2팀: 15명 (32~46번)
         moveEmployees(32L, 46L, dev2Id);
-
-        // 디자인1팀: 15명 (47~61번)
         moveEmployees(47L, 61L, design1Id);
-
-        // 디자인2팀: 15명 (62~76번)
         moveEmployees(62L, 76L, design2Id);
-
-        // 고객대응팀: 15명 (77~91번)
         moveEmployees(77L, 91L, customerId);
-
-        // 인사과: 15명 (92~100번)
         moveEmployees(92L, 100L, hrId);
     }
 
-    // 단일 사원 이동
     private void moveEmployee(Long employeeId, Long deptId) {
         try {
             deptService.moveEmployeeToDept(employeeId, deptId);
@@ -144,14 +142,12 @@ public class DummyEmployeeLoader implements CommandLineRunner {
         }
     }
 
-    // 범위 내 사원 일괄 이동
     private void moveEmployees(long start, long end, Long deptId) {
         for (long i = start; i <= end; i++) {
             moveEmployee(i, deptId);
         }
     }
 
-    // 부서장 지정 공통 메서드
     private void assignHead(Long deptId, Long employeeId) {
         try {
             deptService.moveEmployeeToDept(employeeId, deptId);
@@ -161,42 +157,87 @@ public class DummyEmployeeLoader implements CommandLineRunner {
         }
     }
 
-    // 직급 배정 메서드
     private void assignPositions() {
         // CEO
-        updatePosition(1L, "CEO");
+        updatePosition(1L, Position.CEO);
 
         // EXECUTIVE
-        updatePosition(2L, "EXECUTIVE");
-        updatePosition(11L, "EXECUTIVE");
+        updatePosition(2L, Position.EXECUTIVE);
+        updatePosition(11L, Position.EXECUTIVE);
 
         // MANAGER
-        updatePosition(3L, "MANAGER");
-        updatePosition(12L, "MANAGER");
-        updatePosition(13L, "MANAGER");
+        updatePosition(3L, Position.MANAGER);
+        updatePosition(12L, Position.MANAGER);
+        updatePosition(13L, Position.MANAGER);
 
         // TEAM_LEADER
-        updatePosition(4L, "TEAM_LEADER");
-        updatePosition(14L, "TEAM_LEADER");
-        updatePosition(15L, "TEAM_LEADER");
-        updatePosition(16L, "TEAM_LEADER");
+        updatePosition(4L, Position.TEAM_LEADER);
+        updatePosition(14L, Position.TEAM_LEADER);
+        updatePosition(15L, Position.TEAM_LEADER);
+        updatePosition(16L, Position.TEAM_LEADER);
 
         // STAFF (나머지)
         for (long i = 5L; i <= 100L; i++) {
             if (i == 11L || i == 12L || i == 13L || i == 14L || i == 15L || i == 16L) continue;
-            updatePosition(i, "STAFF");
+            updatePosition(i, Position.STAFF);
         }
     }
 
-    // 직급 변경 공통 메서드
-    private void updatePosition(Long employeeId, String position) {
+    private void updatePosition(Long employeeId, Position position) {
         try {
             PositionUpdateRequest req = new PositionUpdateRequest();
             req.setEmployeeId(employeeId);
-            req.setPosition(position);
+            req.setPosition(String.valueOf(position));
             employeeService.updatePosition(req);
         } catch (Exception e) {
             System.err.println("직급 변경 실패: " + employeeId + " → " + position);
         }
+    }
+
+    // ========== 급여 자동 배정 ==========
+    private void assignSalaries() {
+        List<Employee> employees = employeeRepo.findAll();
+        employees.forEach(employee -> {
+            try {
+                assignSalaryBasedOnPosition(employee);
+            } catch (Exception e) {
+                System.err.println("급여 생성 실패: " + employee.getEmployeeId());
+            }
+        });
+    }
+
+    private void assignSalaryBasedOnPosition(Employee employee) {
+        // 직급별 기본 급여 (단위: 원)
+        Map<Position, Long> baseSalaries = Map.of(
+                Position.CEO, 100_000_000L,
+                Position.EXECUTIVE, 70_000_000L,
+                Position.MANAGER, 50_000_000L,
+                Position.TEAM_LEADER, 35_000_000L,
+                Position.STAFF, 25_000_000L
+        );
+
+        // 기본 급여 조회 (기본값: STAFF)
+        Long baseSalary = baseSalaries.getOrDefault(employee.getPosition(), 25_000_000L);
+
+        // -20% ~ +20% 랜덤 변동
+        double variation = ThreadLocalRandom.current().nextDouble(0.8, 1.2);
+        Long adjustedSalary = (long)(baseSalary * variation);
+
+        // Employee 엔티티에 baseSalary 저장 (필요시)
+        employee.setBaseSalary(adjustedSalary);
+        employeeRepo.save(employee);
+
+        // 급여 생성 요청 DTO
+        SalaryCreateRequest request = SalaryCreateRequest.builder()
+                .employeeId(employee.getEmployeeId())
+                .salaryYearMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")))
+                .incentive(0L)
+                .bonus(0L)
+                .salaryDate(LocalDate.now().plusMonths(1).withDayOfMonth(25))
+                .memo(employee.getPosition().name() + " 기본급 자동생성")
+                .build();
+
+        // 급여 생성/수정
+        salaryService.createOrUpdateSalary(request);
     }
 }
