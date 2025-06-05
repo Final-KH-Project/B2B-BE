@@ -33,7 +33,7 @@ public class LeaveRequestResponse {
             dto.setDepartmentName(null); // 또는 "미지정" 등 기본값
         }
 
-        dto.setPosition(leaveRequest.getEmployee().getPosition());
+        dto.setPosition(String.valueOf(leaveRequest.getEmployee().getPosition()));
         dto.setWorkType(leaveRequest.getWorkType().name());
         dto.setStartDate(leaveRequest.getStartDate());
         dto.setEndDate(leaveRequest.getEndDate());

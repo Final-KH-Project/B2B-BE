@@ -50,7 +50,6 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     @Override
     public List<LeaveRequestResponse> getPendingRequests(Long employeeId) {
-        // 결재자 조건 없이 상태가 PENDING인 모든 연차 요청 조회
         List<LeaveRequest> pendingRequests = leaveRequestRepository
                 .findByStatus(ApprovalStatus.PENDING);
 
@@ -58,6 +57,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .map(LeaveRequestResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+
 
     // [추가] 완료(승인/반려) 목록 조회
     @Override
