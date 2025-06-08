@@ -24,6 +24,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -136,6 +137,13 @@ public class MeetingServiceImpl {
         meetingRoom = meetingRoomRepo.save(meetingRoom);
 
         return MeetingRoomResponse.fromEntity(meetingRoom);
+    }
+
+    // 회의실 리스트 조회
+    public List<MeetingRoomResponse> getAllMeetingRooms() {
+        return meetingRoomRepo.findAll().stream()
+                .map(MeetingRoomResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     private Employee validEmployee(Long employeeId) {
