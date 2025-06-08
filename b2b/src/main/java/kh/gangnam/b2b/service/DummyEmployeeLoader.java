@@ -233,7 +233,7 @@ public class DummyEmployeeLoader implements CommandLineRunner {
                 .salaryYearMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")))
                 .incentive(0L)
                 .bonus(0L)
-                .memo(employee.getPosition().name() + " 기본급 자동생성")
+                .memo(employee.getPosition().getKrName() + " 기본급 자동생성")
                 .build();
 
         // 급여 생성/수정
