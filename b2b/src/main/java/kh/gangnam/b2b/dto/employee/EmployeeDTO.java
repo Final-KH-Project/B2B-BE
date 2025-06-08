@@ -15,7 +15,7 @@ public class EmployeeDTO {
     private String profile;
     private String department;
     private String manager;
-    private Position position;
+    private String position;
     private String dateOfBirth;
     private String phoneNumber;
     private String address;
@@ -29,7 +29,7 @@ public class EmployeeDTO {
                 .manager(employee.getManager() !=null ? employee.getManager().getName() : null)
                 .department(employee.getDept() != null ? employee.getDept().getDeptName() : null)
                 .profile(employee.getProfile())
-                .position(employee.getPosition())
+                .position(employee.getPosition().getKrName())
                 .dateOfBirth(employee.getDateOfBirth())
                 .phoneNumber(employee.getPhoneNumber())
                 .address(employee.getAddress())

@@ -26,7 +26,7 @@ public class SalaryResponse {
     // 사원 정보
     private Long employeeId;
     private String employeeName;
-    private Position position;
+    private String position;
     private String deptName;
 
     public static SalaryResponse fromEntity(Salary salary) {
@@ -45,7 +45,7 @@ public class SalaryResponse {
 
                 .employeeId(employee.getEmployeeId())
                 .employeeName(employee.getName())
-                .position(employee.getPosition())
+                .position(employee.getPosition().getKrName())
                 .deptName(dept != null ? dept.getDeptName() : "미배정")
                 .build();
     }
