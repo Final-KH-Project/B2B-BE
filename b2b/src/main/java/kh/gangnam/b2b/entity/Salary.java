@@ -51,7 +51,7 @@ public class Salary {
     @Column(name = "memo")
     private String memo;
 
-    public void update(SalaryCreateRequest request, Employee employee) {
+    public void update(SalaryCreateRequest request, Employee employee, LocalDate salaryDate) {
         if (this.salaryStatus == SalaryStatus.PAID) {
             throw new IllegalStateException("지급 완료된 급여는 수정할 수 없습니다");
         }
@@ -60,7 +60,7 @@ public class Salary {
 
         this.incentive = request.getIncentive();
         this.bonus = request.getBonus();
-        this.salaryDate = request.getSalaryDate();
+        this.salaryDate = salaryDate;
         this.memo = request.getMemo();
     }
 }
