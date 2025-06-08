@@ -36,26 +36,19 @@ public class HrSalaryController {
     }
 
     // 전체 사원 급여 예정 지급
-    @PostMapping("/salary/pay/all")
-    public ResponseEntity<Void> payAllSalaries(@RequestBody SalaryPayRequest request) {
-        salaryService.payAllSalaries(
-                request.getPaidDate(),
-                request.getTargetMonth()
-        );
+    @PostMapping("/salary/pay/all/targetMonth/{targetMonth}")
+    public ResponseEntity<Void> payAllSalaries(@PathVariable(name = "targetMonth") String targetMonth) {
+        salaryService.payAllSalaries(targetMonth);
         return ResponseEntity.ok().build();
     }
 
     // 부서별 사원 급여 일괄 지급
-    @PostMapping("/salary/pay/dept/{deptId}")
+    @PostMapping("/salary/pay/dept/{deptId}/targetMonth/{targetMonth}")
     public ResponseEntity<Void> paySalariesByDept(
             @PathVariable(name = "deptId") Long deptId,
-            @RequestBody SalaryPayRequest request
+            @PathVariable(name = "targetMonth") String targetMonth
     ) {
-        salaryService.paySalariesByDept(
-                deptId,
-                request.getPaidDate(),
-                request.getTargetMonth()
-        );
+        salaryService.paySalariesByDept(deptId, targetMonth);
         return ResponseEntity.ok().build();
     }
 
@@ -66,16 +59,13 @@ public class HrSalaryController {
     }
 
     // 전체 급여 조회 (월별 + 페이지네이션)
-    @GetMapping("/salary/date/{date}/rowNum/{rowNum}")
+    @GetMapping("/salary/date/{date}")
     public ResponseEntity<Page<SalaryResponse>> getAllSalaries(
             @PathVariable(name = "date") String yearMonth,
-            @PathVariable(name = "rowNum", required = false) Integer rowNum,
             @PageableDefault(size = 50) Pageable pageable
             ) {
         // rowNum null 인 경우 Pageable 재설정
-        int pageSize = (rowNum != null) ? rowNum : pageable.getPageSize();
-        Pageable customPageable = PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
-        return ResponseEntity.ok(salaryService.getAllSalaries(yearMonth, customPageable));
+        return ResponseEntity.ok(salaryService.getAllSalaries(yearMonth, pageable));
     }
 
     // 부서별 급여 조회
