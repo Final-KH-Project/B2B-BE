@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.service;
+package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -17,6 +17,7 @@ import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
 import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
