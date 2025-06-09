@@ -5,11 +5,9 @@ import kh.gangnam.b2b.dto.approval.response.LeaveApprovalResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequest;
-import kh.gangnam.b2b.repository.approval.ApprovalLeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.service.ApprovalService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -28,11 +26,12 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .orElseThrow(() -> new IllegalArgumentException("연차 요청 정보를 찾을 수 없습니다."));
 
 
-        // 승인/반려 상태만 엔티티에 반영 (반려사유는 엔티티에 저장하지 않음)
         if (approvalRequest.getApprovalStatus() == ApprovalStatus.APPROVED) {
             leaveRequest.setStatus(ApprovalStatus.APPROVED);
+            leaveRequest.setRejectReason(null);
         } else if (approvalRequest.getApprovalStatus() == ApprovalStatus.REJECTED) {
             leaveRequest.setStatus(ApprovalStatus.REJECTED);
+            leaveRequest.setRejectReason(approvalRequest.getRejectReason());
             // 반려사유는 엔티티에 저장하지 않고, 아래에서 응답 DTO에만 세팅
         } else {
             throw new IllegalArgumentException("잘못된 승인 상태입니다.");
@@ -70,5 +69,7 @@ public class ApprovalServiceImpl implements ApprovalService {
                 .map(LeaveRequestResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+
+
 
 }

@@ -13,4 +13,6 @@ public interface ApprovalService {
     List<LeaveRequestResponse> getPendingRequests(Long employeeId);
 
     List<LeaveRequestResponse> getCompletedRequests(Long employeeId);
+
+
 }

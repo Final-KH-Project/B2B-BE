@@ -34,7 +34,7 @@ public class LeaveRequestResponse {
         }
 
         dto.setPosition(String.valueOf(leaveRequest.getEmployee().getPosition()));
-        dto.setWorkType(leaveRequest.getWorkType().name());
+        dto.setWorkType(leaveRequest.getWorkType().getKrName());
         dto.setStartDate(leaveRequest.getStartDate());
         dto.setEndDate(leaveRequest.getEndDate());
         dto.setStatus(leaveRequest.getStatus().name());

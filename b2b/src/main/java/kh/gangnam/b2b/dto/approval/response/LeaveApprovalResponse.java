@@ -14,12 +14,13 @@ public class LeaveApprovalResponse {
     private Long leaveRequestId;
     private String employeeName;
     private String departmentName;
-    private WorkType workType;
+    private String position;
+    private String workType;
     private LocalDate startDate;
     private LocalDate endDate;
     private ApprovalStatus status;
     private String reason;
-    private String rejectReason;   // 엔티티에 저장하지 않고 응답에서만 사용
+    private String rejectReason;
     private String approverName;
 
     // 엔티티 → DTO 변환 메서드 (rejectReason은 별도 세팅)
@@ -28,13 +29,14 @@ public class LeaveApprovalResponse {
         dto.setLeaveRequestId(entity.getLeaveRequestId());
         dto.setEmployeeName(entity.getEmployee().getName());
         dto.setDepartmentName((entity.getEmployee().getDept() != null) ? entity.getEmployee().getDept().getDeptName() : "부서없음");
-        dto.setWorkType(entity.getWorkType());
+        dto.setPosition(entity.getEmployee().getPosition() != null ? entity.getEmployee().getPosition().getKrName() : null);
+        dto.setWorkType(entity.getWorkType() != null ? entity.getWorkType().getKrName() : null);
         dto.setStartDate(entity.getStartDate());
         dto.setEndDate(entity.getEndDate());
         dto.setStatus(entity.getStatus());
         dto.setReason(entity.getReason());
         dto.setApproverName(entity.getApprover().getName());
-        // dto.setRejectReason(null); // 여기서는 세팅하지 않음
+        dto.setRejectReason(entity.getRejectReason());
         return dto;
     }
 }
