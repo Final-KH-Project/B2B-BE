@@ -19,39 +19,28 @@ public class ApprovalController {
 
     private final ApprovalService approvalService;
 
-    // 승인 대기 목록 조회 (부서장만 가능)
+    /** 승인 대기 목록 조회 (부서장만 가능) */
     @GetMapping("/pending")
     public ResponseEntity<List<LeaveRequestResponse>> getPendingRequests(
-            @AuthenticationPrincipal CustomEmployeeDetails details) {
-
-        Long employeeId = details.getEmployeeId();
-        String role = details.getRole();
-
-        List<LeaveRequestResponse> result = approvalService.getPendingRequests(employeeId);
-        return ResponseEntity.ok(result);
+            @AuthenticationPrincipal CustomEmployeeDetails user) {
+        return ResponseEntity.ok(approvalService.getPendingRequests(user.getEmployeeId()));
     }
 
-    // 완료(승인/반려) 목록 조회 (예시: 모든 승인/반려된 휴가 요청)
+    /** 완료(승인/반려) 목록 조회 */
     @GetMapping("/completed")
     public ResponseEntity<List<LeaveRequestResponse>> getCompletedRequests(
-            @AuthenticationPrincipal CustomEmployeeDetails details) {
-
-        Long employeeId = details.getEmployeeId();
-        String role = details.getRole();
-
-        // status가 APPROVED 또는 REJECTED인 요청만 반환하도록 서비스에서 처리
-        List<LeaveRequestResponse> result = approvalService.getCompletedRequests(employeeId);
-        return ResponseEntity.ok(result);
+            @AuthenticationPrincipal CustomEmployeeDetails user) {
+        return ResponseEntity.ok(approvalService.getCompletedRequests(user.getEmployeeId()));
     }
 
-
-    // 결재자 승인/반려 처리
+    /** 결재자 승인/반려 처리 */
     @PostMapping("/{requestId}/decision")
     public ResponseEntity<LeaveApprovalResponse> processApproval(
             @PathVariable("requestId") Long requestId,
-            @AuthenticationPrincipal(expression = "employeeId") Long employeeId,
+            @AuthenticationPrincipal CustomEmployeeDetails user,
             @RequestBody LeaveApprovalRequest approvalRequest) {
-        LeaveApprovalResponse response = approvalService.processApproval(requestId, employeeId, approvalRequest);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                approvalService.processApproval(requestId, user.getEmployeeId(), approvalRequest)
+        );
     }
 }
