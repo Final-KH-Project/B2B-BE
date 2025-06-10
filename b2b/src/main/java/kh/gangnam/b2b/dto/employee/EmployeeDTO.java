@@ -21,9 +21,11 @@ public class EmployeeDTO {
     private String address;
     private LocalDateTime createdDate;
     private String role;
+    private Long employeeId;
 
     public static EmployeeDTO fromEntity(Employee employee) {
         return EmployeeDTO.builder()
+                .employeeId(employee.getEmployeeId())
                 .loginId(employee.getLoginId())
                 .name(employee.getName())
                 .manager(employee.getManager() !=null ? employee.getManager().getName() : null)
