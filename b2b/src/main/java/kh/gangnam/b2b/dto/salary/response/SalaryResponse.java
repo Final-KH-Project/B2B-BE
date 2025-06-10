@@ -22,6 +22,7 @@ public class SalaryResponse {
     private LocalDate salaryDate;
     private SalaryStatus salaryStatus;
     private String memo;
+    private Long salaryId; //추가
 
     // 사원 정보
     private Long employeeId;
@@ -42,6 +43,7 @@ public class SalaryResponse {
                 .salaryDate(salary.getSalaryDate())
                 .memo(salary.getMemo())
                 .salaryStatus(salary.getSalaryStatus())
+                .salaryId(salary.getSalaryId()) //추가
 
                 .employeeId(employee.getEmployeeId())
                 .employeeName(employee.getName())

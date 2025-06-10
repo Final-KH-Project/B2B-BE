@@ -21,6 +21,10 @@ public class EmployeeDTO {
     private String address;
     private LocalDateTime createdDate;
     private String role;
+    private Long headId; //추가 , 부서장 employeeID
+    private boolean isHead; //추가, 부서장 여부확인
+    private Long employeeId; //추가
+
 
     public static EmployeeDTO fromEntity(Employee employee) {
         return EmployeeDTO.builder()
@@ -35,6 +39,10 @@ public class EmployeeDTO {
                 .address(employee.getAddress())
                 .createdDate(employee.getCreatedDate())
                 .role(employee.getRole())
+                .headId(employee.getDept() != null
+                        ? employee.getDept().getHead().getEmployeeId() : null) //추가
+                .isHead(employee.getDept() != null && employee.getDept().getHead() != null) //추가
+                .employeeId(employee.getEmployeeId())  //추가
                 .build();
     }
 }
