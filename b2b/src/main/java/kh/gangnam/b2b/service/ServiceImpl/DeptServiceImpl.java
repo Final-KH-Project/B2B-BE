@@ -3,6 +3,7 @@ package kh.gangnam.b2b.service.ServiceImpl;
 import jakarta.transaction.Transactional;
 import kh.gangnam.b2b.dto.dept.DeptCreateRequest;
 import kh.gangnam.b2b.dto.dept.DeptDTO;
+import kh.gangnam.b2b.dto.dept.DeptsDTO;
 import kh.gangnam.b2b.dto.dept.UpdateMentorRequest;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.entity.Dept;
@@ -53,6 +54,12 @@ public class DeptServiceImpl {
     public DeptDTO getDeptInfo(Long deptId) {
         Dept dept = validDeptId(deptId);
         return DeptDTO.fromEntity(dept);
+    }
+
+    // 모든 부서 정보 조회
+    public List<DeptsDTO> getDeptsInfo() {
+        List<Dept> allDepts = deptRepository.findAll();
+        return DeptsDTO.buildDeptsTree(allDepts);
     }
 
     // 사원 부서 변경
