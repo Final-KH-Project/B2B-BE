@@ -18,4 +18,5 @@ public interface ApprovalLeaveRequestRepository {
 
 
     List<LeaveRequest> findByApproverIdAndStatus(Long approverId, ApprovalStatus status);
+
 }

@@ -26,4 +26,5 @@
         List<LeaveRequest> findByStatusIn(List<ApprovalStatus> list);
 
         List<LeaveRequest> findByStatus(ApprovalStatus approvalStatus);
+
     }
