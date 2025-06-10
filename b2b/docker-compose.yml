@@ -10,3 +10,8 @@ services:
       # - "no": 자동 재시작 비활성화
       # - 이전 컨테이너와의 충돌 방지
     # - Jenkins 파이프라인에서 컨테이너 관리
+    networks:
+      - app-network  # 여기에 네트워크 지정 추가
+networks:
+  app-network:
+    external: true     # 이미 존재하는 네트워크 사용
