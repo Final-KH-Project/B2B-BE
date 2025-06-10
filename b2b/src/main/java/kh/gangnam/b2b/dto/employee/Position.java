@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Position {
     CEO("최고경영자"),
-    EXECUTIVE("경영진 (임원)"),
-    MANAGER("매니저 (부/팀장)"),
+    EXECUTIVE("경영진(임원)"),
+    MANAGER("매니저(부/팀장)"),
     TEAM_LEADER("팀장"),
     STAFF("일반 직원"),
     NEWBIE("신입");
@@ -28,7 +28,7 @@ public enum Position {
     // 문자열을 Enum으로 안전하게 변환 (없으면 예외)
     public static Position from(String value) {
         for (Position p : Position.values()) {
-            if (p.name().equalsIgnoreCase(value)) {
+            if (p.name().equalsIgnoreCase(value) || p.getKrName().equals(value)) {
                 return p;
             }
         }

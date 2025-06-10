@@ -4,6 +4,7 @@ import kh.gangnam.b2b.dto.dept.*;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.service.ServiceImpl.DeptServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,12 @@ public class DeptController {
     @GetMapping("/get/info/{deptId}")
     public DeptDTO getDeptInfo(@PathVariable("deptId") Long deptId) {
         return deptService.getDeptInfo(deptId);
+    }
+
+    // 모든 부서 정보 조회
+    @GetMapping("/get/info/depts")
+    public ResponseEntity<List<DeptsDTO>> getDeptsInfo() {
+        return ResponseEntity.ok(deptService.getDeptsInfo());
     }
 
     // 부서 변경
