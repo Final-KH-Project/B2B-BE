@@ -9,6 +9,9 @@ import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
 import kh.gangnam.b2b.service.BoardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -58,11 +61,11 @@ public class BoardController {
     }
 
     @GetMapping("/{type}")
-    public ResponseEntity<List<BoardResponse>> getList(
+    public ResponseEntity<Page<BoardResponse>> getList(
             @PathVariable("type") int type,
-            @RequestParam(defaultValue = "1", value = "page") int page) {
+            @PageableDefault(size = 10) Pageable pageable) {
 
-        return ResponseEntity.ok(boardService.getListBoard(type, page));
+        return ResponseEntity.ok(boardService.getListBoard(type, pageable));
     }
 
     @GetMapping("/read/{boardId}")
