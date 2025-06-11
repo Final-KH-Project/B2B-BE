@@ -1,30 +1,22 @@
 package kh.gangnam.b2b.config;
 
-import jakarta.servlet.http.Cookie;
 import kh.gangnam.b2b.config.websocket.CustomHandshakeHandler;
 import kh.gangnam.b2b.config.websocket.JwtHandshakeInterceptor;
-import kh.gangnam.b2b.security.StompJwtChannelInterceptor;
+import kh.gangnam.b2b.config.websocket.StompJwtChannelInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.server.ServerHttpRequest;
-import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.messaging.context.AuthenticationPrincipalArgumentResolver;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
-import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.web.util.WebUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * WebSocket & STOMP 메시지 브로커 설정

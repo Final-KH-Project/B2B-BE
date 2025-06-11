@@ -53,4 +53,10 @@ public class MeetingController {
     public MeetingRoomResponse createMeetingRoom(@RequestBody MeetingRoomRequest request) {
         return meetingService.createMeetingRoom(request);
     }
+
+    // 회의실 목록 조회
+    @GetMapping("/rooms")
+    public List<MeetingRoomResponse> getAllMeetingRooms() {
+        return meetingService.getAllMeetingRooms();
+    }
 }
