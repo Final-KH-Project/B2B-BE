@@ -1,10 +1,7 @@
 package kh.gangnam.b2b.service;
 
 import kh.gangnam.b2b.dto.MessageResponse;
-import kh.gangnam.b2b.dto.project.request.DocumentUpdateRequest;
-import kh.gangnam.b2b.dto.project.request.GanttSaveRequest;
-import kh.gangnam.b2b.dto.project.request.GanttUpdateRequest;
-import kh.gangnam.b2b.dto.project.request.LinkSaveRequest;
+import kh.gangnam.b2b.dto.project.request.*;
 import kh.gangnam.b2b.dto.project.response.*;
 
 import java.util.List;
@@ -83,4 +80,43 @@ public interface ProjectService {
      * @return 수정 성공 여부 반환
      */
     MessageResponse updateDocument(DocumentUpdateRequest dto, Long employeeId);
+
+    /**
+     * department 부서 리스트 조회
+     *
+     * @return 부서 리스트 반환
+     */
+    List<departmentListResponse> getDepartment();
+
+    /**
+     * department 사원 리스트 조회
+     *
+     * @return 사원 리스트 반환
+     */
+    List<employeeListResponse> getEmployee(Long id);
+
+    /**
+     * project 리스트 조회
+     *
+     * @return project 리스트 반환
+     */
+    List<ProjectListResponse> getProject(Long id);
+
+    /**
+     * project 저장
+     *
+     * @return project 저장 성공 여부 반환
+     */
+    MessageResponse saveProject(ProjectSaveRequest dto, Long employeeId);
+
+    /**
+     * project 삭제
+     *
+     * @return project 삭제 성공 여부 반환
+     */
+    MessageResponse deleteProject(Long id);
+
+    ProjectListResponse getProjectTitle(Long id);
+
+    List<DocumentListResponse> getDocumentList(Long id);
 }

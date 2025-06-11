@@ -25,7 +25,7 @@ public class GanttListResponse {
                 .id(task.getTaskId()).text(task.getTitle())
                 .startDate(task.getStartDate()).duration(task.getDuration())
                 .type(task.getType()).progress(task.getProgress())
-                .parent(task.getParent().getTaskId())
+                .parent(task.getParent() != null ? task.getParent().getTaskId() : null)
                 .build();
     }
 }

@@ -15,14 +15,14 @@ public record GanttSaveRequest(Long projectId,
                                double progress,
                                String type,
                                Long parent) {
-    public Task toEntity(Project project, Employee employee,Task task){
+    public Task toEntity(Project project, Employee employee,Task parent){
 
         return Task.builder()
                 .taskId(taskId).project(project)
                 .createdBy(employee)
                 .title(title).duration(duration)
                 .startDate(startDate).progress(progress)
-                .type(type).parent(task.getParent())
+                .type(type).parent(parent)
                 .build();
     }
 

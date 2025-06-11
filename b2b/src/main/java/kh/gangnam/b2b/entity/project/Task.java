@@ -3,10 +3,7 @@ package kh.gangnam.b2b.entity.project;
 import jakarta.persistence.*;
 import kh.gangnam.b2b.dto.project.request.GanttUpdateRequest;
 import kh.gangnam.b2b.entity.auth.Employee;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

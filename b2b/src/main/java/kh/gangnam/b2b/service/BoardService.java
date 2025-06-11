@@ -113,4 +113,6 @@ public interface BoardService {
      * @return 해당 보드의 수정 여부 반환
      */
     CommentUpdateResponse updateComment(CommentUpdateRequest dto, Long employeeId);
+
+    List<CommentSaveResponse> getReplyList(Long commentId, Long employeeId);
 }

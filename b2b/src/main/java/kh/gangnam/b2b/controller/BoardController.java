@@ -40,6 +40,12 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getCommentList(boardId,employeeDetails.getEmployeeId()));
     }
 
+    @GetMapping("/reply/{commentId}")
+    public ResponseEntity<List<CommentSaveResponse>> getReplyList(@PathVariable("commentId") Long commentId,
+                                                                    @AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        return ResponseEntity.ok(boardService.getReplyList(commentId,employeeDetails.getEmployeeId()));
+    }
+
     @DeleteMapping("/comment/delete/{commentId}")
     public ResponseEntity<MessageResponse> commentDelete(@PathVariable("commentId") Long commentId) {
         return ResponseEntity.ok(boardService.commentDeleteBoard(commentId));

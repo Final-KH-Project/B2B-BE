@@ -74,10 +74,11 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public CommentSaveResponse saveComment(CommentSaveRequest dto, Long employeeId) {
 
+        System.out.println(dto);
         // id로 해당 employee,board,comment 찾기
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        Board board = (dto.parentId() != null)?boardRepository.findById(dto.boardId()).orElseThrow():null;
+        Board board = (dto.boardId() != null)?boardRepository.findById(dto.boardId()).orElseThrow():null;
         Comment parent = (dto.parentId() != null)?commentRepository.findById(dto.parentId()).orElseThrow():null;
 
         // comment 테이블에 전달된 정보 저장
@@ -119,6 +120,13 @@ public class BoardServiceImpl implements BoardService {
         comment.setComment(dto.comment());
 
         return CommentUpdateResponse.fromEntity(comment,employeeId);
+    }
+
+    @Override
+    public List<CommentSaveResponse> getReplyList(Long commentId, Long employeeId) {
+
+        return commentRepository.findById(commentId).orElseThrow()
+                .getChildren().stream().map((comment)->CommentSaveResponse.fromEntity(comment,employeeId)).toList();
     }
 
     @Override

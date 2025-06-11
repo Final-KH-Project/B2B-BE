@@ -2,10 +2,7 @@ package kh.gangnam.b2b.controller;
 
 import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.MessageResponse;
-import kh.gangnam.b2b.dto.project.request.DocumentUpdateRequest;
-import kh.gangnam.b2b.dto.project.request.GanttSaveRequest;
-import kh.gangnam.b2b.dto.project.request.GanttUpdateRequest;
-import kh.gangnam.b2b.dto.project.request.LinkSaveRequest;
+import kh.gangnam.b2b.dto.project.request.*;
 import kh.gangnam.b2b.dto.project.response.*;
 import kh.gangnam.b2b.service.ServiceImpl.ProjectServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +26,8 @@ public class ProjectController {
 
     @PostMapping("/save")
     public ResponseEntity<GanttSaveResponse> saveGantt(@RequestBody GanttSaveRequest dto, @AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        System.out.println(employeeDetails.getEmployeeId());
+
         return ResponseEntity.ok(projectService.saveGantt(dto,employeeDetails.getEmployeeId()));
     }
 
@@ -65,7 +64,41 @@ public class ProjectController {
 
     @PostMapping("/document/save")
     public ResponseEntity<MessageResponse> updateDocument(@RequestBody DocumentUpdateRequest dto, @AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
-        System.out.println(dto.docId());
         return ResponseEntity.ok(projectService.updateDocument(dto,employeeDetails.getEmployeeId()));
+    }
+
+    @GetMapping("/get/department/name")
+    public ResponseEntity<List<departmentListResponse>> getDepartment(){
+        return ResponseEntity.ok(projectService.getDepartment());
+    }
+
+    @GetMapping("/get/employee/{id}")
+    public ResponseEntity<List<employeeListResponse>> getEmployee(@PathVariable("id") Long id){
+        return ResponseEntity.ok(projectService.getEmployee(id));
+    }
+
+    @GetMapping("/get/project")
+    public ResponseEntity<List<ProjectListResponse>> getProject(@AuthenticationPrincipal CustomEmployeeDetails employeeDetails){
+        return ResponseEntity.ok(projectService.getProject(employeeDetails.getEmployeeId()));
+    }
+
+    @PostMapping("/save/project")
+    public ResponseEntity<MessageResponse> saveProject(@RequestBody ProjectSaveRequest dto, @AuthenticationPrincipal CustomEmployeeDetails employeeDetails) {
+        return ResponseEntity.ok(projectService.saveProject(dto,employeeDetails.getEmployeeId()));
+    }
+
+    @DeleteMapping("/delete/project/{id}")
+    public ResponseEntity<MessageResponse> deleteProject(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(projectService.deleteProject(id));
+    }
+
+    @GetMapping("/get/project/{id}")
+    public ResponseEntity<ProjectListResponse> getProjectTitle(@PathVariable("id") Long id){
+        return ResponseEntity.ok(projectService.getProjectTitle(id));
+    }
+
+    @GetMapping("/get/document/{id}")
+    public ResponseEntity<List<DocumentListResponse>> getDocumentList(@PathVariable("id") Long id){
+        return ResponseEntity.ok(projectService.getDocumentList(id));
     }
 }
