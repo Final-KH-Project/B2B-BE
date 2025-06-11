@@ -13,6 +13,7 @@ import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.BoardService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -138,15 +139,11 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<BoardResponse> getListBoard(int type, int page) {
+    public Page<BoardResponse> getListBoard(int type, Pageable pageable) {
         BoardType boardType = BoardType.useTypeNo(type);
 
-        Sort sort=Sort.by(Sort.Direction.DESC, "boardId");
-        Pageable pageable= PageRequest.of(page-1,10, sort);
-
-        return boardRepository.findAllByType(boardType,pageable).stream()
-                .map(BoardResponse::fromEntity)
-                .toList();
+        return boardRepository.findByType(boardType, pageable)
+                .map(BoardResponse::fromEntity);
     }
 
     @Override
