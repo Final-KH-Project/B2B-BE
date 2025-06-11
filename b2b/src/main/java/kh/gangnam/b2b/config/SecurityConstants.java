@@ -31,6 +31,9 @@ public final class SecurityConstants{
      * SecurityConfig에서 이 URL들은 permitAll() 설정에 사용됩니다.
      */
     public static final String[] PUBLIC_GET_URLS = {
+            // 회원가입 중복체크
+            "/api/auth/check-loginId",
+
             // 게시글
             "/api/boards"               // GET: 게시글 목록
             ,"/api/boards/{id}"          // GET: 게시글 상세

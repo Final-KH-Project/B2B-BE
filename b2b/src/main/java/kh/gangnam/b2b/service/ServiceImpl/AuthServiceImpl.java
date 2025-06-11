@@ -23,6 +23,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +45,18 @@ public class AuthServiceImpl implements AuthService {
      * 이미 존재하는 이름일 경우 (409)
      * 가입 성공 (200)
      */
-    public ResponseEntity<String> join(JoinRequest joinRequest) {
+    public ResponseEntity<Map<String, String>> join(JoinRequest joinRequest) {
 
         String loginId = joinRequest.getLoginId();
         String password = joinRequest.getPassword();
 
         Boolean isExist = employeeRepository.existsByLoginId(loginId);
 
-        if (isExist) {
+        Map<String, String> result = new HashMap<>();
 
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginId + "는 이미 존재하는 아이디입니다.");
+        if (isExist) {
+            result.put("message", loginId + "는 이미 존재하는 아이디입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
         }
 
         // 비밀번호 인코딩
@@ -63,7 +67,8 @@ public class AuthServiceImpl implements AuthService {
 
         employeeRepository.save(employee);
 
-        return ResponseEntity.ok(loginId + " 회원가입 완료");
+        result.put("message", loginId + " 회원가입 완료");
+        return ResponseEntity.ok(result);
     }
     public ResponseEntity<?> login(LoginRequest loginRequest, HttpServletResponse response) {
         // 인증 처리
@@ -100,6 +105,10 @@ public class AuthServiceImpl implements AuthService {
         jwtCookieManager.removeAccessTokenCookie(response);
         jwtCookieManager.removeRefreshTokenCookie(response);
         return ResponseEntity.ok().build();
+    }
+
+    public Boolean checkLoginId(String loginId) {
+        return employeeRepository.existsByLoginId(loginId);
     }
 
 }
