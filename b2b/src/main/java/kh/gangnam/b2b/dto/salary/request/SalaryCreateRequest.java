@@ -26,8 +26,5 @@ public class SalaryCreateRequest {
     @PositiveOrZero
     private Long bonus;
 
-    @FutureOrPresent
-    private LocalDate salaryDate;
-
     private String memo;
 }

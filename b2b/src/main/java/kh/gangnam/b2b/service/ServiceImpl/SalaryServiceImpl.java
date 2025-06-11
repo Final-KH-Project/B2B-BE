@@ -14,6 +14,7 @@ import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.SalaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,40 +35,44 @@ public class SalaryServiceImpl {
     private final EmployeeRepository employeeRepo;
     private final DeptRepository deptRepo;
 
+    @Value("${salary.pay-day}")
+    private int salaryPayDay;
 
     // 비즈니스 로직
 
     // 사원 개인이 최신 10개 급여
-    public List<SalaryResponse> getMySalaryHistory(Long employeeId) {
+    public Page<SalaryResponse> getMySalaryHistory(Long employeeId, Pageable pageable) {
         Employee employee = validEmployee(employeeId);
-        List<Salary> salaries = salaryRepo
-                .findTop10ByEmployeeAndSalaryStatusOrderBySalaryDateDesc(employee, SalaryStatus.PAID);
-        return salaries.stream()
-                .map(SalaryResponse::fromEntity).toList();
+        Page<Salary> salaries = salaryRepo
+                .findByEmployeeAndSalaryStatusOrderBySalaryDateDesc(employee, SalaryStatus.PAID, pageable);
+        return salaries.map(SalaryResponse::fromEntity);
     }
 
+
     // 연도별 조회
-    public List<SalaryResponse> getMySalaryByYear(String year, Long employeeId) {
+    public Page<SalaryResponse> getMySalaryByYear(String year, Long employeeId, Pageable pageable) {
         Employee employee = validEmployee(employeeId);
-        List<Salary> salaries = salaryRepo
+        Page<Salary> salaries = salaryRepo
                 .findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(
-                        employee, year, SalaryStatus.PAID
+                        employee, year, SalaryStatus.PAID, pageable
                 );
-        return salaries.stream()
-                .map(SalaryResponse::fromEntity).toList();
+        return salaries.map(SalaryResponse::fromEntity);
     }
 
     // 급여 생성 | 수정
     public SalaryResponse createOrUpdateSalary(SalaryCreateRequest request) {
         Employee employee = validEmployee(request.getEmployeeId());
+        Salary salary = getOrCreateSalary(employee, request.getSalaryYearMonth());
 
         // 급여가 이미 지급된 경우 수정 불가
-        Salary salary = getOrCreateSalary(employee, request.getSalaryYearMonth());
         if (salary.getSalaryStatus() == SalaryStatus.PAID) {
             throw new RuntimeException("지급 완료된 급여는 수정할 수 없습니다");
         }
+        // 월은 입력값, 급여일은 yml 값으로 자동 설정
+        LocalDate salaryDate = LocalDate.parse(request.getSalaryYearMonth() + "-01")
+                .withDayOfMonth(salaryPayDay);
 
-        salary.update(request, employee);
+        salary.update(request, employee, salaryDate);
         return SalaryResponse.fromEntity(salaryRepo.save(salary));
     }
 
@@ -75,41 +80,52 @@ public class SalaryServiceImpl {
     public SalaryResponse paySalary(Long salaryId, SalaryPayRequest request) {
         Salary salary = salaryRepo.findById(salaryId)
                 .orElseThrow(() -> new RuntimeException("급여 정보 없음"));
-        validatePaymentDate(request.getPaidDate());
-        updateSalaryStatus(salary, SalaryStatus.PAID, request.getPaidDate());
+        validatePaymentDate(salary.getSalaryDate());
+        updateSalaryStatus(salary);
         salary.setMemo(request.getMemo());
         return SalaryResponse.fromEntity(salaryRepo.save(salary));
     }
 
     // 전체 사원 급여 일괄 지급
     @Transactional
-    public void payAllSalaries(LocalDate paidDate, String targetMonth) {
+    public void payAllSalaries(String targetMonth) {
         List<Employee> employees = employeeRepo.findAll();
-        employees.forEach(emp ->
-                processPaymentForEmployee(emp, paidDate, targetMonth)
-        );
+        employees.forEach(emp -> processPaymentForEmployee(emp, targetMonth));
+        log.info("전체 사원 급여 지급 완료 - 대상 월: {}", targetMonth);
     }
 
     // 부서별 사원 급여 일괄 지급
     @Transactional
-    public void paySalariesByDept(Long deptId, LocalDate paidDate, String targetMonth) {
+    public void paySalariesByDept(Long deptId, String targetMonth) {
         Dept dept = getValidDept(deptId);
         List<Employee> employees = employeeRepo.findByDept(dept);
         employees.forEach(emp ->
-                processPaymentForEmployee(emp, paidDate, targetMonth)
+                processPaymentForEmployee(emp, targetMonth)
         );
     }
 
     // 공통 지급 처리 로직 (private)
     private void processPaymentForEmployee(
             Employee employee,
-            LocalDate paidDate,
             String targetMonth
     ) {
-        Salary salary = getOrCreateSalary(employee, targetMonth);
-        validatePaymentDate(paidDate);
-        updateSalaryStatus(salary, SalaryStatus.PAID, paidDate);
-        salaryRepo.save(salary);
+        salaryRepo.findByEmployeeAndSalaryYearMonth(employee, targetMonth)
+                .ifPresentOrElse(
+                        salary -> {
+                            if (salary.getSalaryStatus() == SalaryStatus.PAID) {
+                                log.info("이미 지급된 급여 - 직원 ID: {}, 급여 ID: {}", employee.getEmployeeId(), salary.getSalaryId());
+                                return;
+                            }
+                            // 지급일 생성 (targetMonth + salaryPayDay)
+                            LocalDate paidDate = LocalDate.parse(targetMonth + "-01")
+                                    .withDayOfMonth(salaryPayDay);
+
+                            // 유효성 검사 및 상태 업데이트
+                            validatePaymentDate(paidDate);
+                            updateSalaryStatus(salary);
+                            salaryRepo.save(salary);
+                        },
+                        () -> log.warn("급여 정보 없음 - 직원 ID: {}, 월: {}", employee.getEmployeeId(), targetMonth));
     }
 
     // 전체 급여 조회 (월별 + 페이지네이션)
@@ -144,12 +160,11 @@ public class SalaryServiceImpl {
     }
 
     /** 급여 상태 및 지급일 업데이트 */
-    private void updateSalaryStatus(Salary salary, SalaryStatus status, LocalDate paidDate) {
-        if (status == SalaryStatus.PAID && salary.getSalaryStatus() == SalaryStatus.PAID) {
+    private void updateSalaryStatus(Salary salary) {
+        if (salary.getSalaryStatus() == SalaryStatus.PAID) {
             throw new RuntimeException("이미 지급된 급여입니다");
         }
-        salary.setSalaryStatus(status);
-        salary.setSalaryDate(paidDate);
+        salary.setSalaryStatus(SalaryStatus.PAID);
     }
 
     /** 부서 유효성 검증 및 조회 */
@@ -168,7 +183,7 @@ public class SalaryServiceImpl {
     @Transactional
     public void generateMonthlySalaries() {
         String targetMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-        LocalDate defaultPayDate = LocalDate.now().plusMonths(1).withDayOfMonth(25);  // 예: 다음 달 25일
+        LocalDate defaultPayDate = LocalDate.now().plusMonths(1).withDayOfMonth(salaryPayDay);  // 예: 다음 달 10일
 
         employeeRepo.findAll().forEach(employee -> {
             // 해당 월 급여가 없으면 생성
@@ -192,7 +207,8 @@ public class SalaryServiceImpl {
         String month = (targetMonth != null)
                 ? targetMonth
                 : LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-        LocalDate defaultPayDate = LocalDate.now().withDayOfMonth(25);
+        LocalDate defaultPayDate = LocalDate.parse(month + "-01")  // 2025-07-01
+                .withDayOfMonth(salaryPayDay);
 
         employeeRepo.findAll().forEach(employee -> {
             if (!salaryRepo.existsByEmployeeAndSalaryYearMonth(employee, month)) {
@@ -204,6 +220,7 @@ public class SalaryServiceImpl {
                         .bonus(0L)
                         .salaryDate(defaultPayDate)
                         .salaryStatus(SalaryStatus.SCHEDULED)
+                        .memo(month + " 기본급")
                         .build();
                 salaryRepo.save(salary);
             }
@@ -233,12 +250,12 @@ public class SalaryServiceImpl {
                 .salaryYearMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")))
                 .incentive(0L)  // 초기값 0
                 .bonus(0L)      // 초기값 0
-                .salaryDate(LocalDate.now().plusMonths(1).withDayOfMonth(25)) // 다음달 25일
                 .build();
 
         // 급여 생성/수정
         createOrUpdateSalary(request);
     }
+
     @Transactional
     public void assignSalariesToAllEmployees() {
         List<Employee> employees = employeeRepo.findAll();
