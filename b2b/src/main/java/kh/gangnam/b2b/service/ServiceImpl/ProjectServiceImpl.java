@@ -8,6 +8,7 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.project.Document;
 import kh.gangnam.b2b.entity.project.Project;
 import kh.gangnam.b2b.entity.project.Task;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.DeptRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.project.DocumentRepository;
@@ -28,7 +29,6 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -42,8 +42,7 @@ public class ProjectServiceImpl implements ProjectService {
     public List<GanttListResponse> getGantt(Long id) {
 
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("project not found"));
-
+                .orElseThrow(() -> new NotFoundException("프로젝트를 찾을 수 없습니다"));
 
         return project.getTasks().stream().map(GanttListResponse::fromEntity).toList();
     }
@@ -52,22 +51,25 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public GanttSaveResponse saveGantt(GanttSaveRequest dto, Long employeeId) {
 
+        Long parentId = dto.parent();
+        Task parentTask = null;
+
         // 작성 employee 가져오기
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new UsernameNotFoundException("project not found"));
+                .orElseThrow(() -> new NotFoundException("작성자가 존재하지 않습니다"));
+
         // 프로젝트 id 가져오기
         Project project = projectRepository.findById(dto.projectId())
-                .orElseThrow(() -> new UsernameNotFoundException("해당 프로젝트가 존재하지 않습니다"));
-        log.warn("error2----------------------------");
-        // 부모 id 가져오기
-        Task parentTask = Optional.ofNullable(dto.parent())
-                .flatMap(taskRepository::findById)
-                .orElse(null);
+                .orElseThrow(() -> new NotFoundException("프로젝트가 존재하지 않습니다"));
 
-        log.warn("error3----------------------------");
+        // 부모 id 가져오기
+        if (parentId != null) {
+            parentTask = taskRepository.findById(parentId)
+                    .orElseThrow(() -> new NotFoundException("부모 태스크를 찾을 수 없습니다"));
+        }
+
         Task task = taskRepository.save(dto.toEntity(project,employee,parentTask));
         documentRepository.save(dto.toEntity(task,employee));
-        System.out.println(task);
 
         return GanttSaveResponse.fromEntity(task);
     }
@@ -78,7 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 해당 task를 찾고 수정된 내용 저장
         Task task = taskRepository.findById(dto.taskId())
-                .orElseThrow(() -> new UsernameNotFoundException("해당 테스크가 존재하지 않습니다"))
+                .orElseThrow(() -> new NotFoundException("테스크가 존재하지 않습니다"))
                 .update(dto);
 
         return GanttUpdateResponse.fromEntity(task);
@@ -86,6 +88,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public MessageResponse deleteGantt(Long id) {
+
+        if (!taskRepository.existsById(id)) {
+            throw new NotFoundException("삭제할 테스크가 존재하지 않습니다");
+        }
 
         taskRepository.deleteById(id);
 
@@ -96,7 +102,7 @@ public class ProjectServiceImpl implements ProjectService {
     public List<LinkListResponse> getLink(Long id) {
 
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("project not found"));
+                .orElseThrow(() -> new NotFoundException("프로젝트가 존재하지 않습니다"));
 
         return project.getLinks().stream().map(LinkListResponse::fromEntity).toList();
     }
@@ -105,7 +111,7 @@ public class ProjectServiceImpl implements ProjectService {
     public MessageResponse saveLink(LinkSaveRequest dto) {
 
         Project project = projectRepository.findById(dto.projectId())
-                .orElseThrow(() -> new UsernameNotFoundException("해당 프로젝트가 존재하지 않습니다"));
+                .orElseThrow(() -> new NotFoundException("프로젝트가 존재하지 않습니다"));
 
         linkRepository.save(dto.toEntity(project));
 
@@ -114,6 +120,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public MessageResponse deleteLink(Long id) {
+
+        if (!linkRepository.existsById(id)) {
+            throw new NotFoundException("삭제할 링크가 존재하지 않습니다");
+        }
 
         linkRepository.deleteById(id);
 
@@ -124,7 +134,7 @@ public class ProjectServiceImpl implements ProjectService {
     public DocumentGetResponse getDocument(Long id) {
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("task not found"));
+                .orElseThrow(() -> new NotFoundException("테스크를 찾을 수 없습니다"));
 
         return DocumentGetResponse.fromEntity(task.getDocument());
     }
@@ -134,7 +144,7 @@ public class ProjectServiceImpl implements ProjectService {
     public MessageResponse updateDocument(DocumentUpdateRequest dto, Long employeeId) {
 
         Document document = documentRepository.findById(dto.docId())
-                .orElseThrow(() -> new UsernameNotFoundException("document not found"));
+                .orElseThrow(() -> new NotFoundException("문서를 찾을 수 없습니다"));
         document.update(dto);
         return MessageResponse.sendMessage("수정 완료");
     }
@@ -165,15 +175,15 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 부서 id
         Dept dept = deptRepository.findById(dto.departmentId())
-                .orElseThrow(() -> new UsernameNotFoundException("department not found"));
+                .orElseThrow(() -> new NotFoundException("부서를 찾을 수 없습니다"));
 
         // 매니저 id
         Employee manager = employeeRepository.findById(dto.employeeId())
-                .orElseThrow(() -> new UsernameNotFoundException("employee not found"));
+                .orElseThrow(() -> new NotFoundException("관리자를 찾을 수 없습니다"));
 
         // 작성자
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new UsernameNotFoundException("employee not found"));
+                .orElseThrow(() -> new NotFoundException("사원을 찾을 수 없습니다"));
 
         // 담당 사원
         List<Employee> members = employeeRepository.findAllById(dto.members());
@@ -185,20 +195,25 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public MessageResponse deleteProject(Long id) {
-        
+
+        if (!projectRepository.existsById(id)) {
+            throw new NotFoundException("삭제할 프로젝트가 존재하지 않습니다");
+        }
+
         projectRepository.deleteById(id);
         return MessageResponse.sendMessage("삭제 성공");
     }
 
     @Override
     public ProjectListResponse getProjectTitle(Long id) {
-        return ProjectListResponse.fromEntity(projectRepository.findById(id).orElseThrow());
+        return ProjectListResponse.fromEntity(
+                projectRepository.findById(id).orElseThrow(()-> new NotFoundException("프로젝트를 찾을 수 없습니다")));
     }
 
     @Override
     public List<DocumentListResponse> getDocumentList(Long id) {
 
-        List<Task> tasks = projectRepository.findById(id).orElseThrow().getTasks();
+        List<Task> tasks = projectRepository.findById(id).orElseThrow(()-> new NotFoundException("프로젝트를 찾을 수 없습니다")).getTasks();
 
         return tasks.stream()
                 .map(task -> DocumentListResponse.fromEntity(task, task.getDocument())).toList();
