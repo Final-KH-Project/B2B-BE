@@ -2,15 +2,15 @@ package kh.gangnam.b2b.dto.auth.request;
 
 import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.entity.auth.Employee;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class JoinRequest {
 
     private String loginId;

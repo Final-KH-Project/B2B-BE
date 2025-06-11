@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public Boolean checkLoginId(String loginId) {
-        return !employeeRepository.existsByLoginId(loginId);
+        return employeeRepository.existsByLoginId(loginId);
     }
 
 }

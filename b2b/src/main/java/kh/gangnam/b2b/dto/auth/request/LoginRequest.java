@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.dto.auth.request;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
