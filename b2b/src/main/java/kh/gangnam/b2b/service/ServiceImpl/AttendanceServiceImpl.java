@@ -1,14 +1,12 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
-import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
-import kh.gangnam.b2b.dto.work.request.leave.WorkApplyRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckInRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckoutRequest;
 import kh.gangnam.b2b.dto.work.response.attendance.DailyAttendanceResponse;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.work.ApprovalStatus;
+import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -35,7 +33,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Transactional
     @Override
-    public void clockIn(Long employeeId, ClockInRequest request) {
+    public void clockIn(Long employeeId, CheckInRequest request) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("사원없음"));
 
@@ -43,10 +41,10 @@ public class AttendanceServiceImpl implements AttendanceService {
         boolean exists = workHistoryRepository.existsByEmployeeAndWorkDateAndWorkType(
                 employee, today, WorkType.ATTENDANCE);
 
+        if (exists) throw new IllegalStateException("이미 출근 기록이 존재합니다.");
+
         LocalDateTime startTime = (request != null && request.getStartTime() != null)
                 ? request.getStartTime() : LocalDateTime.now();
-
-        if (exists) throw new IllegalStateException("이미 출근 기록이 존재합니다.");
 
         WorkHistory history = WorkHistory.builder()
                 .employee(employee)
@@ -60,7 +58,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Transactional
     @Override
-    public void clockOut(Long employeeId, ClockOutRequest request) {
+    public DailyAttendanceResponse clockOut(Long employeeId, CheckoutRequest request) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
 
@@ -69,7 +67,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         WorkHistory record = workHistoryRepository.findByEmployeeAndWorkDateAndWorkType(
                         employee, workDate, WorkType.ATTENDANCE)
-                .orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않아요우~"));
+                .orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않아요"));
 
         LocalDateTime endTime = (request != null && request.getEndTime() != null)
                 ? request.getEndTime() : LocalDateTime.now();
@@ -78,14 +76,11 @@ public class AttendanceServiceImpl implements AttendanceService {
         record.setNote(request != null ? request.getNote() : null);
         record.setWorkType(WorkType.LEAVE);
 
-        workHistoryRepository.save(record);
+        record = workHistoryRepository.save(record);
+
+        return DailyAttendanceResponse.from(record);
     }
 
-    @Transactional
-    @Override
-    public void applyWork(Long employeeId, WorkApplyRequest request) {
-        throw new UnsupportedOperationException("❌ 반차/출장/연차 신청은 leave_request API로만 처리됩니다.");
-    }
 
     @Transactional(readOnly = true)
     @Override
@@ -104,31 +99,21 @@ public class AttendanceServiceImpl implements AttendanceService {
             List<WorkHistory> workList = workHistoryRepository.findByEmployeeAndWorkDate(employee, date);
             WorkHistory work = workList.isEmpty() ? null : workList.get(0);
 
-            List<kh.gangnam.b2b.entity.work.LeaveRequest> leaves =
+            List<LeaveRequest> leaves =
                     leaveRequestRepository.findApprovedLeaveForDate(employee, date);
 
-            WorkType type = null;
-            if (work != null) {
-                type = work.getWorkType();
-            }
-
-            for (kh.gangnam.b2b.entity.work.LeaveRequest leave : leaves) {
-                if (leave.getWorkType().name().contains("HALF_DAY")) {
-                    type = leave.getWorkType();
-                    break;
-                }
-                if (work == null) {
+            //출근한 경우
+            WorkType type = (work != null) ? work.getWorkType() : null;
+            for (LeaveRequest leave : leaves) {
+                if (leave.getWorkType().name().contains("HALF_DAY") || work == null) {
                     type = leave.getWorkType();
                     break;
                 }
             }
 
-            String note = null;
-            if (work != null && work.getNote() != null) {
-                note = work.getNote();
-            } else if (!leaves.isEmpty()) {
-                note = leaves.get(0).getReason();
-            }
+            //메모 (note)
+            String note = (work != null && work.getNote() != null) ? work.getNote() :
+                    (!leaves.isEmpty() ? leaves.get(0).getReason() : null);
 
             DailyAttendanceResponse daily = DailyAttendanceResponse.builder()
                     .workDate(date)
@@ -148,24 +133,4 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .build();
     }
 
-    @Transactional
-    @Override
-    public void applyLeave(Long employeeId, LeaveRequest dto) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("신청자 없음"));
-
-        Employee approver = employeeRepository.findById(dto.getApproverId())
-                .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
-
-        kh.gangnam.b2b.entity.work.LeaveRequest request = new kh.gangnam.b2b.entity.work.LeaveRequest();
-        request.setEmployee(employee);
-        request.setApprover(approver);
-        request.setWorkType(dto.getWorkType());
-        request.setStartDate(dto.getStartDate());
-        request.setEndDate(dto.getEndDate());
-        request.setReason(dto.getReason());
-        request.setStatus(ApprovalStatus.PENDING);
-
-        leaveRequestRepository.save(request);
-    }
 }

@@ -12,4 +12,5 @@ public class LeaveStatusResponse {
     private double usedLeave;
     private double remainingLeave;
     private double remainingPercentage;
+
 }

@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClockInRequest {
-    //출근DTO
-    private LocalDateTime startTime; // nullable, 없으면 서버가 now()사용
+public class CheckInRequest {
+//    //출근DTO
+//    private LocalDateTime startTime; // nullable, 없으면 서버가 now()사용
 
 
 }

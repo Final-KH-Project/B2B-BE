@@ -12,4 +12,12 @@ public class WeeklyAttendanceResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private List<DailyAttendanceResponse> dailyRecords;
+
+    public static WeeklyAttendanceResponse from(LocalDate start, LocalDate end, List<DailyAttendanceResponse> dailyList){
+        return WeeklyAttendanceResponse.builder()
+                .startDate(start)
+                .endDate(end)
+                .dailyRecords(dailyList)
+                .build();
+    }
 }

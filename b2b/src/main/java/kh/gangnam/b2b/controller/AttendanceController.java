@@ -1,8 +1,10 @@
 package kh.gangnam.b2b.controller;
 
 import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckInRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckoutRequest;
+import kh.gangnam.b2b.dto.work.response.ApiResponse;
+import kh.gangnam.b2b.dto.work.response.attendance.DailyAttendanceResponse;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
 import kh.gangnam.b2b.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,37 +31,29 @@ public class AttendanceController {
     * 서버시간 = (LocalDateTime.now())
     */
     @PostMapping("/check-in")
-    public ResponseEntity<Void> clockIn(
+    public ResponseEntity<ApiResponse<String>> checkIn(
             @AuthenticationPrincipal CustomEmployeeDetails user,
-            @RequestBody(required = false)ClockInRequest request //요청 바디없을 수 있음
+            @RequestBody(required = false) CheckInRequest request //요청 바디없을 수 있음
             ){
         attendanceService.clockIn(user.getEmployeeId(), request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("출근이 정상적으로 처리되었습니다."));
     }
     @PostMapping("/check-out")
-    public ResponseEntity<ClockOutRequest>clockOut(
-            @AuthenticationPrincipal CustomEmployeeDetails user,
-            @RequestBody(required = false) ClockOutRequest request
+    public ResponseEntity<ApiResponse<DailyAttendanceResponse>> clockOut(
+            @AuthenticationPrincipal CustomEmployeeDetails details,
+            @RequestBody(required = false) CheckoutRequest request
     ){
-        attendanceService.clockOut(user.getEmployeeId(), request);
-        return ResponseEntity.ok().build();
+        DailyAttendanceResponse result = attendanceService.clockOut(details.getEmployeeId(), request);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
-//    @PostMapping("/apply")
-//    public ResponseEntity<ApiResponse> applyWork(
-//            @AuthenticationPrincipal CustomEmployeeDetails user,
-//            @RequestBody WorkApplyRequest request
-//    ){
-//        attendanceService.applyWork(user.getEmployeeId(), request);
-//        return ResponseEntity.ok(ApiResponse.success("신청완료"));
-//    }
 
     @GetMapping("/week")
-    public ResponseEntity<WeeklyAttendanceResponse> getWeeklyAttendance(
+    public ResponseEntity<ApiResponse<WeeklyAttendanceResponse>> getWeeklyAttendance(
             @AuthenticationPrincipal CustomEmployeeDetails user,
             @RequestParam("referenceDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate referenceDate
     ){
         WeeklyAttendanceResponse response = attendanceService.getWeeklyAttendance(user.getEmployeeId(), referenceDate);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 }
