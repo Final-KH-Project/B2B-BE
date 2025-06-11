@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.entity.auth;
 
 import jakarta.persistence.*;
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.Dept;
@@ -35,6 +36,9 @@ public class Employee extends BaseTimeEntity {
     @JoinColumn(name = "manager_id")
     private Employee manager;
 
+    @Column(name = "base_salary")
+    private Long baseSalary;
+
     @ManyToMany(mappedBy = "members")
     private List<Project> projects = new ArrayList<>();
 
@@ -46,8 +50,9 @@ public class Employee extends BaseTimeEntity {
     private String name;
     @Column(name = "profile")
     private String profile;
+    @Enumerated(EnumType.STRING)
     @Column(name = "position")
-    private String position;
+    private Position position;
     @Column(name = "date_of_birth", nullable = false)
     private String dateOfBirth;
     @Column(name = "phone_number", nullable = false)

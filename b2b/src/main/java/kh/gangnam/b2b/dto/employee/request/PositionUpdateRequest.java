@@ -6,5 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PositionUpdateRequest {
+    private Long employeeId;
     private String position;
 }
