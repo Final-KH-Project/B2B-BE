@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.chat.response.ChatMessages;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.chat.ChatMessage;
 import kh.gangnam.b2b.entity.chat.ChatRoom;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
 import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
@@ -33,11 +34,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     public ChatMessages handleMessage(SendChat message, Long employeeId) {
         // 1. 채팅방, 유저, 멤버십 검증
         ChatRoom room = chatRoomRepository.findById(message.getRoomId())
-                .orElseThrow(() -> new RuntimeException("채팅방 없음"));
+                .orElseThrow(() -> new NotFoundException("채팅방 없음"));
         Employee sender = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("사용자 없음"));
+                .orElseThrow(() -> new NotFoundException("사용자 없음"));
         boolean isMember = chatRoomEmployeeRepository.existsEmployeeInChatRoom(employeeId, room.getId());
-        if (!isMember) throw new RuntimeException("채팅방 참여자가 아닙니다.");
+        if (!isMember) throw new NotFoundException("채팅방 참여자가 아닙니다.");
 
         // 2. 메시지 저장
         ChatMessage entity = new ChatMessage();
