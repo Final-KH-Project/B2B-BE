@@ -16,7 +16,7 @@ public class ChatEmployee {
     private String profile;
     private String department;
     private String manager;
-    private Position position;
+    private String position;
     private String dateOfBirth;
     private String phoneNumber;
     private LocalDateTime createdDate;
@@ -29,7 +29,7 @@ public class ChatEmployee {
                 .manager(employee.getManager() != null ? employee.getManager().getName() : null)
                 .department(employee.getDept() != null ? employee.getDept().getDeptName() : "부서없음")
                 .profile(employee.getProfile())
-                .position(employee.getPosition())
+                .position(employee.getPosition().getKrName())
                 .dateOfBirth(employee.getDateOfBirth())
                 .phoneNumber(employee.getPhoneNumber())
                 .createdDate(employee.getCreatedDate())

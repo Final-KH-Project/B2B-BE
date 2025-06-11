@@ -4,6 +4,9 @@ import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.salary.response.SalaryResponse;
 import kh.gangnam.b2b.service.ServiceImpl.SalaryServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,14 +25,19 @@ public class SalaryController {
 
     // 최신 급여 10개 조회
     @GetMapping("/my")
-    public ResponseEntity<List<SalaryResponse>> getMySalaryHistory(@AuthenticationPrincipal CustomEmployeeDetails details) {
-        return ResponseEntity.ok(salaryService.getMySalaryHistory(details.getEmployeeId()));
+    public ResponseEntity<Page<SalaryResponse>> getMySalaryHistory(
+            @AuthenticationPrincipal CustomEmployeeDetails details,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(salaryService.getMySalaryHistory(details.getEmployeeId(), pageable));
     }
 
     // 연도별 필터링
     @GetMapping("/my/{year}")
-    public ResponseEntity<List<SalaryResponse>> getMySalaryByYear(@PathVariable(name = "year") String year,
-                                                                  @AuthenticationPrincipal CustomEmployeeDetails details) {
-        return ResponseEntity.ok(salaryService.getMySalaryByYear(year, details.getEmployeeId()));
+    public ResponseEntity<Page<SalaryResponse>> getMySalaryByYear(
+            @PathVariable(name = "year") String year,
+            @AuthenticationPrincipal CustomEmployeeDetails details,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(salaryService.getMySalaryByYear(year, details.getEmployeeId(), pageable));
     }
 }

@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.dto.salary.response;
 
 import kh.gangnam.b2b.dto.employee.Position;
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -19,12 +20,14 @@ public class SalaryResponse {
     private Long incentive;
     private Long bonus;
     private LocalDate salaryDate;
+    private SalaryStatus salaryStatus;
     private String memo;
+    private Long salaryId; //추가
 
     // 사원 정보
     private Long employeeId;
     private String employeeName;
-    private Position position;
+    private String position;
     private String deptName;
 
     public static SalaryResponse fromEntity(Salary salary) {
@@ -39,10 +42,12 @@ public class SalaryResponse {
                 .bonus(salary.getBonus())
                 .salaryDate(salary.getSalaryDate())
                 .memo(salary.getMemo())
+                .salaryStatus(salary.getSalaryStatus())
+                .salaryId(salary.getSalaryId()) //추가
 
                 .employeeId(employee.getEmployeeId())
                 .employeeName(employee.getName())
-                .position(employee.getPosition())
+                .position(employee.getPosition().getKrName())
                 .deptName(dept != null ? dept.getDeptName() : "미배정")
                 .build();
     }
