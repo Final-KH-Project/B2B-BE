@@ -26,6 +26,11 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
+/caches
+/daemon
+/native
+/wrapper
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
