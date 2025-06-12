@@ -16,7 +16,7 @@
 
         List<LeaveRequestEntity> findByEmployee(Employee employee);
 
-        @Query("SELECT l FROM LeaveRequest l " +
+        @Query("SELECT l FROM leave_request l " +
                 "WHERE l.employee = :employee " +
                 "AND l.status = kh.gangnam.b2b.entity.work.ApprovalStatus.APPROVED " +
                 "AND :date BETWEEN l.startDate AND l.endDate")

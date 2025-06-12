@@ -6,8 +6,11 @@ import kh.gangnam.b2b.dto.dept.DeptDTO;
 import kh.gangnam.b2b.dto.dept.DeptsDTO;
 import kh.gangnam.b2b.dto.dept.UpdateMentorRequest;
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
+import kh.gangnam.b2b.dto.employee.Position;
+import kh.gangnam.b2b.dto.employee.request.PositionUpdateRequest;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.DeptRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class DeptServiceImpl {
 
     private final EmployeeRepository employeeRepository;
     private final DeptRepository deptRepository;
+    private final EmployeeServiceImpl employeeService;
 
 
     // 부서 생성
@@ -87,11 +91,21 @@ public class DeptServiceImpl {
     @Transactional
     public DeptDTO assignDeptHead(Long deptId, Long employeeId) {
         Dept dept = validDeptId(deptId);
-        Employee head = validEmployeeId(employeeId);
+        Employee newHead = validEmployeeId(employeeId);
 
-        dept.setHead(head);
-        head.setDept(dept);
-        employeeRepository.save(head);
+        // 기존 부서장 일반 직원으로 직급, ROLE 변경
+        Employee prevHead = dept.getHead();
+        if (prevHead != null) {
+            dept.setHead(null);
+            employeeService.updatePosition(new PositionUpdateRequest(
+                    prevHead.getEmployeeId(),
+                    Position.STAFF.getKrName())
+            );
+        }
+
+        dept.setHead(newHead);
+        newHead.setDept(dept);
+        employeeRepository.save(newHead);
         deptRepository.save(dept);
 
         return DeptDTO.fromEntity(dept);
@@ -109,16 +123,16 @@ public class DeptServiceImpl {
 
     private Employee validEmployeeId(Long employeeId) {
         return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("해당 사원이 없습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 사원이 없습니다."));
     }
 
     private Dept validDeptId(Long deptId) {
         return deptRepository.findById(deptId)
-                .orElseThrow(() -> new RuntimeException("부서 정보가 없습니다."));
+                .orElseThrow(() -> new NotFoundException("부서 정보가 없습니다."));
     }
     private Employee validEmployeeInDept(Long employeeId, Long deptId) {
         return employeeRepository.findByEmployeeIdAndDept_DeptId(employeeId, deptId)
-                .orElseThrow(() -> new RuntimeException("해당 부서에 속한 직원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("해당 부서에 속한 직원을 찾을 수 없습니다."));
     }
 
 }
