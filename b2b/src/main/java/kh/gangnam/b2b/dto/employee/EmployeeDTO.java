@@ -40,9 +40,11 @@ public class EmployeeDTO {
                 .address(employee.getAddress())
                 .createdDate(employee.getCreatedDate())
                 .role(employee.getRole())
-                .headId(employee.getDept() != null
+                .headId(employee.getDept() != null && employee.getDept().getHead() != null
                         ? employee.getDept().getHead().getEmployeeId() : null) //추가
-                .isHead(employee.getDept() != null && employee.getDept().getHead() != null) //추가
+                .isHead(employee.getDept() != null &&
+                        employee.getDept().getHead() != null &&
+                        employee.getDept().getHead().getEmployeeId().equals(employee.getEmployeeId())) // 추가
                 .build();
     }
 }
