@@ -8,8 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class LeaveRequest {
-    private Long approverId;
+public class LeaveRequestRequest {
     private WorkType workType;       // 연차 유형
     private LocalDate startDate;     // 시작 날짜
     private LocalDate endDate;       // 종료 날짜

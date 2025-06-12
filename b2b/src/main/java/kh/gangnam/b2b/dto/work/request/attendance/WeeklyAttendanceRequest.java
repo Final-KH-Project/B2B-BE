@@ -7,5 +7,6 @@ import java.time.LocalDate;
 @Getter
 public class WeeklyAttendanceRequest {
     //주 단위 근태
-    private LocalDate referenceDate; //기준 날짜 (이 날짜가 속한 주의 근태 조회)
+    private  LocalDate referenceDate; //기준 날짜 (이 날짜가 속한 주의 근태 조회)
+
 }

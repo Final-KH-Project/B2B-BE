@@ -1,17 +1,15 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
-import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
-import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
-import kh.gangnam.b2b.dto.work.request.leave.WorkApplyRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckInRequest;
+import kh.gangnam.b2b.dto.work.request.attendance.CheckoutRequest;
 import kh.gangnam.b2b.dto.work.response.attendance.DailyAttendanceResponse;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
-import kh.gangnam.b2b.exception.InvalidRequestException;
+import kh.gangnam.b2b.exception.ConflictException;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.WorkHistoryRepository;
 import kh.gangnam.b2b.service.AttendanceService;
@@ -36,17 +34,17 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Transactional
     @Override
-    public void clockIn(Long employeeId, ClockInRequest request) {
+    public void checkIn(Long employeeId, CheckInRequest request) {
         Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
         LocalDate today = LocalDate.now();
         boolean exists = workHistoryRepository.existsByEmployeeAndWorkDateAndWorkType(
                 employee, today, WorkType.ATTENDANCE);
 
+        if (exists) throw new ConflictException("이미 출근 기록이 존재합니다.");
+
         LocalDateTime startTime = (request != null && request.getStartTime() != null)
                 ? request.getStartTime() : LocalDateTime.now();
-
-        if (exists) throw new InvalidRequestException("이미 출근 기록이 존재합니다.");
 
         WorkHistory history = WorkHistory.builder()
                 .employee(employee)
@@ -60,7 +58,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Transactional
     @Override
-    public void clockOut(Long employeeId, ClockOutRequest request) {
+    public DailyAttendanceResponse checkOut(Long employeeId, CheckoutRequest request) {
         Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
         LocalDate workDate = (request != null && request.getWorkDate() != null)
@@ -68,7 +66,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         WorkHistory record = workHistoryRepository.findByEmployeeAndWorkDateAndWorkType(
                         employee, workDate, WorkType.ATTENDANCE)
-                .orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않아요우~"));
+                .orElseThrow(() -> new NotFoundException("출근 기록이 존재하지 않아요"));
 
         LocalDateTime endTime = (request != null && request.getEndTime() != null)
                 ? request.getEndTime() : LocalDateTime.now();
@@ -77,57 +75,49 @@ public class AttendanceServiceImpl implements AttendanceService {
         record.setNote(request != null ? request.getNote() : null);
         record.setWorkType(WorkType.LEAVE);
 
-        workHistoryRepository.save(record);
-    }
+        record = workHistoryRepository.save(record);
 
-    @Transactional
-    @Override
-    public void applyWork(Long employeeId, WorkApplyRequest request) {
-        throw new UnsupportedOperationException("❌ 반차/출장/연차 신청은 leave_request API로만 처리됩니다.");
+        return DailyAttendanceResponse.from(record);
     }
 
     @Transactional(readOnly = true)
     @Override
     public WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate) {
+
+        //사원조회
         Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
+        //기준 날짜로 주간 범위 계산 (월 ~ 일)
         LocalDate startOfWeek = referenceDate.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
 
+        //주간 응답 리스트 생성
         List<DailyAttendanceResponse> dailyResponses = new ArrayList<>();
 
+        //주간 각 날짜마다 처리
         for (LocalDate date = startOfWeek; !date.isAfter(endOfWeek); date = date.plusDays(1)) {
 
             // ✅ 여러 개의 출근 기록 중 첫 번째만 사용
             List<WorkHistory> workList = workHistoryRepository.findByEmployeeAndWorkDate(employee, date);
             WorkHistory work = workList.isEmpty() ? null : workList.get(0);
 
+            //해당 날짜에 승인된 연차/반차/출장 내역 조회
             List<LeaveRequestEntity> leaves =
                     leaveRequestRepository.findApprovedLeaveForDate(employee, date);
 
-            WorkType type = null;
-            if (work != null) {
-                type = work.getWorkType();
-            }
-
+            //근무 유형 결정
+            WorkType type = (work != null) ? work.getWorkType() : null;
             for (LeaveRequestEntity leave : leaves) {
-                if (leave.getWorkType().name().contains("HALF_DAY")) {
-                    type = leave.getWorkType();
-                    break;
-                }
-                if (work == null) {
-                    type = leave.getWorkType();
-                    break;
+                if (leave.getWorkType().name().contains("HALF_DAY") || work == null) {
+                    type = leave.getWorkType(); //반차 or 출근기록 없음이면 덮어씀
+
                 }
             }
 
-            String note = null;
-            if (work != null && work.getNote() != null) {
-                note = work.getNote();
-            } else if (!leaves.isEmpty()) {
-                note = leaves.get(0).getReason();
-            }
-
+            //메모 (note): 출근기록 메모 , 연차 사유
+            String note = (work != null && work.getNote() != null) ? work.getNote() :
+                    (!leaves.isEmpty() ? leaves.get(0).getReason() : null);
+            //일일 근태 응답 객체 생성
             DailyAttendanceResponse daily = DailyAttendanceResponse.builder()
                     .workDate(date)
                     .workType(type)
@@ -135,33 +125,14 @@ public class AttendanceServiceImpl implements AttendanceService {
                     .endTime(work != null ? work.getEndTime() : null)
                     .note(note)
                     .build();
-
+            //리스트에 추가
             dailyResponses.add(daily);
         }
-
+        //주간 근태 응답 객체 반환
         return WeeklyAttendanceResponse.builder()
                 .startDate(startOfWeek)
                 .endDate(endOfWeek)
                 .dailyRecords(dailyResponses)
                 .build();
-    }
-
-    @Transactional
-    @Override
-    public void applyLeave(Long employeeId, LeaveRequest dto) {
-        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "신청자를 찾을 수 없습니다.");
-
-        Employee approver = employeeCommonService.getEmployeeOrThrow(dto.getApproverId(), "결재자를 찾을 수 없습니다.");
-
-        LeaveRequestEntity request = new LeaveRequestEntity();
-        request.setEmployee(employee);
-        request.setApprover(approver);
-        request.setWorkType(dto.getWorkType());
-        request.setStartDate(dto.getStartDate());
-        request.setEndDate(dto.getEndDate());
-        request.setReason(dto.getReason());
-        request.setStatus(ApprovalStatus.PENDING);
-
-        leaveRequestRepository.save(request);
     }
 }
