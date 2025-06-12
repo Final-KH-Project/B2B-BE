@@ -102,6 +102,10 @@ public class DeptServiceImpl {
                     Position.STAFF.getKrName())
             );
         }
+        
+        // 부서장될 사람 ROLE, 직급
+        newHead.setRole(Position.TEAM_LEADER.getRole());
+        newHead.setPosition(Position.TEAM_LEADER);
 
         dept.setHead(newHead);
         newHead.setDept(dept);

@@ -76,10 +76,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, SecurityConstants.PUBLIC_GET_URLS).permitAll()
                         // POST 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.POST, SecurityConstants.PUBLIC_POST_URLS).permitAll()
-                        // 인사 직급 이상만 접근 가능한 URL
-                        .requestMatchers(SecurityConstants.HR_URLS).hasRole("ADMIN")
                         // 부서장만 접근 가능한 URL
                         .requestMatchers(SecurityConstants.DEPT_HEAD_URLS).hasRole("HEAD")
+                        // 인사 직급 이상만 접근 가능한 URL
+                        .requestMatchers(SecurityConstants.HR_URLS).hasRole("ADMIN")
 
                         .requestMatchers("/ws-stomp",webSocketEndPoint).authenticated()
                         .requestMatchers("/ws", "/ws/**").authenticated()
