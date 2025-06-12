@@ -1,9 +1,10 @@
 package kh.gangnam.b2b.entity.work;
 
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum WorkType {
     ATTENDANCE,   // 출근
     LEAVE,        // 퇴근

@@ -14,8 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,7 +33,7 @@ public class AttendanceController {
             @AuthenticationPrincipal CustomEmployeeDetails user,
             @RequestBody(required = false) CheckInRequest request //요청 바디없을 수 있음
             ){
-        attendanceService.clockIn(user.getEmployeeId(), request);
+        attendanceService.checkIn(user.getEmployeeId(), request);
         return ResponseEntity.ok(ApiResponse.success("출근이 정상적으로 처리되었습니다."));
     }
     @PostMapping("/check-out")
@@ -43,7 +41,7 @@ public class AttendanceController {
             @AuthenticationPrincipal CustomEmployeeDetails details,
             @RequestBody(required = false) CheckoutRequest request
     ){
-        DailyAttendanceResponse result = attendanceService.clockOut(details.getEmployeeId(), request);
+        DailyAttendanceResponse result = attendanceService.checkOut(details.getEmployeeId(), request);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 

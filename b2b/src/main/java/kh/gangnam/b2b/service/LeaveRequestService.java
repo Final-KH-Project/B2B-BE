@@ -3,7 +3,6 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.work.request.leave.LeaveRequestRequest;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveStatusResponse;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
 
 import java.util.List;
 

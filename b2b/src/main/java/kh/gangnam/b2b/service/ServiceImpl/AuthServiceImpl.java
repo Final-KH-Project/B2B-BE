@@ -7,14 +7,14 @@ import kh.gangnam.b2b.dto.auth.request.JoinRequest;
 import kh.gangnam.b2b.dto.auth.request.LoginRequest;
 import kh.gangnam.b2b.dto.auth.response.LoginResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.exception.ConflictException;
 import kh.gangnam.b2b.config.security.JwtCookieManager;
 import kh.gangnam.b2b.config.security.JwtTokenProvider;
 import kh.gangnam.b2b.config.security.RefreshTokenService;
 import kh.gangnam.b2b.service.AuthService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +23,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,37 +35,39 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtCookieManager jwtCookieManager;
     private final RefreshTokenService refreshTokenService;
-    private final EmployeeRepository employeeRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final EmployeeCommonService employeeCommonService;
 
     /**
      * 회원 가입 로직
-     * @param joinRequest
      * @return
      * 이미 존재하는 이름일 경우 (409)
      * 가입 성공 (200)
      */
-    public ResponseEntity<String> join(JoinRequest joinRequest) {
+    public Map<String, String> join(JoinRequest joinRequest) {
 
         String loginId = joinRequest.getLoginId();
         String password = joinRequest.getPassword();
 
-        Boolean isExist = employeeRepository.existsByLoginId(loginId);
+        boolean isExist = employeeCommonService.existsByLoginId(loginId);
+
+        Map<String, String> result = new HashMap<>();
 
         if (isExist) {
-
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(loginId + "는 이미 존재하는 아이디입니다.");
+            throw new ConflictException("이미 존재하는 아이디입니다. ");
         }
 
         // 비밀번호 인코딩
         String encodedPassword = bCryptPasswordEncoder.encode(password);
 
         // Employee 엔티티로 변환
-        Employee employee = joinRequest.toEntity(encodedPassword, "ROLE_ADMIN");
+        Employee employee = joinRequest.toEntity(encodedPassword, "ROLE_USER");
 
-        employeeRepository.save(employee);
+        // Entity 저장
+        employeeCommonService.saveEmployee(employee);
 
-        return ResponseEntity.ok(loginId + " 회원가입 완료");
+        result.put("message", loginId + " 회원가입 완료");
+        return result;
     }
     public ResponseEntity<?> login(LoginRequest loginRequest, HttpServletResponse response) {
         // 인증 처리
@@ -100,6 +104,11 @@ public class AuthServiceImpl implements AuthService {
         jwtCookieManager.removeAccessTokenCookie(response);
         jwtCookieManager.removeRefreshTokenCookie(response);
         return ResponseEntity.ok().build();
+    }
+
+    // 회원가입 아이디 중복체크
+    public Boolean checkLoginId(String loginId) {
+        return employeeCommonService.existsByLoginId(loginId);
     }
 
 }

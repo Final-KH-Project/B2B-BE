@@ -10,10 +10,10 @@ import java.time.LocalDate;
 
 public interface AttendanceService {
     @Transactional
-    void clockIn(Long employeeId, CheckInRequest request);
+    void checkIn(Long employeeId, CheckInRequest request);
 
 
-    DailyAttendanceResponse clockOut(Long employeeId, CheckoutRequest request);
+    DailyAttendanceResponse checkOut(Long employeeId, CheckoutRequest request);
 
 
     WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate);

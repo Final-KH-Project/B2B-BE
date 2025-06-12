@@ -6,15 +6,15 @@ import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveStatusResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
 import kh.gangnam.b2b.exception.InvalidRequestException;
 import kh.gangnam.b2b.exception.NotFoundException;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.WorkHistoryRepository;
 import kh.gangnam.b2b.service.LeaveRequestService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeaveRequestServiceImpl implements LeaveRequestService {
 
-    private final EmployeeRepository employeeRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final WorkHistoryRepository workHistoryRepository;
+    private final EmployeeCommonService employeeCommonService;
 
     //연차 신청 처리 (leave_request 테이블에 저장됨)
     @Transactional
@@ -36,8 +36,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     public void applyLeave(Long employeeId, LeaveRequestRequest dto) {
 
         // 신청자(로그인 사용자)조회, 없는 경우는 예외처리
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("신청자 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 신청 사원이 없습니다.");
 
         LocalDate startDate = dto.getStartDate();
         LocalDate endDate = dto.getEndDate();
@@ -56,7 +55,8 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
             }
         }
         // LeaveRequest 엔티티 생성 후 저장
-        LeaveRequest request = new LeaveRequest();
+        LeaveRequestEntity request = new LeaveRequestEntity();
+
         request.setEmployee(employee);
         request.setWorkType(dto.getWorkType());
         request.setStartDate(dto.getStartDate());
@@ -70,12 +70,12 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     // ✅ 중복 근무유형 신청 검사 (반차 vs 전일, 전일 vs 전일)
     private void validateDuplicateLeave(Employee employee, WorkType requestedType, LocalDate startDate, LocalDate endDate) {
         //해당 기간에 이미 승인된 연차목록 조회
-        List<LeaveRequest> overlapped = leaveRequestRepository.findApprovedInRange(employee, startDate, endDate);
+        List<LeaveRequestEntity> overlapped = leaveRequestRepository.findApprovedInRange(employee, startDate, endDate);
 
         boolean requestedIsFull = isFullDay(requestedType); //신청한것이 전일인가?
         boolean requestedIsHalf = isHalfDay(requestedType); //신청한것이 반차인가?
 
-        for (LeaveRequest exist : overlapped) {
+        for (LeaveRequestEntity exist : overlapped) {
             WorkType existType = exist.getWorkType();
             boolean existingIsFull = isFullDay(existType); //기존것이 전일인가?
             boolean existingIsHalf = isHalfDay(existType); //기존것도 반차인가?
@@ -102,7 +102,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         return type == WorkType.AM_HALF_DAY || type == WorkType.PM_HALF_DAY;
     }
     //연차 중복 예외 메시지 생성 및 던짐
-    private void throwConflictException(LocalDate start, LocalDate end, LeaveRequest exist, String conflictType, boolean isHalfRequest) {
+    private void throwConflictException(LocalDate start, LocalDate end, LeaveRequestEntity exist, String conflictType, boolean isHalfRequest) {
         LocalDate conflictDate = start.datesUntil(end.plusDays(1))
                 .filter(d -> !d.isBefore(exist.getStartDate()) && !d.isAfter(exist.getEndDate()))
                 .findFirst()
@@ -133,7 +133,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Override
     public void approveLeave(Long requestId, Long approvedId){
         //요청 내역 조회
-        LeaveRequest request = leaveRequestRepository.findById(requestId)
+        LeaveRequestEntity request = leaveRequestRepository.findById(requestId)
                 .orElseThrow(()-> new NotFoundException("연차 신청 내역 없음"));
 
         // 상태를 APPROVED 로 변경
@@ -156,16 +156,15 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Override
     public LeaveStatusResponse getLeaveStatus(Long employeeId) {
         // 사용자 조회
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원이 없습니다.");
 
         // 승인된 휴가만 조회 (PEDING, REJECTED 제외)
-        List<LeaveRequest> approvedLeaves = leaveRequestRepository
+        List<LeaveRequestEntity> approvedLeaves = leaveRequestRepository
                 .findByEmployeeAndStatus(employee, ApprovalStatus.APPROVED);
 
         // 사용한 연차 일수 계산
         double usedLeave = 0.0;
-        for (LeaveRequest leave : approvedLeaves) {
+        for (LeaveRequestEntity leave : approvedLeaves) {
             switch (leave.getWorkType()) {
                 case VACATION -> {
                     long days = leave.getStartDate().datesUntil(leave.getEndDate().plusDays(1)).count();
@@ -192,10 +191,10 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Override
     @Transactional(readOnly = true)
     public List<LeaveRequestResponse> getMyRequests(Long employeeId){
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(()-> new NotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원이 없습니다.");
 
-    List<LeaveRequest> list = leaveRequestRepository.findByEmployee(employee);
+    List<LeaveRequestEntity> list = leaveRequestRepository.findByEmployee(employee);
+
     return LeaveRequestResponse.fromList(list);
     }
 }

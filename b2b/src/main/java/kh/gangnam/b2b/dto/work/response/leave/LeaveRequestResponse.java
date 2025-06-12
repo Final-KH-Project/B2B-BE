@@ -1,12 +1,9 @@
 package kh.gangnam.b2b.dto.work.response.leave;
 
-import kh.gangnam.b2b.entity.work.ApprovalStatus;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
-import kh.gangnam.b2b.entity.work.WorkType;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,13 +15,13 @@ import java.util.stream.Collectors;
 public class LeaveRequestResponse {
     private Long leaveRequestId;
     private String employeeName;
-    private WorkType workType;
+    private String workType;
     private LocalDate startDate;
     private LocalDate endDate;
-    private ApprovalStatus status;
+    private String status;
     private String reason;
 
-    public static LeaveRequestResponse from(LeaveRequest req) {
+    public static LeaveRequestResponse from(LeaveRequestEntity req) {
         return LeaveRequestResponse.builder()
                 .leaveRequestId(req.getLeaveRequestId())
                 .employeeName(req.getEmployee().getName())
@@ -36,9 +33,11 @@ public class LeaveRequestResponse {
                 .build();
 
     }
-    public static List<LeaveRequestResponse> fromList(List<LeaveRequest> requestList){
+    public static List<LeaveRequestResponse> fromList(List<LeaveRequestEntity> requestList){
         return requestList.stream()
                 .map(LeaveRequestResponse::from)
                 .collect(Collectors.toList());
     }
 }
+
+
