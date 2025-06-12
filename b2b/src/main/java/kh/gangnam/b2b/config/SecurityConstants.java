@@ -32,24 +32,13 @@ public final class SecurityConstants{
      */
     public static final String[] PUBLIC_GET_URLS = {
             // 회원가입 중복체크
-            "/api/auth/check-loginId",
-
-            // 게시글
-            "/api/boards"               // GET: 게시글 목록
-            ,"/api/boards/{id}"          // GET: 게시글 상세
-            ,"/api/public/**"            // 공개 게시글
-
-            // 댓글
-            ,"/api/comments"             // GET: 댓글 목록
-            ,"/api/comments/{id}"        // GET: 특정 댓글
-            ,"/api/boards/{boardId}/comments"  // GET: 특정 게시글의 댓글 목록
-
-            //승인 권한
-            ,"/api/approval"
+            "/api/auth/check-loginId"
 
             // WebSocket
             ,"/ws"                     // WebSocket 기본 엔드포인트
             ,"/ws/**"                  // WebSocket 하위 엔드포인트
+            ,"/ws-stomp"
+            ,"/ws-stomp/**"
     };
 
     /**
@@ -66,6 +55,22 @@ public final class SecurityConstants{
             // 인증 관련
             ,"/api/auth/login"           // 로그인
             ,"/api/auth/reissue"         // 토큰 갱신
+    };
+
+    /**
+     * 인사 권한 이상만 있는 사람들이 사용할 수 있는 URL 입니다.
+     * SecurityConfig에서 이 URL들은 인사 권한 이상 ROLE 설정을 해야합니다.
+     */
+    public static final String[] HR_URLS = {
+            ""
+    };
+
+    /**
+     * 부서장이 사용할 수 있는 URL 입니다.
+     * SecurityConfig에서 이 URL들은 부서장 ROLE 설정을 해야합니다.
+     */
+    public static final String[] DEPT_HEAD_URLS = {
+            ""
     };
 
 }
