@@ -46,7 +46,7 @@ public class EmployeeController {
     }
 
     // 직급 변경
-    @PatchMapping("/position")
+    @PostMapping("/position")
     public ResponseEntity<Void> updatePosition(
             @RequestBody PositionUpdateRequest request) {
         employeeService.updatePosition(request);
