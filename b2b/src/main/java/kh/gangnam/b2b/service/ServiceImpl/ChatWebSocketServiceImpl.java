@@ -9,8 +9,8 @@ import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
 import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatWebSocketService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,18 +27,24 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final EmployeeRepository employeeRepository;
     private final ChatRoomEmployeeRepository chatRoomEmployeeRepository;
+    private final EmployeeCommonService employeeCommonService;
 
     @Override
     public ChatMessages handleMessage(SendChat message, Long employeeId) {
         // 1. 채팅방, 유저, 멤버십 검증
         ChatRoom room = chatRoomRepository.findById(message.getRoomId())
-                .orElseThrow(() -> new NotFoundException("채팅방 없음"));
-        Employee sender = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("사용자 없음"));
-        boolean isMember = chatRoomEmployeeRepository.existsEmployeeInChatRoom(employeeId, room.getId());
-        if (!isMember) throw new NotFoundException("채팅방 참여자가 아닙니다.");
+                .orElseThrow(() -> new NotFoundException("채팅방 없습니다."));
+
+        Employee sender = employeeCommonService
+                .getEmployeeOrThrow(employeeId, "해당 사원이 없습니다.");
+
+        boolean isMember = chatRoomEmployeeRepository
+                .existsEmployeeInChatRoom(employeeId, room.getId());
+
+        if (!isMember) {
+            throw new NotFoundException("채팅방 참여자가 아닙니다.");
+        }
 
         // 2. 메시지 저장
         ChatMessage entity = new ChatMessage();

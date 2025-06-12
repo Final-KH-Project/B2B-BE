@@ -15,8 +15,8 @@ import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.ChatMessageRepository;
 import kh.gangnam.b2b.repository.ChatRoomRepository;
 import kh.gangnam.b2b.repository.ChatRoomEmployeeRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.ChatService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +34,12 @@ public class ChatServiceImpl implements ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomEmployeeRepository chatRoomEmployeeRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeCommonService employeeCommonService;
     @PersistenceContext private EntityManager em;
 
     private Employee getEmp(Long id) {
-        return employeeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("사원 정보를 찾을 수 없습니다."));
+        return employeeCommonService
+                .getEmployeeOrThrow(id, "해당 사원을 찾을 수 없습니다.");
     }
 
     private ChatRoom getRoom(Long id) {
@@ -73,8 +73,8 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional(readOnly = true)
     public ChatEmployee getCurrentEmployee(String loginId) {
-        return ChatEmployee.fromEntity(employeeRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new NotFoundException("직원 정보를 찾을 수 없습니다.")));
+        return ChatEmployee.fromEntity(employeeCommonService
+                .getEmployeeOrThrow(loginId, "해당 사원을 찾을 수 없습니다."));
     }
 
     @Override

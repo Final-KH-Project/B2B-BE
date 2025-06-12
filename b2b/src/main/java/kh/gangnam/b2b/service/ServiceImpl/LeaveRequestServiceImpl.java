@@ -7,10 +7,10 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.entity.work.WorkHistory;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.WorkHistoryRepository;
 import kh.gangnam.b2b.service.LeaveRequestService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeaveRequestServiceImpl implements LeaveRequestService {
 
-    private final EmployeeRepository employeeRepository;
     private final LeaveRequestRepository leaveRequestRepository;
     private final WorkHistoryRepository workHistoryRepository;
+    private final EmployeeCommonService employeeCommonService;
 
     //연차 신청 처리 (leave_request 테이블에 저장됨)
     @Transactional
@@ -31,12 +31,10 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     public void applyLeave(Long employeeId, LeaveRequest dto) {
 
         // 신청자(로그인 사용자)조회
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("신청자 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 신청 사원이 없습니다.");
 
         // 결재자 조회
-        Employee approver = employeeRepository.findById(dto.getApproverId())
-                .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
+        Employee approver = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 신청 결재자(부서장)가 없습니다.");
 
         // 연차 요청 생성
         LeaveRequestEntity request = new LeaveRequestEntity();
@@ -83,8 +81,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Override
     public LeaveStatusResponse getLeaveStatus(Long employeeId) {
         // 사용자 조회
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원이 없습니다.");
 
         // 승인된 휴가만 조회 (PEDING, REJECTED 제외)
         List<LeaveRequestEntity> approvedLeaves = leaveRequestRepository
@@ -125,8 +122,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Override
     @Transactional(readOnly = true)
     public List<LeaveRequestEntity> getMyRequests(Long employeeId){
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(()-> new EntityNotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원이 없습니다.");
 
         return leaveRequestRepository.findByEmployee(employee);
     }

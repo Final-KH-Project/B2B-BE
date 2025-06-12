@@ -12,9 +12,9 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.exception.ConflictException;
 import kh.gangnam.b2b.exception.InvalidRequestException;
 import kh.gangnam.b2b.exception.NotFoundException;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.MeetingReservationRepository;
 import kh.gangnam.b2b.repository.MeetingRoomRepository;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,13 +33,14 @@ public class MeetingServiceImpl {
 
     private final MeetingReservationRepository meetingReservationRepo;
     private final MeetingRoomRepository meetingRoomRepo;
-    private final EmployeeRepository employeeRepo;
+    private final EmployeeCommonService employeeCommonService;
 
     // 회의실 예약
     @Transactional
     public Long createReservation(ReservationRequest request) {
         // 1. 필수 값 검증
-        Employee organizer = validEmployee(request.getOrganizerId());
+        Employee organizer = employeeCommonService
+                .getEmployeeOrThrow(request.getOrganizerId(), "주최자를 찾을 수 없음 (ID: " + request.getOrganizerId() + ")");
         MeetingRoom room = validMeetingRoom(request.getRoomId());
 
         // 2. 시간 유효성 검사
@@ -50,8 +50,7 @@ public class MeetingServiceImpl {
         checkTimeConflict(room, request.getStartTime(), request.getEndTime());
 
         // 4. 참여자 조회
-        Set<Employee> participants = new HashSet<>(
-                employeeRepo.findAllById(request.getParticipantIds()));
+        Set<Employee> participants = employeeCommonService.getParticipants(request.getParticipantIds());
 
         // 5. 엔티티 생성
         MeetingReservation reservation = request.toEntity(room, organizer, participants);
@@ -75,8 +74,7 @@ public class MeetingServiceImpl {
 
         // 참여자 업데이트
         if (request.getParticipantIds() != null) {
-            Set<Employee> newParticipants = new HashSet<>(
-                    employeeRepo.findAllById(request.getParticipantIds()));
+            Set<Employee> newParticipants = employeeCommonService.getParticipants(request.getParticipantIds());
             reservation.getParticipants().clear();
             reservation.getParticipants().addAll(newParticipants);
         }
@@ -144,11 +142,6 @@ public class MeetingServiceImpl {
         return meetingRoomRepo.findAll().stream()
                 .map(MeetingRoomResponse::fromEntity)
                 .collect(Collectors.toList());
-    }
-
-    private Employee validEmployee(Long employeeId) {
-        return employeeRepo.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("주최자를 찾을 수 없음 (ID: " + employeeId + ")"));
     }
 
     private MeetingRoom validMeetingRoom(Long meetingRoomId) {

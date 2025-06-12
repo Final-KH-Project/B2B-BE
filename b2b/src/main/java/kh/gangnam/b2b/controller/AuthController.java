@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/join")
     public ResponseEntity<Map<String, String>> join(@RequestBody JoinRequest joinRequest) {
-        return authServiceImpl.join(joinRequest);
+        return ResponseEntity.ok(authServiceImpl.join(joinRequest));
     }
 
     @GetMapping("/check-loginId")

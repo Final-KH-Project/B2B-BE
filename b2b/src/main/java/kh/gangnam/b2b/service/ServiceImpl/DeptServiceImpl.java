@@ -12,7 +12,7 @@ import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.DeptRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DeptServiceImpl {
 
-    private final EmployeeRepository employeeRepository;
     private final DeptRepository deptRepository;
     private final EmployeeServiceImpl employeeService;
+    private final EmployeeCommonService employeeCommonService;
 
 
     // 부서 생성
@@ -38,7 +38,7 @@ public class DeptServiceImpl {
 
         Employee head = null;
         if (request.getHeadId() != null) {
-            head = validEmployeeId(request.getHeadId());
+            head = employeeCommonService.getEmployeeOrThrow(request.getHeadId(), "부서장으로 지정할 사원을 찾지 못했습니다.");
         }
 
         Dept dept = request.toEntity(head, parentDept);
@@ -48,8 +48,7 @@ public class DeptServiceImpl {
 
     // 부서에 있는 사원 리스트 조회
     public List<EmployeeDTO> getEmployeesByDeptId(Long deptId) {
-        List<Employee> employees = employeeRepository.findByDeptDeptId(deptId);
-        return employees.stream()
+        return employeeCommonService.getEmployees(deptId).stream()
                 .map(EmployeeDTO::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -70,7 +69,7 @@ public class DeptServiceImpl {
     @Transactional
     public void moveEmployeeToDept(Long employeeId, Long newDeptId) {
         // 1. 사원 조회
-        Employee employee = validEmployeeId(employeeId);
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원을 찾을 수 없습니다.");
 
         // 2. 새 부서 조회
         Dept newDept = validDeptId(newDeptId);
@@ -84,14 +83,15 @@ public class DeptServiceImpl {
         employee.setDept(newDept);
         // 5. 사수 초기화
         employee.setManager(null);
-        employeeRepository.save(employee);
+
+        employeeCommonService.saveEmployee(employee);
     }
 
     // 부서장 지정
     @Transactional
     public DeptDTO assignDeptHead(Long deptId, Long employeeId) {
         Dept dept = validDeptId(deptId);
-        Employee newHead = validEmployeeId(employeeId);
+        Employee newHead = employeeCommonService.getEmployeeOrThrow(employeeId, "부서장으로 지정할 사원을 찾지 못했습니다.");
 
         // 기존 부서장 일반 직원으로 직급, ROLE 변경
         Employee prevHead = dept.getHead();
@@ -105,7 +105,7 @@ public class DeptServiceImpl {
 
         dept.setHead(newHead);
         newHead.setDept(dept);
-        employeeRepository.save(newHead);
+        employeeCommonService.saveEmployee(newHead);
         deptRepository.save(dept);
 
         return DeptDTO.fromEntity(dept);
@@ -114,25 +114,17 @@ public class DeptServiceImpl {
     // 부서 내 사수 지정
     public void assignEmployeeMentor(UpdateMentorRequest request) {
         Dept dept = validDeptId(request.getDeptId());
-        Employee mentee = validEmployeeInDept(request.getMenteesId(), dept.getDeptId());
-        Employee mentor = validEmployeeInDept(request.getMentorId(), dept.getDeptId());
+
+        Employee mentee = employeeCommonService.getEmployeeInDept(request.getMenteesId(), dept.getDeptId());
+        Employee mentor = employeeCommonService.getEmployeeInDept(request.getMentorId(), dept.getDeptId());
 
         mentee.setManager(mentor);
-        employeeRepository.save(mentee);
-    }
-
-    private Employee validEmployeeId(Long employeeId) {
-        return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("해당 사원이 없습니다."));
+        employeeCommonService.saveEmployee(mentee);
     }
 
     private Dept validDeptId(Long deptId) {
         return deptRepository.findById(deptId)
                 .orElseThrow(() -> new NotFoundException("부서 정보가 없습니다."));
-    }
-    private Employee validEmployeeInDept(Long employeeId, Long deptId) {
-        return employeeRepository.findByEmployeeIdAndDept_DeptId(employeeId, deptId)
-                .orElseThrow(() -> new NotFoundException("해당 부서에 속한 직원을 찾을 수 없습니다."));
     }
 
 }
