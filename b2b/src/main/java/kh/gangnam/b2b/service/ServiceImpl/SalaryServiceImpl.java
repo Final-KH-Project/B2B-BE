@@ -9,9 +9,10 @@ import kh.gangnam.b2b.dto.salary.response.SalaryResponse;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.DeptRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.SalaryRepository;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +33,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class SalaryServiceImpl {
 
     private final SalaryRepository salaryRepo;
-    private final EmployeeRepository employeeRepo;
     private final DeptRepository deptRepo;
+    private final EmployeeCommonService employeeCommonService;
 
     @Value("${salary.pay-day}")
     private int salaryPayDay;
@@ -89,7 +90,7 @@ public class SalaryServiceImpl {
     // 전체 사원 급여 일괄 지급
     @Transactional
     public void payAllSalaries(String targetMonth) {
-        List<Employee> employees = employeeRepo.findAll();
+        List<Employee> employees = employeeCommonService.getAll();
         employees.forEach(emp -> processPaymentForEmployee(emp, targetMonth));
         log.info("전체 사원 급여 지급 완료 - 대상 월: {}", targetMonth);
     }
@@ -97,11 +98,11 @@ public class SalaryServiceImpl {
     // 부서별 사원 급여 일괄 지급
     @Transactional
     public void paySalariesByDept(Long deptId, String targetMonth) {
-        Dept dept = getValidDept(deptId);
-        List<Employee> employees = employeeRepo.findByDept(dept);
-        employees.forEach(emp ->
-                processPaymentForEmployee(emp, targetMonth)
-        );
+        if (!deptRepo.existsById(deptId)) {
+            throw new NotFoundException("해당 부서를 찾을 수 없습니다.");
+        }
+        employeeCommonService.getEmployees(deptId).forEach(emp ->
+                processPaymentForEmployee(emp, targetMonth));
     }
 
     // 공통 지급 처리 로직 (private)
@@ -175,8 +176,7 @@ public class SalaryServiceImpl {
 
     /** 사원 유효성 검증 및 조회 */
     private Employee validEmployee(Long employeeId) {
-        return employeeRepo.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("사원을 찾을 수 없음"));
+        return employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원을 찾을 수 없습니다.");
     }
 
     @Scheduled(cron = "0 0 0 1 * *") // 매월 1일 00:00 실행
@@ -185,7 +185,7 @@ public class SalaryServiceImpl {
         String targetMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
         LocalDate defaultPayDate = LocalDate.now().plusMonths(1).withDayOfMonth(salaryPayDay);  // 예: 다음 달 10일
 
-        employeeRepo.findAll().forEach(employee -> {
+        employeeCommonService.getAll().forEach(employee -> {
             // 해당 월 급여가 없으면 생성
             if (!salaryRepo.existsByEmployeeAndSalaryYearMonth(employee, targetMonth)) {
                 Salary salary = Salary.builder()
@@ -210,7 +210,7 @@ public class SalaryServiceImpl {
         LocalDate defaultPayDate = LocalDate.parse(month + "-01")  // 2025-07-01
                 .withDayOfMonth(salaryPayDay);
 
-        employeeRepo.findAll().forEach(employee -> {
+        employeeCommonService.getAll().forEach(employee -> {
             if (!salaryRepo.existsByEmployeeAndSalaryYearMonth(employee, month)) {
                 Salary salary = Salary.builder()
                         .employee(employee)
@@ -258,7 +258,7 @@ public class SalaryServiceImpl {
 
     @Transactional
     public void assignSalariesToAllEmployees() {
-        List<Employee> employees = employeeRepo.findAll();
+        List<Employee> employees = employeeCommonService.getAll();
         employees.forEach(employee -> {
             try {
                 assignSalaryBasedOnPosition(employee);

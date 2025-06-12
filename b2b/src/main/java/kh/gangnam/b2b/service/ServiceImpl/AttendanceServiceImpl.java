@@ -1,6 +1,5 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
-import jakarta.persistence.EntityNotFoundException;
 import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockInRequest;
 import kh.gangnam.b2b.dto.work.request.attendance.ClockOutRequest;
@@ -12,10 +11,11 @@ import kh.gangnam.b2b.entity.work.ApprovalStatus;
 import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.exception.InvalidRequestException;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.WorkHistoryRepository;
 import kh.gangnam.b2b.service.AttendanceService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,15 +30,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AttendanceServiceImpl implements AttendanceService {
 
-    private final EmployeeRepository employeeRepository;
     private final WorkHistoryRepository workHistoryRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final EmployeeCommonService employeeCommonService;
 
     @Transactional
     @Override
     public void clockIn(Long employeeId, ClockInRequest request) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
         LocalDate today = LocalDate.now();
         boolean exists = workHistoryRepository.existsByEmployeeAndWorkDateAndWorkType(
@@ -47,7 +46,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         LocalDateTime startTime = (request != null && request.getStartTime() != null)
                 ? request.getStartTime() : LocalDateTime.now();
 
-        if (exists) throw new IllegalStateException("이미 출근 기록이 존재합니다.");
+        if (exists) throw new InvalidRequestException("이미 출근 기록이 존재합니다.");
 
         WorkHistory history = WorkHistory.builder()
                 .employee(employee)
@@ -62,8 +61,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Transactional
     @Override
     public void clockOut(Long employeeId, ClockOutRequest request) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
         LocalDate workDate = (request != null && request.getWorkDate() != null)
                 ? request.getWorkDate() : LocalDate.now();
@@ -91,8 +89,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Transactional(readOnly = true)
     @Override
     public WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "사원을 찾을 수 없습니다.");
 
         LocalDate startOfWeek = referenceDate.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
@@ -152,11 +149,9 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Transactional
     @Override
     public void applyLeave(Long employeeId, LeaveRequest dto) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("신청자 없음"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "신청자를 찾을 수 없습니다.");
 
-        Employee approver = employeeRepository.findById(dto.getApproverId())
-                .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
+        Employee approver = employeeCommonService.getEmployeeOrThrow(dto.getApproverId(), "결재자를 찾을 수 없습니다.");
 
         LeaveRequestEntity request = new LeaveRequestEntity();
         request.setEmployee(employee);
