@@ -7,10 +7,10 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Entity
+@Entity(name = "leave_request")
 @Setter
 @Getter
-public class LeaveRequest {
+public class LeaveRequestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long leaveRequestId;

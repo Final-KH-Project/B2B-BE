@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.response.ApiResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveStatusResponse;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.service.LeaveRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +47,7 @@ public class LeaveController {
     @GetMapping("/my")
     public ResponseEntity<List<LeaveRequestResponse>> getMyLeaveRequests(
             @AuthenticationPrincipal CustomEmployeeDetails user){
-        List<kh.gangnam.b2b.entity.work.LeaveRequest> list = leaveRequestService.getMyRequests(user.getEmployeeId());
+        List<LeaveRequestEntity> list = leaveRequestService.getMyRequests(user.getEmployeeId());
         List<LeaveRequestResponse> result = list.stream()
                 .map(LeaveRequestResponse::fromEntity)
                 .toList();

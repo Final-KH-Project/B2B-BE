@@ -1,8 +1,7 @@
 package kh.gangnam.b2b.dto.approval.response;
 
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
-import kh.gangnam.b2b.entity.work.WorkType;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,7 +23,7 @@ public class LeaveApprovalResponse {
     private String approverName;
 
     // 엔티티 → DTO 변환 메서드 (rejectReason은 별도 세팅)
-    public static LeaveApprovalResponse fromEntity(LeaveRequest entity) {
+    public static LeaveApprovalResponse fromEntity(LeaveRequestEntity entity) {
         LeaveApprovalResponse dto = new LeaveApprovalResponse();
         dto.setLeaveRequestId(entity.getLeaveRequestId());
         dto.setEmployeeName(entity.getEmployee().getName());

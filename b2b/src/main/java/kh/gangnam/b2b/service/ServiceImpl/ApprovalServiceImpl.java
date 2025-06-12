@@ -4,7 +4,7 @@ import kh.gangnam.b2b.dto.approval.request.LeaveApprovalRequest;
 import kh.gangnam.b2b.dto.approval.response.LeaveApprovalResponse;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveRequestResponse;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
-import kh.gangnam.b2b.entity.work.LeaveRequest;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.exception.InvalidRequestException;
 import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
@@ -21,29 +21,29 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     private final LeaveRequestRepository leaveRequestRepository;
 
-    private LeaveRequest getLeaveRequest(Long id) {
+    private LeaveRequestEntity getLeaveRequest(Long id) {
         return leaveRequestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("연차 요청 정보를 찾을 수 없습니다."));
     }
 
     @Override
     public LeaveApprovalResponse processApproval(Long requestId, Long employeeId, LeaveApprovalRequest req) {
-        LeaveRequest leaveRequest = getLeaveRequest(requestId);
+        LeaveRequestEntity leaveRequestEntity = getLeaveRequest(requestId);
         ApprovalStatus status = req.getApprovalStatus();
 
         if (status == ApprovalStatus.APPROVED) {
-            leaveRequest.setStatus(ApprovalStatus.APPROVED);
-            leaveRequest.setRejectReason(null);
+            leaveRequestEntity.setStatus(ApprovalStatus.APPROVED);
+            leaveRequestEntity.setRejectReason(null);
         } else if (status == ApprovalStatus.REJECTED) {
-            leaveRequest.setStatus(ApprovalStatus.REJECTED);
-            leaveRequest.setRejectReason(req.getRejectReason());
+            leaveRequestEntity.setStatus(ApprovalStatus.REJECTED);
+            leaveRequestEntity.setRejectReason(req.getRejectReason());
         } else {
             throw new InvalidRequestException("잘못된 승인 상태입니다.");
         }
 
-        leaveRequestRepository.save(leaveRequest);
+        leaveRequestRepository.save(leaveRequestEntity);
 
-        LeaveApprovalResponse response = LeaveApprovalResponse.fromEntity(leaveRequest);
+        LeaveApprovalResponse response = LeaveApprovalResponse.fromEntity(leaveRequestEntity);
         if (status == ApprovalStatus.REJECTED) response.setRejectReason(req.getRejectReason());
         return response;
     }

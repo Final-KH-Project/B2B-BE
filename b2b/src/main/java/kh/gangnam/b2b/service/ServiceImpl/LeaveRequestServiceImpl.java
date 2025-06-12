@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.work.request.leave.LeaveRequest;
 import kh.gangnam.b2b.dto.work.response.leave.LeaveStatusResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
@@ -38,7 +39,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                 .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
 
         // 연차 요청 생성
-        kh.gangnam.b2b.entity.work.LeaveRequest request = new kh.gangnam.b2b.entity.work.LeaveRequest();
+        LeaveRequestEntity request = new LeaveRequestEntity();
         request.setEmployee(employee);
         request.setApprover(approver);
         request.setWorkType(dto.getWorkType());
@@ -56,7 +57,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     @Transactional
     @Override
     public void approveLeave(Long requestId, Long approvedId){
-        kh.gangnam.b2b.entity.work.LeaveRequest request = leaveRequestRepository.findById(requestId)
+        LeaveRequestEntity request = leaveRequestRepository.findById(requestId)
                 .orElseThrow(()-> new EntityNotFoundException("연차 신청 내역 없음"));
         //결재자 권한 확인
         if (!request.getApprover().getEmployeeId().equals(approvedId)){
@@ -86,12 +87,12 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                 .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
 
         // 승인된 휴가만 조회 (PEDING, REJECTED 제외)
-        List<kh.gangnam.b2b.entity.work.LeaveRequest> approvedLeaves = leaveRequestRepository
+        List<LeaveRequestEntity> approvedLeaves = leaveRequestRepository
                 .findByEmployeeAndStatus(employee, ApprovalStatus.APPROVED);
 
         // 사용한 연차 일수 계산
         double usedLeave = 0.0;
-        for (kh.gangnam.b2b.entity.work.LeaveRequest leave : approvedLeaves) {
+        for (LeaveRequestEntity leave : approvedLeaves) {
             switch (leave.getWorkType()) {
                 case VACATION:
                 case BUSINESS_TRIP:
@@ -123,7 +124,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
     }
     @Override
     @Transactional(readOnly = true)
-    public List<kh.gangnam.b2b.entity.work.LeaveRequest> getMyRequests(Long employeeId){
+    public List<LeaveRequestEntity> getMyRequests(Long employeeId){
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(()-> new EntityNotFoundException("사원 없음"));
 

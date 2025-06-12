@@ -9,6 +9,7 @@ import kh.gangnam.b2b.dto.work.response.attendance.DailyAttendanceResponse;
 import kh.gangnam.b2b.dto.work.response.attendance.WeeklyAttendanceResponse;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.ApprovalStatus;
+import kh.gangnam.b2b.entity.work.LeaveRequestEntity;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -104,7 +105,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             List<WorkHistory> workList = workHistoryRepository.findByEmployeeAndWorkDate(employee, date);
             WorkHistory work = workList.isEmpty() ? null : workList.get(0);
 
-            List<kh.gangnam.b2b.entity.work.LeaveRequest> leaves =
+            List<LeaveRequestEntity> leaves =
                     leaveRequestRepository.findApprovedLeaveForDate(employee, date);
 
             WorkType type = null;
@@ -112,7 +113,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 type = work.getWorkType();
             }
 
-            for (kh.gangnam.b2b.entity.work.LeaveRequest leave : leaves) {
+            for (LeaveRequestEntity leave : leaves) {
                 if (leave.getWorkType().name().contains("HALF_DAY")) {
                     type = leave.getWorkType();
                     break;
@@ -157,7 +158,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         Employee approver = employeeRepository.findById(dto.getApproverId())
                 .orElseThrow(() -> new EntityNotFoundException("결재자 없음"));
 
-        kh.gangnam.b2b.entity.work.LeaveRequest request = new kh.gangnam.b2b.entity.work.LeaveRequest();
+        LeaveRequestEntity request = new LeaveRequestEntity();
         request.setEmployee(employee);
         request.setApprover(approver);
         request.setWorkType(dto.getWorkType());
