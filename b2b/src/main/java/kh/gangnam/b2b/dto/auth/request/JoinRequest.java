@@ -1,13 +1,16 @@
 package kh.gangnam.b2b.dto.auth.request;
 
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.entity.auth.Employee;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class JoinRequest {
 
     private String loginId;
@@ -24,7 +27,7 @@ public class JoinRequest {
                 .password(encodedPassword)
                 .name(this.name)
                 .address(this.address)
-                .position("신규가입")
+                .position(Position.NEWBIE)
                 .dateOfBirth(this.dateOfBirth)
                 .phoneNumber(this.phoneNumber)
                 .role(role)

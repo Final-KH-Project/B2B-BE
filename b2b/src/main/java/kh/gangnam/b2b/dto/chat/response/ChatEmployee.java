@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.dto.chat.response;
 
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,7 +29,7 @@ public class ChatEmployee {
                 .manager(employee.getManager() != null ? employee.getManager().getName() : null)
                 .department(employee.getDept() != null ? employee.getDept().getDeptName() : "부서없음")
                 .profile(employee.getProfile())
-                .position(employee.getPosition())
+                .position(employee.getPosition().getKrName())
                 .dateOfBirth(employee.getDateOfBirth())
                 .phoneNumber(employee.getPhoneNumber())
                 .createdDate(employee.getCreatedDate())

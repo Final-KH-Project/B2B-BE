@@ -1,0 +1,17 @@
+# Spring Boot 애플리케이션 배포를 위한 Docker Compose 설정
+services:
+  app:  # 서비스 이름 (컨테이너 이름의 접두사로 사용됨)
+    image: b2b:latest  # 사용할 Docker 이미지 (Jenkins 파이프라인에서 빌드한 이미지)
+    ports:
+      - "8080:8080"  # 포트 매핑 (호스트:컨테이너)
+      # - 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
+    # - http://[서버IP]:8080 으로 접속 가능
+    restart: "no"  # 컨테이너 재시작 정책
+      # - "no": 자동 재시작 비활성화
+      # - 이전 컨테이너와의 충돌 방지
+    # - Jenkins 파이프라인에서 컨테이너 관리
+    networks:
+      - app-network  # 여기에 네트워크 지정 추가
+networks:
+  app-network:
+    external: true     # 이미 존재하는 네트워크 사용

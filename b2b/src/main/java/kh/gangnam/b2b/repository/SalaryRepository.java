@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.repository;
 
+import kh.gangnam.b2b.dto.salary.SalaryStatus;
 import kh.gangnam.b2b.entity.Dept;
 import kh.gangnam.b2b.entity.Salary;
 import kh.gangnam.b2b.entity.auth.Employee;
@@ -14,11 +15,16 @@ import java.util.Optional;
 
 public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
-    // 사원별, 최신순 10개
-    List<Salary> findTop10ByEmployeeOrderBySalaryDateDesc(Employee employee);
+    // 사원 개인 급여 내역 페이징
+    Page<Salary> findByEmployeeAndSalaryStatusOrderBySalaryDateDesc(Employee employee, SalaryStatus status, Pageable pageable);
+
+    // 사원 개인 급여 내역 연도별
+    Page<Salary> findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(Employee employee, String year, SalaryStatus status, Pageable pageable);
 
     // 사원별, 연도별
-    List<Salary> findByEmployeeAndSalaryYearMonthStartingWithOrderBySalaryDateDesc(Employee employee, String year);
+    List<Salary> findByEmployeeAndSalaryYearMonthStartingWithAndSalaryStatusOrderBySalaryDateDesc(
+            Employee employee, String year, SalaryStatus status
+    );
 
     Optional<Salary> findByEmployeeAndSalaryYearMonth(Employee employee, String yearMonth);
 
@@ -35,4 +41,7 @@ public interface SalaryRepository extends JpaRepository<Salary, Long> {
 
     // 전체, 월별(인사팀용)
     Page<Salary> findBySalaryYearMonthOrderBySalaryDateDesc(String yearMonth, Pageable pageable);
+
+    // 급여 존재 여부 확인
+    boolean existsByEmployeeAndSalaryYearMonth(Employee employee, String salaryYearMonth);
 }

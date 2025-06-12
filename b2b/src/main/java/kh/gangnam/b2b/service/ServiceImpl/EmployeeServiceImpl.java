@@ -1,11 +1,13 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import kh.gangnam.b2b.dto.employee.EmployeeDTO;
+import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.PasswordChangeRequest;
+import kh.gangnam.b2b.dto.employee.request.PositionUpdateRequest;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,9 +20,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl {
 
-    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final S3ServiceUtil s3ServiceUtil;
+    private final EmployeeCommonService employeeCommonService;
 
     // 프로필 조회
     public EmployeeDTO getEmployeeInfoByEmployeeId(Long employeeId) {
@@ -36,7 +38,8 @@ public class EmployeeServiceImpl {
         }
 
         employee.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        employeeRepository.save(employee);
+
+        employeeCommonService.saveEmployee(employee);
     }
 
     // 사용자 프로필 변경
@@ -44,27 +47,29 @@ public class EmployeeServiceImpl {
         Employee employee = validEmployee(employeeId);
 
         employee.updateProfile(request);
-        employeeRepository.save(employee);
+
+        employeeCommonService.saveEmployee(employee);
+
         return EmployeeDTO.fromEntity(employee);
     }
 
-    // 부서 변경
-    public void updateDepartment(Long employeeId, String department) {
-        Employee employee = validEmployee(employeeId);
-//        employee.setDepartment(department);
-        employeeRepository.save(employee);
-    }
     // 직급 변경
-    public void updatePosition(Long employeeId, String position) {
-        Employee employee = validEmployee(employeeId);
-        employee.setPosition(position);
-        employeeRepository.save(employee);
+    public void updatePosition(PositionUpdateRequest request) {
+        Employee employee = validEmployee(request.getEmployeeId());
+        // Enum 에서 직접 변환 및 검증
+        Position newPosition = Position.from(request.getPosition());
+
+        employee.setPosition(newPosition);
+        employee.setRole(newPosition.getRole());
+
+        employeeCommonService.saveEmployee(employee);
     }
     // 전화번호 변경
     public void updatePhoneNumber(Long employeeId, String phoneNumber) {
         Employee employee = validEmployee(employeeId);
         employee.setPhoneNumber(phoneNumber);
-        employeeRepository.save(employee);
+
+        employeeCommonService.saveEmployee(employee);
     }
     // 프로필 이미지 변경
     public void updateProfileImage(Long employeeId, MultipartFile file) {
@@ -75,11 +80,11 @@ public class EmployeeServiceImpl {
 
         // 프로필 URL 업데이트
         employee.setProfile(s3Response.getUrl());
-        employeeRepository.save(employee);
+
+        employeeCommonService.saveEmployee(employee);
     }
 
     private Employee validEmployee(Long employeeId) {
-        return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return employeeCommonService.getEmployeeOrThrow(employeeId, "해당 사원을 찾을 수 없습니다.");
     }
 }

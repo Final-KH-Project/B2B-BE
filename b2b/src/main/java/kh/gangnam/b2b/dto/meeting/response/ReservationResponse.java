@@ -17,7 +17,8 @@ public record ReservationResponse(
         String content,
         OrganizerInfo organizer,
         List<ParticipantInfo> participants,
-        String departmentName
+        String departmentName,
+        Long deptId
     ) {
     // 엔티티 → DTO 변환 메서드
     public static ReservationResponse from(MeetingReservation entity) {
@@ -35,6 +36,8 @@ public record ReservationResponse(
                         .collect(Collectors.toList()))
                 .departmentName(entity.getOrganizer().getDept() != null ?
                         entity.getOrganizer().getDept().getDeptName() : "부서없음")
+                .deptId(entity.getOrganizer().getDept() != null ?
+                        entity.getOrganizer().getDept().getDeptId(): null)
                 .build();
     }
 }

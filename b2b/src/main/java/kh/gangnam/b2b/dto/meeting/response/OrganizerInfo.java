@@ -11,7 +11,7 @@ public record OrganizerInfo(
         return new OrganizerInfo(
                 employee.getEmployeeId(),
                 employee.getName(),
-                employee.getPosition()
+                employee.getPosition().getKrName()
         );
     }
 }
