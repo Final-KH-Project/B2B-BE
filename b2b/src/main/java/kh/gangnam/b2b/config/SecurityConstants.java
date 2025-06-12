@@ -31,19 +31,14 @@ public final class SecurityConstants{
      * SecurityConfig에서 이 URL들은 permitAll() 설정에 사용됩니다.
      */
     public static final String[] PUBLIC_GET_URLS = {
-            // 게시글
-            "/api/boards"               // GET: 게시글 목록
-            ,"/api/boards/{id}"          // GET: 게시글 상세
-            ,"/api/public/**"            // 공개 게시글
-
-            // 댓글
-            ,"/api/comments"             // GET: 댓글 목록
-            ,"/api/comments/{id}"        // GET: 특정 댓글
-            ,"/api/boards/{boardId}/comments"  // GET: 특정 게시글의 댓글 목록
+            // 회원가입 중복체크
+            "/api/auth/check-loginId"
 
             // WebSocket
             ,"/ws"                     // WebSocket 기본 엔드포인트
             ,"/ws/**"                  // WebSocket 하위 엔드포인트
+            ,"/ws-stomp"
+            ,"/ws-stomp/**"
     };
 
     /**
@@ -60,6 +55,37 @@ public final class SecurityConstants{
             // 인증 관련
             ,"/api/auth/login"           // 로그인
             ,"/api/auth/reissue"         // 토큰 갱신
+    };
+
+    /**
+     * 인사 권한 이상만 있는 사람들이 사용할 수 있는 URL 입니다.
+     * SecurityConfig에서 이 URL들은 인사 권한 이상 ROLE 설정을 해야합니다.
+     */
+    public static final String[] HR_URLS = {
+            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
+            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
+            "/api/dept/update/head",                // 부서장 지정
+            "/api/dept/create",                     // 부서 생성
+            "/api/dept/update/mentor",              // 부서 내 사수 지정
+            "/api/dept/move/employee",              // 사원 부서 변경
+            "/api/employee/position",               // 사원 직급 변경
+            "api/hr/salary",                        // 단일 급여 생성|수정
+            "/api/hr/salary/{salaryId}/pay",        // 단일 급여 지급
+            "/api/hr/salary/pay/all/targetMonth/{targetMonth}", // 전체 사원 급여 예정 지급
+            "/api/hr/salary/pay/dept/{deptId}/targetMonth/{targetMonth}", // 부서별 사원 급여 일괄 지급
+            "/api/hr/salary/date/{date}",           // 전체 사원 급여 조회
+            "/api/hr/salary/dept/{deptId}/date/{date}",     // 부서별 급여 조회
+            "/api/hr/salary/auto-generate/date/{date}",      // 누락 급여 자동 생성
+            "/api/meeting/create/room",             // 회의실 생성
+    };
+
+    /**
+     * 부서장이 사용할 수 있는 URL 입니다.
+     * SecurityConfig에서 이 URL들은 부서장 ROLE 설정을 해야합니다.
+     */
+    public static final String[] DEPT_HEAD_URLS = {
+            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
+            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
     };
 
 }

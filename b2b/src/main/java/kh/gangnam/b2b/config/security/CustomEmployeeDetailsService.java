@@ -1,6 +1,7 @@
 package kh.gangnam.b2b.config.security;
 
 import kh.gangnam.b2b.entity.auth.Employee;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,7 @@ public class CustomEmployeeDetailsService implements UserDetailsService {
 
         // loginId로 조회
         Employee employee = employeeRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("권한 인증에서 해당 사원을 찾을 수 없습니다."));
         return new CustomEmployeeDetails(employee);
     }
 }

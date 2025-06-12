@@ -9,19 +9,19 @@ import kh.gangnam.b2b.dto.meeting.response.ReservationResponse;
 import kh.gangnam.b2b.entity.Meeting.MeetingReservation;
 import kh.gangnam.b2b.entity.Meeting.MeetingRoom;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.repository.EmployeeRepository;
+import kh.gangnam.b2b.exception.ConflictException;
+import kh.gangnam.b2b.exception.InvalidRequestException;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.MeetingReservationRepository;
 import kh.gangnam.b2b.repository.MeetingRoomRepository;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,13 +33,14 @@ public class MeetingServiceImpl {
 
     private final MeetingReservationRepository meetingReservationRepo;
     private final MeetingRoomRepository meetingRoomRepo;
-    private final EmployeeRepository employeeRepo;
+    private final EmployeeCommonService employeeCommonService;
 
     // 회의실 예약
     @Transactional
     public Long createReservation(ReservationRequest request) {
         // 1. 필수 값 검증
-        Employee organizer = validEmployee(request.getOrganizerId());
+        Employee organizer = employeeCommonService
+                .getEmployeeOrThrow(request.getOrganizerId(), "주최자를 찾을 수 없음 (ID: " + request.getOrganizerId() + ")");
         MeetingRoom room = validMeetingRoom(request.getRoomId());
 
         // 2. 시간 유효성 검사
@@ -49,8 +50,7 @@ public class MeetingServiceImpl {
         checkTimeConflict(room, request.getStartTime(), request.getEndTime());
 
         // 4. 참여자 조회
-        Set<Employee> participants = new HashSet<>(
-                employeeRepo.findAllById(request.getParticipantIds()));
+        Set<Employee> participants = employeeCommonService.getParticipants(request.getParticipantIds());
 
         // 5. 엔티티 생성
         MeetingReservation reservation = request.toEntity(room, organizer, participants);
@@ -65,7 +65,7 @@ public class MeetingServiceImpl {
 
         // 회의 종료 시간 이후 수정 불가
         if (LocalDateTime.now().isAfter(reservation.getEndTime())) {
-            throw new IllegalStateException("종료된 회의는 수정 불가");
+            throw new InvalidRequestException("종료된 회의는 수정 불가");
         }
         // 회의 시간 업데이트 전 검증
         if (request.getStartTime() != null || request.getEndTime() != null) {
@@ -74,8 +74,7 @@ public class MeetingServiceImpl {
 
         // 참여자 업데이트
         if (request.getParticipantIds() != null) {
-            Set<Employee> newParticipants = new HashSet<>(
-                    employeeRepo.findAllById(request.getParticipantIds()));
+            Set<Employee> newParticipants = employeeCommonService.getParticipants(request.getParticipantIds());
             reservation.getParticipants().clear();
             reservation.getParticipants().addAll(newParticipants);
         }
@@ -125,7 +124,7 @@ public class MeetingServiceImpl {
 
         // 시간 처리
         if (LocalDateTime.now().isAfter(meetingReservation.getStartTime())) {
-            throw new IllegalStateException("이미 시작된 회의는 취소 불가");
+            throw new InvalidRequestException("이미 시작된 회의는 취소 불가");
         }
 
         meetingReservationRepo.delete(meetingReservation);
@@ -133,10 +132,9 @@ public class MeetingServiceImpl {
 
     // 회의실 생성
     public MeetingRoomResponse createMeetingRoom(MeetingRoomRequest request) {
-        MeetingRoom meetingRoom = request.toEntity();
-        meetingRoom = meetingRoomRepo.save(meetingRoom);
-
-        return MeetingRoomResponse.fromEntity(meetingRoom);
+        // 이미 존재하는 Room 인지 확인
+        validMeetingRoom(request.roomName());
+        return MeetingRoomResponse.fromEntity(meetingRoomRepo.save(request.toEntity()));
     }
 
     // 회의실 리스트 조회
@@ -146,26 +144,26 @@ public class MeetingServiceImpl {
                 .collect(Collectors.toList());
     }
 
-    private Employee validEmployee(Long employeeId) {
-        return employeeRepo.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("주최자를 찾을 수 없음"));
-    }
-
     private MeetingRoom validMeetingRoom(Long meetingRoomId) {
         return meetingRoomRepo.findById(meetingRoomId)
-                .orElseThrow(() -> new RuntimeException("회의실을 찾을 수 없음"));
+                .orElseThrow(() -> new NotFoundException("회의실을 찾을 수 없음 (ID: " + meetingRoomId + ")"));
+    }
+    private void validMeetingRoom(String roomName) {
+        if (meetingRoomRepo.existsByRoomName(roomName)) {
+            throw new ConflictException("같은 이름의 회의실이 이미 존재합니다. (이름: " + roomName + ")");
+        }
     }
 
     private MeetingReservation validMeetingReservation(Long meetingReservationId) {
         return meetingReservationRepo.findById(meetingReservationId)
-                .orElseThrow(() -> new RuntimeException("예약 정보 없음"));
+                .orElseThrow(() -> new NotFoundException("예약 정보 없음 (ID: " + meetingReservationId + ")"));
     }
 
     // 자신의 예약 시간을 제외한 채 시간 체크
     private void validateTimeUpdate(MeetingReservation reservation, ReservationUpdateRequest request) {
         // 1. 필수 값 체크
         if (request.getStartTime() == null || request.getEndTime() == null) {
-            throw new IllegalArgumentException("시작/종료 시간은 함께 입력해야 합니다");
+            throw new InvalidRequestException("시작/종료 시간은 함께 입력해야 합니다");
         }
 
         // 2. 기본 시간 유효성
@@ -173,7 +171,7 @@ public class MeetingServiceImpl {
 
         // 3. 회의 진행 상태 확인
         if (LocalDateTime.now().isAfter(reservation.getStartTime())) {
-            throw new IllegalStateException("이미 시작된 회의는 시간 변경 불가");
+            throw new InvalidRequestException("이미 시작된 회의는 시간 변경 불가");
         }
 
         // 4. 시간대 중복 검사 (현재 예약 제외)
@@ -184,16 +182,13 @@ public class MeetingServiceImpl {
                 reservation.getReservationId()
         );
         if (exists) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "변경하려는 시간에 이미 예약이 존재합니다",
-                    new Throwable());
+            throw new ConflictException("변경하려는 시간에 이미 예약이 존재합니다");
         }
     }
 
     private void validateTime(LocalDateTime start, LocalDateTime end) {
-        if (end.isBefore(start)) throw new IllegalArgumentException("종료 시간이 시작 시간보다 빠름");
-        if (start.isBefore(LocalDateTime.now())) throw new IllegalArgumentException("과거 시간 예약 불가");
+        if (end.isBefore(start)) throw new InvalidRequestException("종료 시간이 시작 시간보다 빠름");
+        if (start.isBefore(LocalDateTime.now())) throw new InvalidRequestException("과거 시간 예약 불가");
     }
 
     // 시간 가능 여부 체크
@@ -203,9 +198,8 @@ public class MeetingServiceImpl {
                 newStart,
                 newEnd
         );
-        if (exists) throw new ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "이미 예약된 시간대",
-                new Throwable());
+        if (exists) {
+            throw new ConflictException("해당 시간대에 이미 예약이 존재합니다");
+        }
     }
 }

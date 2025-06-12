@@ -1,5 +1,6 @@
 package kh.gangnam.b2b.dto.chat.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +14,9 @@ import java.util.List;
  * - 채팅방 정보와 해당 방의 메시지 리스트 포함
  * - 채팅방 입장/상세 조회 시 프론트로 내려줌
  */
+@Getter @Setter
 @Data
+@AllArgsConstructor
 public class ReadRoom {
     private Long roomId;                     // 채팅방 ID
     private String title;                    // 채팅방 이름
