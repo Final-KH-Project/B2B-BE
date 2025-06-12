@@ -51,5 +51,6 @@ public class MeetingReservation extends BaseTimeEntity {
             joinColumns = @JoinColumn(name = "reservation_id"),
             inverseJoinColumns = @JoinColumn(name = "dept_id")
     )
+    @Builder.Default
     private Set<Employee> participants = new HashSet<>();
 }

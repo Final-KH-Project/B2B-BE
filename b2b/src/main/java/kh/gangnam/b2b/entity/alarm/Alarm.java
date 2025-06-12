@@ -43,6 +43,7 @@ public class Alarm extends BaseTimeEntity {
 
     //읽음 여부 처리
     @Column(nullable = false)
+    @Builder.Default
     private boolean isRead=false;
 
 
