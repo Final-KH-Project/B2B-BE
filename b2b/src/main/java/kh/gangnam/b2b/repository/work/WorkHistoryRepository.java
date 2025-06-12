@@ -24,4 +24,6 @@ public interface WorkHistoryRepository extends JpaRepository<WorkHistory, Long> 
     List<WorkHistory> findAllByEmployeeAndWorkDateBetween(Employee employee, LocalDate startOfWeek, LocalDate endOfWeek);
 
     List<WorkHistory> findByEmployeeAndWorkDate(Employee employee, LocalDate date);
+
+    boolean existsByEmployeeAndWorkDateBetween(Employee employee, LocalDate startDate, LocalDate endDate);
 }
