@@ -62,7 +62,21 @@ public final class SecurityConstants{
      * SecurityConfig에서 이 URL들은 인사 권한 이상 ROLE 설정을 해야합니다.
      */
     public static final String[] HR_URLS = {
-            ""
+            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
+            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
+            "/api/dept/update/head",                // 부서장 지정
+            "/api/dept/create",                     // 부서 생성
+            "/api/dept/update/mentor",              // 부서 내 사수 지정
+            "/api/dept/move/employee",              // 사원 부서 변경
+            "/api/employee/position",               // 사원 직급 변경
+            "api/hr/salary",                        // 단일 급여 생성|수정
+            "/api/hr/salary/{salaryId}/pay",        // 단일 급여 지급
+            "/api/hr/salary/pay/all/targetMonth/{targetMonth}", // 전체 사원 급여 예정 지급
+            "/api/hr/salary/pay/dept/{deptId}/targetMonth/{targetMonth}", // 부서별 사원 급여 일괄 지급
+            "/api/hr/salary/date/{date}",           // 전체 사원 급여 조회
+            "/api/hr/salary/dept/{deptId}/date/{date}",     // 부서별 급여 조회
+            "/api/hr/salary/auto-generate/date/{date}",      // 누락 급여 자동 생성
+            "/api/meeting/create/room",             // 회의실 생성
     };
 
     /**
@@ -70,7 +84,8 @@ public final class SecurityConstants{
      * SecurityConfig에서 이 URL들은 부서장 ROLE 설정을 해야합니다.
      */
     public static final String[] DEPT_HEAD_URLS = {
-            ""
+            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
+            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
     };
 
 }
