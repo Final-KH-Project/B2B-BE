@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum Position {
     CEO("최고경영자"),
     EXECUTIVE("경영진(임원)"),
-    MANAGER("매니저(부/팀장)"),
+    MANAGER("인사팀"),
     TEAM_LEADER("팀장"),
     STAFF("일반 직원"),
     NEWBIE("신입");
@@ -33,6 +33,14 @@ public enum Position {
             }
         }
         throw new IllegalArgumentException("허용되지 않은 직급입니다: " + value);
+    }
+
+    public String getRole() {
+        return switch (this) {
+            case CEO, EXECUTIVE, MANAGER -> "ROLE_ADMIN";
+            case TEAM_LEADER -> "ROLE_HEAD";
+            case STAFF, NEWBIE -> "ROLE_USER";
+        };
     }
 
     @Override

@@ -55,7 +55,9 @@ public class EmployeeServiceImpl {
         Employee employee = validEmployee(request.getEmployeeId());
         // Enum 에서 직접 변환 및 검증
         Position newPosition = Position.from(request.getPosition());
+
         employee.setPosition(newPosition);
+        employee.setRole(newPosition.getRole());
         employeeRepository.save(employee);
     }
     // 전화번호 변경
