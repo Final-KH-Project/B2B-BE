@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class CheckInRequest {
-//    //출근DTO
-//    private LocalDateTime startTime; // nullable, 없으면 서버가 now()사용
+    //출근DTO
+    private LocalDateTime startTime; // nullable, 없으면 서버가 now()사용
 
 
 }

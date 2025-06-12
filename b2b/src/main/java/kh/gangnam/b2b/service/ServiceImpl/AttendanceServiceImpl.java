@@ -9,6 +9,8 @@ import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.entity.work.LeaveRequest;
 import kh.gangnam.b2b.entity.work.WorkHistory;
 import kh.gangnam.b2b.entity.work.WorkType;
+import kh.gangnam.b2b.exception.ConflictException;
+import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.work.LeaveRequestRepository;
 import kh.gangnam.b2b.repository.work.WorkHistoryRepository;
@@ -35,13 +37,13 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public void clockIn(Long employeeId, CheckInRequest request) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원없음"));
+                .orElseThrow(() -> new NotFoundException("사원없음"));
 
         LocalDate today = LocalDate.now();
         boolean exists = workHistoryRepository.existsByEmployeeAndWorkDateAndWorkType(
                 employee, today, WorkType.ATTENDANCE);
 
-        if (exists) throw new IllegalStateException("이미 출근 기록이 존재합니다.");
+        if (exists) throw new ConflictException("이미 출근 기록이 존재합니다.");
 
         LocalDateTime startTime = (request != null && request.getStartTime() != null)
                 ? request.getStartTime() : LocalDateTime.now();
@@ -60,14 +62,14 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public DailyAttendanceResponse clockOut(Long employeeId, CheckoutRequest request) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
+                .orElseThrow(() -> new NotFoundException("사원 없음"));
 
         LocalDate workDate = (request != null && request.getWorkDate() != null)
                 ? request.getWorkDate() : LocalDate.now();
 
         WorkHistory record = workHistoryRepository.findByEmployeeAndWorkDateAndWorkType(
                         employee, workDate, WorkType.ATTENDANCE)
-                .orElseThrow(() -> new RuntimeException("출근 기록이 존재하지 않아요"));
+                .orElseThrow(() -> new NotFoundException("출근 기록이 존재하지 않아요"));
 
         LocalDateTime endTime = (request != null && request.getEndTime() != null)
                 ? request.getEndTime() : LocalDateTime.now();
@@ -86,7 +88,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public WeeklyAttendanceResponse getWeeklyAttendance(Long employeeId, LocalDate referenceDate) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원 없음"));
+                .orElseThrow(() -> new NotFoundException("사원 없음"));
 
         LocalDate startOfWeek = referenceDate.with(DayOfWeek.MONDAY);
         LocalDate endOfWeek = startOfWeek.plusDays(6);

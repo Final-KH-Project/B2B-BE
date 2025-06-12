@@ -16,10 +16,20 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 
     List<LeaveRequest> findByEmployee(Employee employee);
 
+    // ✅ 반차 신청 시 단일 날짜 기준 겹침 조회
     @Query("SELECT l FROM LeaveRequest l " +
             "WHERE l.employee = :employee " +
-            "AND l.status = kh.gangnam.b2b.entity.work.ApprovalStatus.APPROVED " +
+            "AND l.status = 'APPROVED' " +
             "AND :date BETWEEN l.startDate AND l.endDate")
     List<LeaveRequest> findApprovedLeaveForDate(@Param("employee") Employee employee,
-                                          @Param("date") LocalDate date);
-}
+                                                @Param("date") LocalDate date);
+
+    // ✅ 연속 날짜 신청 시 범위 겹침 조회
+    @Query("SELECT lr FROM LeaveRequest lr " +
+            "WHERE lr.employee = :employee " +
+            "AND lr.status = 'APPROVED' " +
+            "AND lr.startDate <= :endDate " +
+            "AND lr.endDate >= :startDate")
+    List<LeaveRequest> findApprovedInRange(@Param("employee") Employee employee,
+                                           @Param("startDate") LocalDate start,
+                                           @Param("endDate") LocalDate end);}
