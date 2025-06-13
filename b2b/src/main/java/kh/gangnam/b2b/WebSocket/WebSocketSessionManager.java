@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+//@Component
 public class WebSocketSessionManager {
 
     // 사용자ID -> 세션ID 저장소 (한 명당 하나의 세션만)

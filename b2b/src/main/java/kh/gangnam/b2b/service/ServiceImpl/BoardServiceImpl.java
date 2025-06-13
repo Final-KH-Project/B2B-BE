@@ -9,18 +9,15 @@ import kh.gangnam.b2b.dto.s3.S3Response;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.board.*;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.service.BoardService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import kh.gangnam.b2b.entity.board.*;
 import java.util.List;
 
@@ -28,11 +25,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardServiceImpl implements BoardService {
 
-    private final BoardRepository boardRepository;
-    private final EmployeeRepository employeeRepository;
-    private final CommentRepository commentRepository;
+    private final BoardRepository boardRepo;
+    private final CommentRepository commentRepo;
     private final BoardImageRepository imageRepo;
     private final S3ServiceUtil s3ServiceUtil;
+    private final EmployeeCommonService employeeCommonService;
 
     // Board 서비스 비즈니스 로직 구현
     @Override
@@ -40,11 +37,11 @@ public class BoardServiceImpl implements BoardService {
     public BoardSaveResponse saveBoard(SaveRequest saveRequest, Long employeeId) {
 
         // 작성 employee 가져오기
-        Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new NotFoundException("사원을 찾을 수 없습니다"));
+        Employee employee = employeeCommonService
+                .getEmployeeOrThrow(employeeId, "해당 사원을 찾을 수 없습니다.");
 
         // DB에 게시물 저장
-        Board board = boardRepository.save(saveRequest.toEntity(employee));
+        Board board = boardRepo.save(saveRequest.toEntity(employee));
         String content = saveRequest.content();
 
         // S3 이미지 주소 변경
@@ -77,18 +74,19 @@ public class BoardServiceImpl implements BoardService {
     public CommentSaveResponse saveComment(CommentSaveRequest dto, Long employeeId) {
 
         // id로 해당 employee,board,comment 찾기
-        Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new NotFoundException("사원을 찾을 수 없습니다"));
+        Employee employee = employeeCommonService
+                .getEmployeeOrThrow(employeeId, "해당 사원을 찾을 수 없습니다.");
 
-        Board board = (dto.boardId() != null)?boardRepository
+        Board board = (dto.boardId() != null)?boardRepo
                 .findById(dto.boardId()).orElseThrow(() -> new NotFoundException("게시판을 찾을 수 없습니다")):null;
 
-        Comment parent = (dto.parentId() != null)?commentRepository
+        Comment parent = (dto.parentId() != null)?commentRepo
                 .findById(dto.parentId()).orElseThrow(() -> new NotFoundException("댓글을 찾을 수 없습니다")):null;
+
 
         // comment 테이블에 전달된 정보 저장
         Comment comment = dto.toEntity(board,employee,parent);
-        commentRepository.save(comment);
+        commentRepo.save(comment);
 
         return CommentSaveResponse.fromEntity(comment,employeeId);
     }
@@ -97,7 +95,7 @@ public class BoardServiceImpl implements BoardService {
     public List<CommentSaveResponse> getCommentList(Long boardId, Long employeeId) {
 
         // 보드에서 댓글 List로 불러오기
-        List<Comment> comment = boardRepository
+        List<Comment> comment = boardRepo
                 .findById(boardId).orElseThrow(() -> new NotFoundException("게시판을 찾을 수 없습니다")).getComments();
 
         // dto로 변환해서 리턴
@@ -109,11 +107,11 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public MessageResponse commentDeleteBoard(Long commentId) {
 
-        if (!commentRepository.existsById(commentId)) {
+        if (!commentRepo.existsById(commentId)) {
             throw new NotFoundException("삭제할 댓글이 존재하지 않습니다");
         }
         // 해당 댓글 삭제
-        commentRepository.deleteById(commentId);
+        commentRepo.deleteById(commentId);
 
         return MessageResponse.sendMessage("삭제 성공");
     }
@@ -123,7 +121,7 @@ public class BoardServiceImpl implements BoardService {
     public CommentUpdateResponse updateComment(CommentUpdateRequest dto, Long employeeId) {
 
         // 해당하는 댓글 entity 찾기
-        Comment comment = commentRepository.findById(dto.commentId())
+        Comment comment = commentRepo.findById(dto.commentId())
                 .orElseThrow(()-> new NotFoundException("댓글이 존재하지 않습니다"));
 
         comment.setComment(dto.comment());
@@ -134,7 +132,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public List<CommentSaveResponse> getReplyList(Long commentId, Long employeeId) {
 
-        return commentRepository.findById(commentId).orElseThrow(()-> new NotFoundException("댓글이 존재하지 않습니다"))
+        return commentRepo.findById(commentId).orElseThrow(()-> new NotFoundException("댓글이 존재하지 않습니다"))
                 .getChildren().stream().map((comment)->CommentSaveResponse.fromEntity(comment,employeeId)).toList();
     }
 
@@ -142,14 +140,14 @@ public class BoardServiceImpl implements BoardService {
     public Page<BoardResponse> getListBoard(int type, Pageable pageable) {
         BoardType boardType = BoardType.useTypeNo(type);
 
-        return boardRepository.findByType(boardType, pageable)
+        return boardRepo.findByType(boardType, pageable)
                 .map(BoardResponse::fromEntity);
     }
 
     @Override
     public BoardResponse getBoard(Long boardId,Long employeeId) {
 
-        return boardRepository.findById(boardId)
+        return boardRepo.findById(boardId)
                 .map((board)->{
                     return BoardResponse.fromEntity(board,employeeId);
                 })
@@ -161,8 +159,9 @@ public class BoardServiceImpl implements BoardService {
     public BoardResponse updateBoard(Long boardId, UpdateRequest request) {
 
         // 게시글 정보 조회 후 저장
-        Board board = boardRepository.findById(boardId)
+        Board board = boardRepo.findById(boardId)
                 .orElseThrow(() -> new NotFoundException("게시판을 찾을 수 없습니다")).update(request);
+
         String content = request.content();
 
         s3ServiceUtil.deleteBoardImage(boardId);
@@ -196,12 +195,12 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public MessageResponse deleteBoard(Long boardId) {
 
-        if (!boardRepository.existsById(boardId)) {
+        if (!boardRepo.existsById(boardId)) {
             throw new NotFoundException("삭제할 게시글이 존재하지 않습니다");
         }
 
         // 게시물과 s3에 업로드된 이미지 삭제
-        boardRepository.deleteById(boardId);
+        boardRepo.deleteById(boardId);
         s3ServiceUtil.deleteBoardImage(boardId);
 
 
@@ -211,8 +210,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public EditResponse editBoard(Long boardId) {
 
-        Board board = boardRepository.findById(boardId)
+        Board board = boardRepo.findById(boardId)
                 .orElseThrow(() -> new NotFoundException("게시판을 찾을 수 없습니다"));
+
         return s3ServiceUtil.editBoardUrl(board);
     }
 
