@@ -48,7 +48,7 @@ public class DeptServiceImpl {
 
     // 부서에 있는 사원 리스트 조회
     public List<EmployeeDTO> getEmployeesByDeptId(Long deptId) {
-        return employeeCommonService.getEmployees(deptId).stream()
+        return employeeCommonService.getEmployeesInDept(deptId).stream()
                 .map(EmployeeDTO::fromEntity)
                 .collect(Collectors.toList());
     }

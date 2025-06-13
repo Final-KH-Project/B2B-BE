@@ -10,22 +10,17 @@ import kh.gangnam.b2b.entity.project.Project;
 import kh.gangnam.b2b.entity.project.Task;
 import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.DeptRepository;
-import kh.gangnam.b2b.repository.EmployeeRepository;
 import kh.gangnam.b2b.repository.project.DocumentRepository;
 import kh.gangnam.b2b.repository.project.LinkRepository;
 import kh.gangnam.b2b.repository.project.ProjectRepository;
 import kh.gangnam.b2b.repository.project.TaskRepository;
 import kh.gangnam.b2b.service.ProjectService;
+import kh.gangnam.b2b.service.shared.EmployeeCommonService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +28,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
-    private final EmployeeRepository employeeRepository;
     private final LinkRepository linkRepository;
     private final DocumentRepository documentRepository;
     private final DeptRepository deptRepository;
+    private final EmployeeCommonService employeeCommonService;
 
     @Override
     public List<GanttListResponse> getGantt(Long id) {
@@ -55,8 +50,7 @@ public class ProjectServiceImpl implements ProjectService {
         Task parentTask = null;
 
         // 작성 employee 가져오기
-        Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new NotFoundException("작성자가 존재하지 않습니다"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(employeeId, "작성자가 존재하지 않습니다.");
 
         // 프로젝트 id 가져오기
         Project project = projectRepository.findById(dto.projectId())
@@ -159,14 +153,15 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<employeeListResponse> getEmployee(Long id) {
 
-        return employeeRepository.findByDeptDeptId(id)
+        return employeeCommonService.getEmployeesInDept(id)
                 .stream().map(employeeListResponse::fromEntity).toList();
     }
 
     @Override
     public List<ProjectListResponse> getProject(Long id) {
 
-        return employeeRepository.findById(id).orElseThrow().getProjects().stream()
+        return employeeCommonService.getEmployeeOrThrow(id, "사원을 찾을 수 없습니다.")
+                .getProjects().stream()
                 .distinct().map(project -> ProjectListResponse.fromEntity(project, id)).toList();
     }
 
@@ -178,15 +173,13 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new NotFoundException("부서를 찾을 수 없습니다"));
 
         // 매니저 id
-        Employee manager = employeeRepository.findById(dto.employeeId())
-                .orElseThrow(() -> new NotFoundException("관리자를 찾을 수 없습니다"));
+        Employee manager = employeeCommonService.getEmployeeOrThrow(dto.employeeId(), "관리자를 찾을 수 없습니다.");
 
         // 작성자
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("사원을 찾을 수 없습니다"));
+        Employee employee = employeeCommonService.getEmployeeOrThrow(dto.employeeId(), "사원을 찾을 수 없습니다.");
 
         // 담당 사원
-        List<Employee> members = employeeRepository.findAllById(dto.members());
+        List<Employee> members = employeeCommonService.getEmployeesInList(dto.members());
 
         Project project = projectRepository.save(dto.toEntity(dept,manager,members,employee));
 

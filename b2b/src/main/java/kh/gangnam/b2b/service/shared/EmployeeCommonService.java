@@ -1,7 +1,6 @@
 package kh.gangnam.b2b.service.shared;
 
 import jakarta.transaction.Transactional;
-import kh.gangnam.b2b.dto.employee.EmployeeDTO;
 import kh.gangnam.b2b.entity.auth.Employee;
 import kh.gangnam.b2b.exception.NotFoundException;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,11 +48,15 @@ public class EmployeeCommonService {
         return employeeRepo.save(employee);
     }
 
-    public List<Employee> getEmployees(long deptId) {
+    public List<Employee> getEmployeesInDept(long deptId) {
         return employeeRepo.findByDeptDeptId(deptId);
     }
 
     public Set<Employee> getParticipants(List<Long> participantIds) {
         return new HashSet<>(employeeRepo.findAllById(participantIds));
     }
+    public List<Employee> getEmployeesInList(List<Long> employeeIds) {
+        return employeeRepo.findAllById(employeeIds);
+    }
+
 }
