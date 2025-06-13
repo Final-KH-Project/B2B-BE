@@ -5,10 +5,14 @@ import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.Dept;
+import kh.gangnam.b2b.entity.project.Project;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
 
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @DynamicUpdate
 @Entity
@@ -34,6 +38,9 @@ public class Employee extends BaseTimeEntity {
 
     @Column(name = "base_salary")
     private Long baseSalary;
+
+    @ManyToMany(mappedBy = "members")
+    private List<Project> projects = new ArrayList<>();
 
     @Column(name = "login_id", nullable = false)
     private String loginId;

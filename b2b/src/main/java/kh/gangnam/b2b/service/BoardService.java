@@ -5,9 +5,10 @@ import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
-import kh.gangnam.b2b.dto.board.response.MessageResponse;
+import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -34,7 +35,7 @@ public interface BoardService {
      * @return
      */
     //ResponseEntity<List<BoardDTO>> readBoards(String type);
-    List<BoardResponse> getListBoard(int type, int page);
+    Page<BoardResponse> getListBoard(int type, Pageable pageable);
 
     /**
      * 게시글 상세 조회
@@ -114,4 +115,6 @@ public interface BoardService {
      * @return 해당 보드의 수정 여부 반환
      */
     CommentUpdateResponse updateComment(CommentUpdateRequest dto, Long employeeId);
+
+    List<CommentSaveResponse> getReplyList(Long commentId, Long employeeId);
 }

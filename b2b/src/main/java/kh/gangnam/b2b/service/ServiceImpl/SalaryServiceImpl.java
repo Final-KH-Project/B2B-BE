@@ -101,7 +101,7 @@ public class SalaryServiceImpl {
         if (!deptRepo.existsById(deptId)) {
             throw new NotFoundException("해당 부서를 찾을 수 없습니다.");
         }
-        employeeCommonService.getEmployees(deptId).forEach(emp ->
+        employeeCommonService.getEmployeesInDept(deptId).forEach(emp ->
                 processPaymentForEmployee(emp, targetMonth));
     }
 
