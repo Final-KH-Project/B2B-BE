@@ -7,10 +7,9 @@ import kh.gangnam.b2b.dto.auth.request.LoginRequest;
 import kh.gangnam.b2b.service.ServiceImpl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +29,13 @@ public class AuthController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestBody JoinRequest joinRequest) {
-        return authServiceImpl.join(joinRequest);
+    public ResponseEntity<Map<String, String>> join(@RequestBody JoinRequest joinRequest) {
+        return ResponseEntity.ok(authServiceImpl.join(joinRequest));
     }
+
+    @GetMapping("/check-loginId")
+    public ResponseEntity<Boolean> checkLoginId(@RequestParam(name = "loginId") String loginId) {
+        return ResponseEntity.ok(authServiceImpl.checkLoginId(loginId));
+    }
+
 }

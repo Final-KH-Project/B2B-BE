@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -34,6 +35,30 @@ public class DummyEmployeeLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+
+        List<String> koreanNames = Arrays.asList(
+                "김민준", "이서연", "박지민", "최수빈", "정하린",
+                "조현진", "윤서현", "손주원", "강민지", "유지훈",
+                "황지우", "임수아", "오하윤", "장지후", "한예린",
+                "신지우", "서지아", "안예준", "고은서", "백다인",
+                "송민규", "권지민", "나현준", "심서아", "류지후",
+                "진승민", "강서윤", "허서현", "노해린", "문지훈",
+                "양지원", "황대현", "이지안", "박시윤", "김지율",
+                "최승우", "정유진", "조영서", "윤도현", "손하윤",
+                "강민재", "유수진", "임준서", "오지호", "장서연",
+                "한시우", "신민서", "서지민", "안지현", "고예은",
+                "백서준", "송하린", "권수빈", "나예지", "심지환",
+                "류지안", "진민정", "강현서", "허지은", "노승민",
+                "문지우", "양하율", "황민경", "이준호", "박서아",
+                "김지수", "최예진", "정현우", "조하나", "윤지후",
+                "손민재", "강유진", "유지윤", "임서준", "오지연",
+                "장하린", "한승현", "신서진", "서지환", "안수아",
+                "고민정", "백지은", "송현서", "권예준", "나하율",
+                "심준서", "류지수", "진서윤", "강지우", "허하윤",
+                "노민서", "문지윤", "양예진", "황승민", "이서현",
+                "박준서", "김하린", "최지민", "정서아", "조현서"
+        );
+
         // 1. 100명 사용자 생성
         createDummyUsers();
 
