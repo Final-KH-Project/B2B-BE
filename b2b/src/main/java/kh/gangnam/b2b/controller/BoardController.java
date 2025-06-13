@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
+import kh.gangnam.b2b.dto.board.response.CustomPageResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
 import kh.gangnam.b2b.service.BoardService;
@@ -61,11 +62,20 @@ public class BoardController {
     }
 
     @GetMapping("/{type}")
-    public ResponseEntity<Page<BoardResponse>> getList(
+    public ResponseEntity<CustomPageResponse<BoardResponse>> getList(
             @PathVariable("type") int type,
             @PageableDefault(size = 10) Pageable pageable) {
 
         return ResponseEntity.ok(boardService.getListBoard(type, pageable));
+    }
+
+    @GetMapping("/search/{type}/{text}")
+    public ResponseEntity<CustomPageResponse<BoardResponse>> getSearchList(
+            @PathVariable("type") int type,
+            @PathVariable("text") String text,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(boardService.getListBoard(type,text,pageable));
     }
 
     @GetMapping("/read/{boardId}")

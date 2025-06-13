@@ -4,6 +4,7 @@ package kh.gangnam.b2b.service;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
+import kh.gangnam.b2b.dto.board.response.CustomPageResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.repository.board.CommentUpdateRequest;
@@ -34,8 +35,8 @@ public interface BoardService {
      * BoardDTO -> 페이징 예정
      * @return
      */
-    //ResponseEntity<List<BoardDTO>> readBoards(String type);
-    Page<BoardResponse> getListBoard(int type, Pageable pageable);
+    CustomPageResponse<BoardResponse> getListBoard(int type, Pageable pageable);
+    CustomPageResponse<BoardResponse> getListBoard(int type, String keyword, Pageable pageable);
 
     /**
      * 게시글 상세 조회
@@ -44,10 +45,7 @@ public interface BoardService {
      * BoardDTO
      * @return
      */
-    //ResponseEntity<BoardDTO> readBoard(String type, Long id);
     BoardResponse getBoard(Long boardId, Long employeeId);
-
-    //ResponseEntity<BoardResponse> get(String type, Long id);
 
     /**
      * 게시글 수정
@@ -56,7 +54,6 @@ public interface BoardService {
      * 수정하기 버튼을 클릭하면 수정된 게시글 상세 페이지로 넘어가니 수정 게시글 데이터를 보내줘야 함
      * @return
      */
-    //ResponseEntity<BoardDTO> updateBoard(UpdateBoard updateBoard);
     BoardResponse updateBoard(Long boardId, UpdateRequest request);
     /**
      * 게시글 삭제

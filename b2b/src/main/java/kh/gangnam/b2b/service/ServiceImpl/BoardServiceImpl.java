@@ -3,6 +3,7 @@ package kh.gangnam.b2b.service.ServiceImpl;
 import kh.gangnam.b2b.dto.board.request.*;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentUpdateResponse;
+import kh.gangnam.b2b.dto.board.response.CustomPageResponse;
 import kh.gangnam.b2b.dto.board.response.EditResponse;
 import kh.gangnam.b2b.dto.MessageResponse;
 import kh.gangnam.b2b.dto.s3.S3Response;
@@ -14,13 +15,10 @@ import kh.gangnam.b2b.service.BoardService;
 import kh.gangnam.b2b.util.S3ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import kh.gangnam.b2b.entity.board.*;
 import java.util.List;
 
@@ -139,11 +137,18 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public Page<BoardResponse> getListBoard(int type, Pageable pageable) {
+    public CustomPageResponse<BoardResponse> getListBoard(int type, Pageable pageable) {
+
         BoardType boardType = BoardType.useTypeNo(type);
 
-        return boardRepository.findByType(boardType, pageable)
-                .map(BoardResponse::fromEntity);
+        return CustomPageResponse.fromPage(boardRepository.findByType(boardType, pageable).map(BoardResponse::fromEntity));
+    }
+
+    @Override
+    public CustomPageResponse<BoardResponse> getListBoard(int type, String keyword, Pageable pageable) {
+        BoardType boardType = BoardType.useTypeNo(type);
+        Page<Board> boardPage = boardRepository.findByTypeAndTitleContaining(boardType, keyword, pageable);
+        return CustomPageResponse.fromPage(boardPage.map(BoardResponse::fromEntity));
     }
 
     @Override
