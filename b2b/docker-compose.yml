@@ -2,6 +2,8 @@
 services:
   app:  # 서비스 이름 (컨테이너 이름의 접두사로 사용됨)
     image: b2b:latest  # 사용할 Docker 이미지 (Jenkins 파이프라인에서 빌드한 이미지)
+    environment:
+      - JAVA_OPTS=-Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true
     ports:
       - "8080:8080"  # 포트 매핑 (호스트:컨테이너)
       # - 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑

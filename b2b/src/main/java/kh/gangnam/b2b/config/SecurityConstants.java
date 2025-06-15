@@ -33,7 +33,7 @@ public final class SecurityConstants{
     public static final String[] PUBLIC_GET_URLS = {
             // 회원가입 중복체크
             "/api/auth/check-loginId"
-
+            ,"/error"
             // WebSocket
             ,"/ws"                     // WebSocket 기본 엔드포인트
             ,"/ws/**"                  // WebSocket 하위 엔드포인트
