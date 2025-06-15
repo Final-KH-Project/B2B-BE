@@ -49,7 +49,7 @@ public class MeetingReservation extends BaseTimeEntity {
     @JoinTable(
             name = "reservation_department",
             joinColumns = @JoinColumn(name = "reservation_id"),
-            inverseJoinColumns = @JoinColumn(name = "dept_id")
+            inverseJoinColumns = @JoinColumn(name = "employee_id")
     )
     @Builder.Default
     private Set<Employee> participants = new HashSet<>();

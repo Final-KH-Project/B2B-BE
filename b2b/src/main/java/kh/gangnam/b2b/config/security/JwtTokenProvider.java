@@ -183,7 +183,7 @@ public class JwtTokenProvider {
             return !isTokenExpired(token);
         } catch (ExpiredJwtException ex) {
             log.error("[TOKEN] Token expired: {}", ex.getMessage());
-            throw new JwtTokenValidationException("Token expired", ex);
+            throw ex;  // ❗ 커스텀 예외가 아닌 원본 예외 직접 throw
         } catch (JwtException | IllegalArgumentException ex) {
             log.error("[TOKEN] Invalid token: {}", ex.getMessage());
             throw new JwtTokenValidationException("Invalid token", ex);

@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.meeting.request.MeetingRoomRequest;
 import kh.gangnam.b2b.dto.meeting.request.ReservationRequest;
 import kh.gangnam.b2b.dto.meeting.request.ReservationUpdateRequest;
 import kh.gangnam.b2b.dto.meeting.response.MeetingRoomResponse;
+import kh.gangnam.b2b.dto.meeting.response.ParticipantReservationResponse;
 import kh.gangnam.b2b.dto.meeting.response.ReservationResponse;
 import kh.gangnam.b2b.entity.Meeting.MeetingReservation;
 import kh.gangnam.b2b.entity.Meeting.MeetingRoom;
@@ -141,6 +142,16 @@ public class MeetingServiceImpl {
     public List<MeetingRoomResponse> getAllMeetingRooms() {
         return meetingRoomRepo.findAll().stream()
                 .map(MeetingRoomResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+    // 한 사원에 대해 자신이 참여한 회의(한달치)
+    public List<ParticipantReservationResponse> getMyMeetingsByMonth(Long participantId, int year, int month) {
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime end = start.plusMonths(1);
+
+        return meetingReservationRepo.findMeetingsByParticipantAndMonth(participantId, start, end)
+                .stream()
+                .map(ParticipantReservationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 

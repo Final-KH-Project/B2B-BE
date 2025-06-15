@@ -3,6 +3,7 @@ package kh.gangnam.b2b.entity.board;
 import jakarta.persistence.*;
 import kh.gangnam.b2b.dto.board.request.UpdateRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
+import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
 import lombok.*;
 
@@ -41,6 +42,9 @@ public class Board extends BaseTimeEntity {
     @Builder.Default
     @OrderBy("createdDate DESC")
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Alarm> alarms = new ArrayList<>();
 
     // 수정 후 수정된 Board를 리턴
     public Board update(UpdateRequest dto){

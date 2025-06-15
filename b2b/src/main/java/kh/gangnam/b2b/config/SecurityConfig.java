@@ -77,7 +77,7 @@ public class SecurityConfig {
                         // POST 요청 중 공개 접근 가능한 URL
                         .requestMatchers(HttpMethod.POST, SecurityConstants.PUBLIC_POST_URLS).permitAll()
                         // 부서장만 접근 가능한 URL
-                        .requestMatchers(SecurityConstants.DEPT_HEAD_URLS).hasRole("HEAD")
+                        .requestMatchers(SecurityConstants.DEPT_HEAD_URLS).hasAnyRole("ADMIN", "HEAD")
                         // 인사 직급 이상만 접근 가능한 URL
                         .requestMatchers(SecurityConstants.HR_URLS).hasRole("ADMIN")
 

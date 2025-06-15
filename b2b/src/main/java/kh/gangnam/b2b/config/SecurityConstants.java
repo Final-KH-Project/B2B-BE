@@ -62,8 +62,8 @@ public final class SecurityConstants{
      * SecurityConfig에서 이 URL들은 인사 권한 이상 ROLE 설정을 해야합니다.
      */
     public static final String[] HR_URLS = {
-            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
-            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
+//            "/api/approval/pending",                // 부서장 승인 대기 목록 조회
+//            "/api/approval/{requestId}/decision",   // 부서장 승인/반려 처리
             "/api/dept/update/head",                // 부서장 지정
             "/api/dept/create",                     // 부서 생성
             "/api/dept/update/mentor",              // 부서 내 사수 지정

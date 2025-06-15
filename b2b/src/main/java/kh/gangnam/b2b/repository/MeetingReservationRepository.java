@@ -38,4 +38,15 @@ public interface MeetingReservationRepository extends JpaRepository<MeetingReser
             @Param("newEnd") LocalDateTime newEnd,
             @Param("excludeId") Long excludeId
     );
+
+    // 현재 달의 모든 회의 조회 (참가자 기준)
+    @Query("SELECT DISTINCT mr FROM MeetingReservation mr " +
+            "JOIN FETCH mr.participants p " +
+            "WHERE p.employeeId = :employeeId " +
+            "AND mr.startTime BETWEEN :start AND :end")
+    List<MeetingReservation> findMeetingsByParticipantAndMonth(
+            @Param("employeeId") Long employeeId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

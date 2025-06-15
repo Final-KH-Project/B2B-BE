@@ -5,6 +5,7 @@ import kh.gangnam.b2b.dto.employee.Position;
 import kh.gangnam.b2b.dto.employee.request.UpdateProfileRequest;
 import kh.gangnam.b2b.entity.BaseTimeEntity;
 import kh.gangnam.b2b.entity.Dept;
+import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.project.Project;
 import lombok.*;
 import jakarta.validation.constraints.Pattern;
@@ -62,6 +63,9 @@ public class Employee extends BaseTimeEntity {
     private String address;
     @Column(name = "role")
     private String role;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Alarm> alarms = new ArrayList<>();
 
 
     public void updateProfile(UpdateProfileRequest request) {

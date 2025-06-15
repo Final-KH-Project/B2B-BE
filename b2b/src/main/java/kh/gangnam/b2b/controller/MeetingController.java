@@ -1,13 +1,18 @@
 package kh.gangnam.b2b.controller;
 
+import kh.gangnam.b2b.config.security.CustomEmployeeDetails;
 import kh.gangnam.b2b.dto.meeting.request.MeetingRoomRequest;
 import kh.gangnam.b2b.dto.meeting.request.ReservationRequest;
 import kh.gangnam.b2b.dto.meeting.request.ReservationUpdateRequest;
 import kh.gangnam.b2b.dto.meeting.response.MeetingRoomResponse;
+import kh.gangnam.b2b.dto.meeting.response.ParticipantReservationResponse;
 import kh.gangnam.b2b.dto.meeting.response.ReservationResponse;
+import kh.gangnam.b2b.entity.Meeting.MeetingReservation;
 import kh.gangnam.b2b.service.ServiceImpl.MeetingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -52,6 +57,19 @@ public class MeetingController {
     @PostMapping("/create/room")
     public MeetingRoomResponse createMeetingRoom(@RequestBody MeetingRoomRequest request) {
         return meetingService.createMeetingRoom(request);
+    }
+
+    // 한 사원에 대해 자신이 당월 참여한 회의
+    // 참가자별 월별 조회
+    @GetMapping("/{year}/{month}")
+    public ResponseEntity<List<ParticipantReservationResponse>> getMyMeetings(
+            @AuthenticationPrincipal CustomEmployeeDetails details,
+            @PathVariable(name = "year") int year,
+            @PathVariable(name = "month") int month
+    ) {
+        return ResponseEntity.ok(
+                meetingService.getMyMeetingsByMonth(details.getEmployeeId(), year, month)
+        );
     }
 
     // 회의실 목록 조회
