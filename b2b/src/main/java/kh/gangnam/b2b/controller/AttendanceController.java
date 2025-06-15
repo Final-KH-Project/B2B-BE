@@ -31,7 +31,7 @@ public class AttendanceController {
     @PostMapping("/check-in")
     public ResponseEntity<ApiResponse<String>> checkIn(
             @AuthenticationPrincipal CustomEmployeeDetails user,
-            @RequestBody(required = false) CheckInRequest request //요청 바디없을 수 있음
+            @RequestBody(required = false) CheckInRequest request
             ){
         attendanceService.checkIn(user.getEmployeeId(), request);
         return ResponseEntity.ok(ApiResponse.success("출근이 정상적으로 처리되었습니다."));

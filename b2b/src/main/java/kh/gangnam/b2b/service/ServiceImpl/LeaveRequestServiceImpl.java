@@ -160,7 +160,7 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
         // 승인된 휴가만 조회 (PEDING, REJECTED 제외)
         List<LeaveRequestEntity> approvedLeaves = leaveRequestRepository
-                .findByEmployeeAndStatus(employee, ApprovalStatus.APPROVED);
+                .findByEmployeeAndStatus(employee, ApprovalStatus.APPROVED);//승인된 연차만 조회
 
         // 사용한 연차 일수 계산
         double usedLeave = 0.0;
