@@ -57,6 +57,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new NotFoundException("프로젝트가 존재하지 않습니다"));
 
         // 부모 id 가져오기
+        System.out.println(parentId);
         if (parentId != null) {
             parentTask = taskRepository.findById(parentId)
                     .orElseThrow(() -> new NotFoundException("부모 태스크를 찾을 수 없습니다"));

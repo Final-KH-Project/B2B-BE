@@ -15,6 +15,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Component
@@ -135,10 +137,16 @@ public class S3ServiceUtil {
      */
     public S3Response moveFromTempToUpload(String url, Long boardId) {
 
-        // tempUrl에서 키 추출
+        // URL에서 버킷 키 추출
         String prefix = "https://s3.ap-northeast-2.amazonaws.com/com.kh.cjh.bucket/";
-        String bucketKey = url.replace(prefix, "");
-        String uploadKey = UPLOAD_PATH + boardId + url.substring(url.lastIndexOf("/"));
+        String encodedKey = url.replace(prefix, "");
+
+        // 🔥 핵심: URL 디코딩으로 한글 복원
+        String bucketKey = URLDecoder.decode(encodedKey, StandardCharsets.UTF_8);
+
+        // 파일명만 추출
+        String fileName = bucketKey.substring(bucketKey.lastIndexOf("/") + 1);
+        String uploadKey = UPLOAD_PATH + boardId + "/" + fileName;
 
         // 파일 이동(tempKey, uploadKey)
         return moveFile(bucketKey, uploadKey);
@@ -153,8 +161,14 @@ public class S3ServiceUtil {
     public S3Response moveFromUploadToTemp(String url) {
 
         String prefix = "https://s3.ap-northeast-2.amazonaws.com/com.kh.cjh.bucket/";
-        String bucketKey = url.replace(prefix, "");
-        String uploadKey = TEMP_PATH + url.substring(url.lastIndexOf("/")+ 1);
+        String encodedKey = url.replace(prefix, "");
+
+        // 🔥 URL 디코딩 추가 (한글 파일명 처리)
+        String bucketKey = URLDecoder.decode(encodedKey, StandardCharsets.UTF_8);
+
+        // 파일명만 추출 (디코딩된 키에서)
+        String fileName = bucketKey.substring(bucketKey.lastIndexOf("/") + 1);
+        String uploadKey = TEMP_PATH + fileName;
 
         // 파일 이동(uploadKey, tempKey)
         return moveFile(bucketKey, uploadKey);

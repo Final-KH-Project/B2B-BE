@@ -43,6 +43,7 @@ public class BoardServiceImpl implements BoardService {
 
         // DB에 게시물 저장
         Board board = boardRepo.save(saveRequest.toEntity(employee));
+        System.out.println("보드의 값"+board);
         String content = saveRequest.content();
 
         // S3 이미지 주소 변경

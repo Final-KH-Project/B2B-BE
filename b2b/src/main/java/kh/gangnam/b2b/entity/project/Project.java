@@ -36,7 +36,7 @@ public class Project {
     @JoinColumn(name = "dept_id")
     private Dept dept;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "author_id")
     private Employee author;
 
