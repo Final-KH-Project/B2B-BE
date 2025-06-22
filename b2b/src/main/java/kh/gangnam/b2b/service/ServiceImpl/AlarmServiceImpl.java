@@ -1,8 +1,7 @@
 package kh.gangnam.b2b.service.ServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import kh.gangnam.b2b.WebSocket.AlarmMessage;
+import kh.gangnam.b2b.config.websocket.AlarmMessage;
 import kh.gangnam.b2b.dto.alarm.AlarmDTO;
 import kh.gangnam.b2b.dto.alarm.AlarmType;
 import kh.gangnam.b2b.dto.alarm.request.SaveAlarm;

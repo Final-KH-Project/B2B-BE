@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.WebSocket;
+package kh.gangnam.b2b.config.websocket;
 
 import org.springframework.stereotype.Component;
 

@@ -1,12 +1,9 @@
 package kh.gangnam.b2b.aop;
 
 
-import jakarta.persistence.EntityNotFoundException;
-import kh.gangnam.b2b.WebSocket.NotificationPublisher;
+import kh.gangnam.b2b.config.websocket.NotificationPublisher;
 import kh.gangnam.b2b.dto.board.request.BoardSaveResponse;
-import kh.gangnam.b2b.entity.alarm.Alarm;
 import kh.gangnam.b2b.entity.auth.Employee;
-import kh.gangnam.b2b.entity.board.Board;
 import kh.gangnam.b2b.entity.board.BoardType;
 import kh.gangnam.b2b.repository.AlarmRepository;
 import kh.gangnam.b2b.repository.EmployeeRepository;
@@ -17,7 +14,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

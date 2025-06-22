@@ -1,6 +1,6 @@
 package kh.gangnam.b2b.aop;
 
-import kh.gangnam.b2b.WebSocket.NotificationPublisher;
+import kh.gangnam.b2b.config.websocket.NotificationPublisher;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;
 import kh.gangnam.b2b.service.ServiceImpl.AlarmServiceImpl;
 import lombok.RequiredArgsConstructor;

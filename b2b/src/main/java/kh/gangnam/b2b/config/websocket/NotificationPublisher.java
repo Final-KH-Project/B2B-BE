@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.WebSocket;
+package kh.gangnam.b2b.config.websocket;
 
 import kh.gangnam.b2b.dto.board.request.BoardSaveResponse;
 import kh.gangnam.b2b.dto.board.response.CommentSaveResponse;

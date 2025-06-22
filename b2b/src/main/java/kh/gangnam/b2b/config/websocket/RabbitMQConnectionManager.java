@@ -1,4 +1,4 @@
-package kh.gangnam.b2b.WebSocket;
+package kh.gangnam.b2b.config.websocket;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
